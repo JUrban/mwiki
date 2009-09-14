@@ -56,7 +56,7 @@ sub verify {
 #    }
 
     system("chmod 0777 $TemporaryProblemDirectory");
-
+    writefile("javascript/tst.js", $config{destdir}, "");
 
     open(PFH, ">$TemporaryProblemDirectory/$ProblemFile") or die "$ProblemFile not writable";
     printf(PFH "%s",$content);
