@@ -59,7 +59,8 @@ sub coqdoc {
 
     my $host='hair-dryer';
 
-    my $result = `cd $TemporaryProblemDirectory; /home/urban/corn_stable/CoRN/bin/CoRNc $ProblemFile; coqdoc --no-index --body-only --stdout $ProblemFile | sed -e "/$host(.*[/])[^/]+.html#/$host$1#/g"`;
+    my $result = `cd $TemporaryProblemDirectory; /home/urban/corn_stable/CoRN/bin/CoRNc $ProblemFile; coqdoc --no-index --body-only --stdout $ProblemFile`;
+    $result =~ s/$host(.*[/])[^/]+.html\#/$host$1\#/g;
     system("rm -rf $TemporaryProblemDirectory");
 
     return $result;
