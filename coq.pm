@@ -36,6 +36,8 @@ sub htmlize (@) {
 
 # Run coqdoc on $content, giving the file name $pname.v, return the html
 # Creates temp dir in /tmp, which should be removed at some point (after debuging)
+# An evil hack is now done to fix the local html links - just by looking at the host name (hair-dryer :-)
+# - either get more info from ikiwiki API, or hack coqdoc to do the links locally
 sub coqdoc {
     my ($pname, $content) = @_;
     my $ProblemFile = $pname . '.v';
@@ -55,7 +57,9 @@ sub coqdoc {
     printf(PFH "%s",$content);
     close(PFH);
 
-    my $result = `cd $TemporaryProblemDirectory; /home/urban/corn_stable/CoRN/bin/CoRNc $ProblemFile; coqdoc --no-index --body-only --stdout $ProblemFile`;
+    my $host='hair-dryer';
+
+    my $result = `cd $TemporaryProblemDirectory; /home/urban/corn_stable/CoRN/bin/CoRNc $ProblemFile; coqdoc --no-index --body-only --stdout $ProblemFile | sed -e "/$host(.*[/])[^/]+.html#/$host$1#/g"`;
     system("rm -rf $TemporaryProblemDirectory");
 
     return $result;
