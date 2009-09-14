@@ -11,6 +11,7 @@ use File::Basename;
 
 
 sub import {
+        add_underlay("javascript");
 	hook(type => "getsetup", id => "miz", call => \&getsetup);
 	hook(type => "htmlize", id => "miz", call => \&htmlize);
 }
