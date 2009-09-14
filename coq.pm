@@ -55,7 +55,7 @@ sub coqdoc {
     printf(PFH "%s",$content);
     close(PFH);
 
-    my $result = `cd $TemporaryProblemDirectory; coqdoc --no-index --body-only --stdout $ProblemFile`;
+    my $result = `cd $TemporaryProblemDirectory; /home/urban/corn_stable/CoRN/bin/CoRNc $ProblemFile; coqdoc --no-index --body-only --stdout $ProblemFile`;
     system("rm -rf $TemporaryProblemDirectory");
 
     return $result;
