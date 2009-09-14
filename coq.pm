@@ -7,9 +7,7 @@ use warnings;
 use strict;
 use IkiWiki 3.00;
 use File::Temp qw/ :mktemp  /;
-my $TemporaryDirectory = "/tmp";
-my $TemporaryProblemDirectory = "$TemporaryDirectory/coq_$$";
-my $PidNr = $$;
+use File::Basename;
 
 
 sub import {
@@ -27,25 +25,39 @@ sub getsetup {
 
 sub htmlize (@) {
 	my %params=@_;
-	my $pname = $params{page}
+	my($pname, $directories, $suffix) = fileparse($params{page});
+#	my $pname = $params{page};
 	my $content = $params{content};
-
-#	eval q{use CoqDoc};
-#	return $content if $@;
 
 
 	return coqdoc($pname, $content);
 }
 
+
+# Run coqdoc on $content, giving the file name $pname.v, return the html
+# Creates temp dir in /tmp, which should be removed at some point (after debuging)
 sub coqdoc {
     my ($pname, $content) = @_;
     my $ProblemFile = $pname . '.v';
-    chdir $TemporaryProblemDirectory;
+    my $TemporaryDirectory = "/tmp";
+    my $TemporaryProblemDirectory = "$TemporaryDirectory/coq_$$";
+    my $PidNr = $$;
 
-    open(PFH, ">$ProblemFile") or die "$ProblemFile not writable";
+    if (!mkdir($TemporaryProblemDirectory,0777)) {
+        print("ERROR: Cannot make temp dir $TemporaryProblemDirectory\n");
+        die("ERROR: Cannot make temp dir $TemporaryProblemDirectory\n");
+    }
+
+    system("chmod 0777 $TemporaryProblemDirectory");
+
+
+    open(PFH, ">$TemporaryProblemDirectory/$ProblemFile") or die "$ProblemFile not writable";
     printf(PFH "%s",$content);
     close(PFH);
-    my $result = `coqdoc --no-index --stdout $ProblemFile`;
+
+    my $result = `cd $TemporaryProblemDirectory; coqdoc --no-index --body-only --stdout $ProblemFile`;
+    system("rm -rf $TemporaryProblemDirectory");
+
     return $result;
 }
 
