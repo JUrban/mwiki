@@ -39,14 +39,15 @@ sub htmlize (@) {
 sub coqdoc {
     my ($pname, $content) = @_;
     my $ProblemFile = $pname . '.v';
-    my $TemporaryDirectory = "/tmp";
-    my $TemporaryProblemDirectory = "$TemporaryDirectory/coq_$$";
+#    my $TemporaryDirectory = "/tmp/";
+#    my $TemporaryProblemDirectory = "$TemporaryDirectory/coq_$$";
+    my $TemporaryProblemDirectory = mkdtemp("/tmp/coq_XXXX");
     my $PidNr = $$;
 
-    if (!mkdir($TemporaryProblemDirectory,0777)) {
-        print("ERROR: Cannot make temp dir $TemporaryProblemDirectory\n");
-        die("ERROR: Cannot make temp dir $TemporaryProblemDirectory\n");
-    }
+#    if (!mkdir($TemporaryProblemDirectory,0777)) {
+#        print("ERROR: Cannot make temp dir $TemporaryProblemDirectory\n");
+#        die("ERROR: Cannot make temp dir $TemporaryProblemDirectory\n");
+#    }
 
     system("chmod 0777 $TemporaryProblemDirectory");
 
