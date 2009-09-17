@@ -61,7 +61,7 @@ sub coqdoc {
 
 #    system("rm -rf $TemporaryProblemDirectory");
 
-    return $result;
+    return '<link href="'. $config{url} . '/coqdoc.css" rel="stylesheet" type="text/css"/>' . "\n". $result;
 }
 
 
