@@ -37,13 +37,13 @@ body { padding: 0px 0px;
 #main  a.modref:hover {text-decoration : none; }
 #main  a.modref:active {text-decoration : none; }
 
-#main .keyword { color : #cf1d1d }
+.keyword { color : #cf1d1d }
 #main { color: black }
 
-#main .section { background-color:#90bdff;
+.section { background-color:#90bdff;
                  font-size : 175% }
 
-#main .doc { margin: 0px;
+.doc { margin: 0px;
              padding: 10px;
              font-family: sans-serif;
              font-size: 100%;
