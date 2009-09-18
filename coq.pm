@@ -30,14 +30,14 @@ sub htmlize (@) {
 	my $content = $params{content};
 
 
-	return coqdoc($pname, $content);
+	return coqdoc($pname, $directories, $content);
 }
 
 
 # Run coqdoc on $content, giving the file name $pname.v, return the html
 # Creates temp dir in /tmp, which should be removed at some point (after debuging).
 sub coqdoc {
-    my ($pname, $content) = @_;
+    my ($pname, $directories, $content) = @_;
     my $ProblemFile = $pname . '.v';
 #    my $TemporaryDirectory = "/tmp/";
 #    my $TemporaryProblemDirectory = "$TemporaryDirectory/coq_$$";
