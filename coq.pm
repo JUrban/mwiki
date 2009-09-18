@@ -39,6 +39,7 @@ sub htmlize (@) {
 sub coqdoc {
     my ($pname, $directories, $content) = @_;
     my $ProblemFile = $pname . '.v';
+    my $GlobFile = $pname . '.glob';
 #    my $TemporaryDirectory = "/tmp/";
 #    my $TemporaryProblemDirectory = "$TemporaryDirectory/coq_$$";
     my $TemporaryProblemDirectory = mkdtemp("/tmp/coq_XXXX");
@@ -56,7 +57,7 @@ sub coqdoc {
     printf(PFH "%s",$content);
     close(PFH);
 
-    my $result = `cd $TemporaryProblemDirectory; /home/urban/corn_stable/CoRN/bin/CoRNc $ProblemFile; coqdoc --no-index --body-only --stdout $ProblemFile |tee $ProblemFile.html`;
+    my $result = `cd $TemporaryProblemDirectory; /home/urban/corn_stable/CoRN/bin/CoRNc $ProblemFile; coqdoc --no-index --body-only --stdout $ProblemFile |tee $ProblemFile.html; cp $GlobFile $config{srcdir}/$directories$GlobFile`;
     $result =~ s/\"[a-zA-Z0-9_-]+\.html\#/\"\#/g;
 
 #    system("rm -rf $TemporaryProblemDirectory");
