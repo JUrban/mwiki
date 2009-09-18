@@ -46,6 +46,14 @@ sub coqdoc {
     # set to 1 for doing things in /tmp
     my $DoTmp = 0;
 
+    # set to 0 if only coqdoc, no coqc;
+    # useful for initial population of the wiki
+    my $DoVerif = 0;
+
+    # the verifier;
+    # ##TODO: should be instantiated to the current repo
+    my $coqc =  ($DoVerif == 0)? "true": "/home/urban/corn_stable/CoRN/bin/CoRNc";
+
     if($DoTmp == 1)
     {
 	my $TemporaryProblemDirectory = mkdtemp("/tmp/coq_XXXX");
@@ -57,7 +65,7 @@ sub coqdoc {
 	printf(PFH "%s",$content);
 	close(PFH);
 
-	$result = `cd $TemporaryProblemDirectory; /home/urban/corn_stable/CoRN/bin/CoRNc $ProblemFile; coqdoc --no-index --body-only --stdout $ProblemFile |tee $ProblemFile.html; cp $GlobFile $config{srcdir}/$directories$GlobFile`;
+	$result = `cd $TemporaryProblemDirectory; $coqc $ProblemFile; coqdoc --no-index --body-only --stdout $ProblemFile |tee $ProblemFile.html; cp $GlobFile $config{srcdir}/$directories$GlobFile`;
     }
     else
     {
@@ -65,7 +73,7 @@ sub coqdoc {
 	printf(PFH "%s",$content);
 	close(PFH);
 
-	$result = `cd $config{srcdir}/$directories; /home/urban/corn_stable/CoRN/bin/CoRNc $ProblemFile; coqdoc --no-index --body-only --stdout $ProblemFile |tee $ProblemFile.html`;
+	$result = `cd $config{srcdir}/$directories; $coqc $ProblemFile; coqdoc -R $config{srcdir}/CoRN CoRN --no-index --body-only --stdout $ProblemFile `;
     }
 
     $result =~ s/\"[a-zA-Z0-9_-]+\.html\#/\"\#/g;
