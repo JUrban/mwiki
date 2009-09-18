@@ -40,15 +40,9 @@ sub coqdoc {
     my ($pname, $directories, $content) = @_;
     my $ProblemFile = $pname . '.v';
     my $GlobFile = $pname . '.glob';
-#    my $TemporaryDirectory = "/tmp/";
-#    my $TemporaryProblemDirectory = "$TemporaryDirectory/coq_$$";
     my $TemporaryProblemDirectory = mkdtemp("/tmp/coq_XXXX");
     my $PidNr = $$;
 
-#    if (!mkdir($TemporaryProblemDirectory,0777)) {
-#        print("ERROR: Cannot make temp dir $TemporaryProblemDirectory\n");
-#        die("ERROR: Cannot make temp dir $TemporaryProblemDirectory\n");
-#    }
 
     system("chmod 0777 $TemporaryProblemDirectory");
 
