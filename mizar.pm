@@ -61,11 +61,11 @@ sub verify {
     printf(PFH "%s",$content);
     close(PFH);
 
-    my $result = `export MIZFILES=$mizfiles; cd $TemporaryProblemDirectory; $mizfiles/bin/accom $ProblemFile 2>&1 > $ProblemFile.erracc; $mizfiles/bin/verifier -q $ProblemFile 2>&1 > $ProblemFile.errvrf; xsltproc $addabsrefs $ProblemFileXml 2>$ProblemFileXml.errabs > $ProblemFileXml.abs; xsltproc --param body_only 1 --param const_links 1 --param default_target \\\'_self\\\'  --param linking \\\'l\\\' --param mizhtml \\\'\\\' --param selfext \\\'html\\\'  --param titles 1 --param colored 1 --param proof_links 1 $miz2html $ProblemFileXml.abs |tee $ProblemFile.html 2>$ProblemFileXml.errhtml`;
+    my $result = `export MIZFILES=$mizfiles; cd $TemporaryProblemDirectory; $mizfiles/bin/accom $ProblemFile 2>&1 > $ProblemFile.erracc; $mizfiles/bin/verifier -q $ProblemFile 2>&1 > $ProblemFile.errvrf; xsltproc $addabsrefs $ProblemFileXml 2>$ProblemFileXml.errabs > $ProblemFileXml.abs; xsltproc --param const_links 1 --param default_target \\\'_self\\\'  --param linking \\\'l\\\' --param mizhtml \\\'\\\' --param selfext \\\'html\\\'  --param titles 1 --param colored 1 --param proof_links 1 $miz2html $ProblemFileXml.abs |tee $ProblemFile.html 2>$ProblemFileXml.errhtml`;
 
-    $result =~ s/([a-zA-Z0-9_-]+)\.html/$1\//g;
-    $result =~ s/(<script(.|[\n])*?<\/script>)/<script language=\"JavaScript\" src=\"tst.js\"><\/script>/;
-    writefile("tst.js", "$config{destdir}/$pname", $1);
+#    $result =~ s/([a-zA-Z0-9_-]+)\.html/$1\//g;
+#    $result =~ s/(<script(.|[\n])*?<\/script>)/<script language=\"JavaScript\" src=\"tst.js\"><\/script>/;
+#    writefile("tst.js", "$config{destdir}/$pname", $1);
 
 
 #    system("rm -rf $TemporaryProblemDirectory");
