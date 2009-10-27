@@ -79,7 +79,7 @@ sub coqdoc {
 	printf(PFH "%s",$content);
 	close(PFH);
 
-	$result = `cd $config{srcdir}; $coqc $directories$ProblemFile; $coqdoc -R $config{srcdir}/CoRN CoRN --no-index --body-only --stdout $config{srcdir}/$directories$ProblemFile `;
+	$result = `cd $config{srcdir}/$directories; /home/urban/corn_stable/CoRN/bin/CoRNc $ProblemFile; $coqdoc --external bla CoRN --no-index --body-only --stdout $ProblemFile |tee $ProblemFile.html`;
     }
 
     $result =~ s/\"[a-zA-Z0-9_-]+\.html\#/\"\#/g;
