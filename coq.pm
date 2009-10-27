@@ -35,7 +35,7 @@ sub htmlize (@) {
 
 
 # Run coqdoc on $content, giving the file name $pname.v, return the html
-# Creates temp dir in /tmp, which should be removed at some point (after debuging).
+# Can create temp dir in /tmp, which should be removed at some point (after debuging).
 sub coqdoc {
     my ($pname, $directories, $content) = @_;
     my $ProblemFile = $pname . '.v';
@@ -46,13 +46,19 @@ sub coqdoc {
     # set to 1 for doing things in /tmp
     my $DoTmp = 0;
 
-    # set to 0 if only coqdoc, no coqc;
-    # useful for initial population of the wiki
-    my $DoVerif = 0;
+    # set to 0 if no coqc (eg only coqdoc);
+    # useful for initial populating of the wiki (provided the .vo files exist)
+    my $DoVerif = 1;
 
     # the verifier;
-    # ##TODO: should be instantiated to the current repo
+    # ##TODO: should be instantiated to the current repo, 
+    #         different coq versions, ssreflect, cornc, etc
     my $coqc =  ($DoVerif == 0)? "true": "/home/urban/corn_stable/CoRN/bin/CoRNc";
+
+    # coqdoc binary
+    my $coqdoc = "/home/urban/bin/coqdoc";
+
+
 
     if($DoTmp == 1)
     {
@@ -65,7 +71,7 @@ sub coqdoc {
 	printf(PFH "%s",$content);
 	close(PFH);
 
-	$result = `cd $TemporaryProblemDirectory; $coqc $ProblemFile; coqdoc --no-index --body-only --stdout $ProblemFile |tee $ProblemFile.html; cp $GlobFile $config{srcdir}/$directories$GlobFile`;
+	$result = `cd $TemporaryProblemDirectory; $coqc $ProblemFile; $coqdoc --no-index --body-only --stdout $ProblemFile |tee $ProblemFile.html; cp $GlobFile $config{srcdir}/$directories$GlobFile`;
     }
     else
     {
@@ -73,7 +79,7 @@ sub coqdoc {
 	printf(PFH "%s",$content);
 	close(PFH);
 
-	$result = `cd $config{srcdir}/$directories; $coqc $ProblemFile; coqdoc -R $config{srcdir}/CoRN CoRN --no-index --body-only --stdout $ProblemFile `;
+	$result = `cd $config{srcdir}; $coqc $directories$ProblemFile; $coqdoc -R $config{srcdir}/CoRN CoRN --no-index --body-only --stdout $config{srcdir}/$directories$ProblemFile `;
     }
 
     $result =~ s/\"[a-zA-Z0-9_-]+\.html\#/\"\#/g;
