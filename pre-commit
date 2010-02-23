@@ -1,0 +1,11 @@
+#!/bin/sh
+
+changes=`git diff-head HEAD | cut -f 2 | grep "\.miz$"`;
+
+echo "it appears that you've changed the following mizar files:";
+for change in $changes; do
+    echo $change;
+done
+echo "sorry, you can't do that.  Welcome to mizar, the land of NO."
+
+exit 1;
