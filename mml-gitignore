@@ -31,6 +31,7 @@
 # the distro files
 .emacs
 abstr
+addabsrefs.xsl
 bin
 example.bib
 external.bib
@@ -42,6 +43,7 @@ mizar.dct
 mizar.el
 mizar.msg
 miz.xml
+miz.xsl
 mmldecls.txt
 mmldecl.txt
 mml.ini
