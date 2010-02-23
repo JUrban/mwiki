@@ -8,6 +8,8 @@ use File::Temp;
 # mizar files that are about to be committed).
 my @changes = `git diff-head HEAD | cut -f 2 | grep "\.miz$"`;
 
+my $mwiki1 = $ENV{MIZFILES};
+
 my $tempdir;
 my $currdir = getcwd ();
 print ("Verifying modified mizar files...");
@@ -15,9 +17,11 @@ foreach (@changed) {
   $tempdir = tempdir (CLEANUP => 1);
   chdir ($tempdir) 
     or die ("While attempting to verify $_, I was somehow unable to change to the temporary directory $tempdir!");
-  system ("mizf $_");
+  system ("MIZFILES=$mwiki1 mizf $_ > $.errvrf");
   chdir ($currdir) 
     or die ("How odd: I just verified $_ in temporary directory $tempdir, but I'm unable to go back to the original directory $currdir!");
+  print ("The output of mizf was:\n");
+  `cat $_.errvrf`;
 }
 
 print ("I tried to verify your changes.  Whatever, prepare to die.")
