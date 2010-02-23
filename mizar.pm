@@ -34,6 +34,13 @@ sub htmlize (@) {
 	return verify($pname, $content);
 }
 
+# extensions of the environmental files
+my @gaccexts = (".aco", ".atr", ".dct", ".dfs", ".eid", ".ere", ".esh", ".evl", ".frm", ".prf", ".vcl",
+	       ".ano", ".cho", ".dcx", ".ecl", ".eno", ".eth", ".fil", ".nol", ".sgl");
+
+# extensions of files created/used by verifier, with exception of the .xml file 
+my @gvrfexts = ('.frx', '.idx', '.miz', '.par', '.ref');
+
 
 # Run mizar on $content, giving the file name $pname.miz, return the html
 # Creates temp dir in /tmp, which should be removed at some point (after debuging).
