@@ -50,10 +50,10 @@ sub verify {
     my $ProblemFileXml = $pname . '.xml';
 #    my $TemporaryDirectory = "/tmp/";
 #    my $TemporaryProblemDirectory = "$TemporaryDirectory/coq_$$";
-    my $TemporaryProblemDirectory = mkdtemp("/tmp/coq_XXXX");
+    my $TemporaryProblemDirectory = mkdtemp("/tmp/mml_XXXX");
     my $PidNr = $$;
-    my $mizfiles = '/home/urban/mizinst';
-    my $Xsl4MizarDir = "/home/urban/gitrepo/xsl4mizar";
+    my $mizfiles = '/home/mizarw/mwiki';
+    my $Xsl4MizarDir = $mizfiles;  # "/home/urban/gitrepo/xsl4mizar";
     my $addabsrefs = "$Xsl4MizarDir/addabsrefs.xsl";
     my $miz2html = "$Xsl4MizarDir/miz.xsl";
 
