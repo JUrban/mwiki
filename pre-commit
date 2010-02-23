@@ -1,11 +1,18 @@
-#!/bin/sh
+#!/usr/bin/perl -w
 
-changes=`git diff-head HEAD | cut -f 2 | grep "\.miz$"`;
+use strict;
+use warnings;
+use File::Temp;
 
-echo "it appears that you've changed the following mizar files:";
-for change in $changes; do
-    echo $change;
-done
-echo "sorry, you can't do that.  Welcome to mizar, the land of NO."
+# Compute list of mizar files that belong to the index (i.e., the
+# mizar files that are about to be committed).
+my @changes = system ('git diff-head HEAD | cut -f 2 | grep "\.miz$"');
+
+print ("Verifying modified mizar files...");
+foreach (@changed) {
+  system ("mizf $_");
+}
+
+print ("I tried to verify your changes.  Whatever, prepare to die.")
 
 exit 1;
