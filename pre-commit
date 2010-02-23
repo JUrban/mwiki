@@ -6,11 +6,18 @@ use File::Temp;
 
 # Compute list of mizar files that belong to the index (i.e., the
 # mizar files that are about to be committed).
-my @changes = system ('git diff-head HEAD | cut -f 2 | grep "\.miz$"');
+my @changes = `git diff-head HEAD | cut -f 2 | grep "\.miz$"`;
 
+my $tempdir;
+my $currdir = getcwd ();
 print ("Verifying modified mizar files...");
 foreach (@changed) {
+  $tempdir = tempdir (CLEANUP => 1);
+  chdir ($tempdir) 
+    or die ("While attempting to verify $_, I was somehow unable to change to the temporary directory $tempdir!");
   system ("mizf $_");
+  chdir ($currdir) 
+    or die ("How odd: I just verified $_ in temporary directory $tempdir, but I'm unable to go back to the original directory $currdir!");
 }
 
 print ("I tried to verify your changes.  Whatever, prepare to die.")
