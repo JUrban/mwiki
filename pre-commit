@@ -12,10 +12,9 @@ use Cwd;
 # first call to "cut -f 2".  The second cut gets rid of the initial
 # "mml/" in filenames like "mml/polyform.miz".  The last cut gives us
 # "polyform" from "polyform.miz".
-
 my @changed = `git diff-index HEAD | cut -f 2 | grep '\.miz\$' | cut -d '/' -f 2 | cut -d '.' -f 1`;
 
-my $mizfiles = "/home/mizarw/mwiki";
+my $mizfiles = $ENV{"MIZFILES"}};
 
 my $tempdir = tempdir (CLEANUP => 0);
 my $currdir = getcwd ();
