@@ -105,8 +105,9 @@ sub article_dependencies {
   # for each article.  Die immediately if anything goes wrong.
   my ($envget_exit_status, $xsltproc_exit_status);
   my ($article_evl, $article_err, $article_dep);
-  system ("cd", $article_temp_dir);
-  system ("$envget $article.miz");
+  chdir ($article_temp_dir);
+  print ("About to call \"$envget $article.miz\" in directory " . getcwd () . "...\n");
+  system ($envget, "$article.miz");
   $envget_exit_status = ($? >> 8);
   unless ($envget_exit_status == 0) {
     # It is not enough to simply note articles on which envget dies or
@@ -149,7 +150,7 @@ sub article_dependencies {
   foreach my $article (@mml_lar) {
     my $artcle_temp_dir = $tempdir . "/" . $article;
     $article_dep = $article . ".dep";
-    system ("cd", $article_temp_dir);
+    chdir ($article_temp_dir);
     my $article_dep_fh;
     open ($article_dep_fh, q{<}, $article_dep)
       or croak ("Unable to open article dependency file $article_dep under $article_temp_dir!");
@@ -197,7 +198,7 @@ sub article_dependencies {
 	@article_schemes = \@dep_line_entries;
       }
     }
-    system ("cd", $currdir);
+    chdir ($currdir);
   }
   @article_deps = (\@article_vocabularies,
 		   \@article_notations,
