@@ -50,7 +50,7 @@ sub copy_mml_lar {
   foreach my $article (@mml_lar) {
     print ("Creating directory for $article...\n");
     $article_temp_dir = "$tempdir/$article";
-    $article_mml_filename = $mizfiles . "/" . $article . ".miz";
+    $article_mml_filename = $mml_dir . "/" . $article . ".miz";
     $article_temp_filename = $article_temp_dir . "/" . $article . ".miz";
     system ("mkdir", $article_temp_dir)
       or croak ("Unable to make a subdirecory for $article in the temporary directory $tempdir!");
