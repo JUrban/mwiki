@@ -52,7 +52,7 @@ sub copy_mml_lar {
     $article_temp_dir = "$tempdir/$article";
     $article_mml_filename = $mml_dir . "/" . $article . ".miz";
     $article_temp_filename = $article_temp_dir . "/" . $article . ".miz";
-    system ("mkdir", $article_temp_dir)
+    system ("mkdir", $article_temp_dir) == 0
       or croak ("Unable to make a subdirecory for $article in the temporary directory $tempdir!");
     system ("cp", $article_mml_filename, $article_temp_filename);
   }
