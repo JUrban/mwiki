@@ -34,7 +34,8 @@ sub read_mml_lar {
   return (\@mml_lar);
 }
 
-my ($tempdir, $currdir);
+my $tempdir;
+my $currdir = getcwd ();
 sub copy_mml_lar {
   # Copy the articles to a temporary directory
   $tempdir = tempdir (CLEANUP => 0) # don't clean up the temporary
@@ -42,7 +43,6 @@ sub copy_mml_lar {
                                     # at the damage done there after
                                     # this script exits
   or croak ("Unable to create a temporary directory!");
-  $currdir = getcwd ();
 
   # Copy the MML to the temporary directory, giving each article its own
   # directory.
