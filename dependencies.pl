@@ -65,6 +65,14 @@ my %requirements_deps;
 my %definitions_deps;
 my %theorems_deps;
 my %schemes_deps;
+my %vocaularies_converse_deps;
+my %notations_converse_deps;
+my %constructors_converse_deps;
+my %registrations_converse_deps;
+my %requirements_converse_deps;
+my %definitions_converse_deps;
+my %theorems_converse_deps;
+my %schemes_converse_deps;
 
 sub initialize_all_article_dependencies {
   foreach my $article (@mml_lar) {
@@ -220,15 +228,19 @@ sub converse {
   return (%converse);
 }
 
-my %vocaularies_converse_deps = converse (%vocabularies_deps);
-my %notations_converse_deps = converse (%notations_deps);
-my %constructors_converse_deps = converse (%constructors_deps);
-my %registrations_converse_deps = converse (%registrations_deps);
-my %requirements_converse_deps = converse (%requirements_deps);
-my %definitions_converse_deps = converse (%definitions_deps);
-my %theorems_converse_deps = converse (%theorems_deps);
-my %schemes_converse_deps = converse (%schemes_deps);
-
 read_mml_lar ();
 copy_mml_lar ();
 initialize_all_article_dependencies ();
+
+sub compute_converses {
+  my %vocaularies_converse_deps = converse (%vocabularies_deps);
+  my %notations_converse_deps = converse (%notations_deps);
+  my %constructors_converse_deps = converse (%constructors_deps);
+  my %registrations_converse_deps = converse (%registrations_deps);
+  my %requirements_converse_deps = converse (%requirements_deps);
+  my %definitions_converse_deps = converse (%definitions_deps);
+  my %theorems_converse_deps = converse (%theorems_deps);
+  my %schemes_converse_deps = converse (%schemes_deps);
+}
+
+
