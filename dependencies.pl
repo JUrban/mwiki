@@ -13,13 +13,12 @@ use Carp qw/ croak /;
 my $mizfiles = $ENV{"MIZFILES"};
 my $mml_dir = $mizfiles . "/" . "mml";
 my $mml_lar_path = $mizfiles . "/" . "mml.lar";
-my $env_get = $mizfiles . "/" . "envget";
-
+my $envget = "/Users/alama/sources/mizar/mizar-source-git/envget";
 
 # Compute the articles mentioned in mml.lar
 
+my @mml_lar = ();
 sub read_mml_lar {
-  my @mml_lar = ();
   my $mml_lar_fh;
   open ($mml_lar_fh, q{<}, $mml_lar_path)
     or croak ("Unable to open the mml.lar at $mml_lar_path!");
@@ -34,56 +33,68 @@ sub read_mml_lar {
   return (\@mml_lar);
 }
 
+my ($tempdir, $currdir);
 sub copy_mml_lar {
   # Copy the articles to a temporary directory
-  my $tempdir = tempdir (CLEANUP => 0) # don't clean up the temporary
+  $tempdir = tempdir (CLEANUP => 0) # don't clean up the temporary
                                        # directory -- we may want to
                                        # look at the damage done there
                                        # after this script exits
   or croak ("Unable to create a temporary directory!");
-  my $currdir = getcwd ();
+  $currdir = getcwd ();
 
   # Copy the MML to the temporary directory, giving each article its own
   # directory.
   my ($article_temp_dir, $article_temp_filename, $article_mml_filename);
   foreach my $article (@mml_lar) {
-    $article_dir = "$tempdir/$article";
+    $article_temp_dir = "$tempdir/$article";
     $article_mml_filename = $mizfiles . "/" . $article . ".miz";
-    $article_temp_filename = $article_dir . "/" . $article . ".miz";
-    system ("mkdir", $article_dir)
+    $article_temp_filename = $article_temp_dir . "/" . $article . ".miz";
+    system ("mkdir", $article_temp_dir)
       or croak ("Unable to make a subdirecory for $article in the temporary directory $tempdir!");
     system ("cp", $article_mml_filename, $article_temp_filename);
   }
   return ($tempdir);
 }
 
-foreach my $article (@mml_lar) {
+my %vocabularies_deps;
+my %notations_deps;
+my %constructors_deps;
+my %registrations_deps;
+my %requirements_deps;
+my %definitions_deps;
+my %theorems_deps;
+my %schemes_deps;
 
-  my @article_deps = article_dependencies ($article);
-
-  my @article_vocabularies = @{$article_deps[0]};
-  my @article_notations = @{$article_deps[1]};
-  my @article_constructors = @{$article_deps[2]};
-  my @article_registrations = @{$article_deps[3]};
-  my @article_requirements = @{$article_deps[4]};
-  my @article_theorems = @{$article_deps[5]};
-  my @article_schemes = @{$article_deps[6]};
-  $vocabularies_deps{$article} = \@article_vocabularies;
-  $notations_deps{$article} = \@article_notations;
-  $constructors_deps{$article} = \@article_constructors;
-  $registrations_deps{$article} = \@article_registrations;
-  $requirements_deps{$article} = \@article_requirements;
-  $definitions_deps{$article} = \@article_definitions;
-  $theorems_deps{$article} = \@article_theorems;
-  $schemes_deps{$article} = \@article_schemes;
+sub initialize_all_article_dependencies {
+  foreach my $article (@mml_lar) {
+    my @article_deps = article_dependencies ($article);
+    my @article_vocabularies = @{$article_deps[0]};
+    my @article_notations = @{$article_deps[1]};
+    my @article_constructors = @{$article_deps[2]};
+    my @article_registrations = @{$article_deps[3]};
+    my @article_requirements = @{$article_deps[4]};
+    my @article_definitions = @{$article_deps[5]};
+    my @article_theorems = @{$article_deps[6]};
+    my @article_schemes = @{$article_deps[7]};
+    $vocabularies_deps{$article} = \@article_vocabularies;
+    $notations_deps{$article} = \@article_notations;
+    $constructors_deps{$article} = \@article_constructors;
+    $registrations_deps{$article} = \@article_registrations;
+    $requirements_deps{$article} = \@article_requirements;
+    $definitions_deps{$article} = \@article_definitions;
+    $theorems_deps{$article} = \@article_theorems;
+    $schemes_deps{$article} = \@article_schemes;
+  }
 }
 
 sub article_dependencies {
   my $article = shift ();
-  $article_temp_dir = $tempdir . "/" . $article;
+  my $article_temp_dir = $tempdir . "/" . $article;
   # Call envget and use the evl2txt XSLT sheet to get the dependenceis
   # for each article.  Die immediately if anything goes wrong.
-  my ($envget_exit_status, $xsltproc_exit_status, $article_evl, $article_dep);
+  my ($envget_exit_status, $xsltproc_exit_status);
+  my ($article_evl, $article_err, $article_dep);
   system ("cd", $article_temp_dir);
   system ("$envget $article.miz");
   $envget_exit_status = ($? >> 8);
@@ -124,10 +135,11 @@ sub article_dependencies {
   my @article_definitions = ();
   my @article_theorems = ();
   my @article_schemes = ();
+  my @article_deps;
   foreach my $article (@mml_lar) {
-    $artcle_temp_dir = $tempdir . "/" . $article;
+    my $artcle_temp_dir = $tempdir . "/" . $article;
     $article_dep = $article . ".dep";
-    system ("cd" = (), $article_temp_dir);
+    system ("cd", $article_temp_dir);
     my $article_dep_fh;
     open ($article_dep_fh, q{<}, $article_dep)
       or croak ("Unable to open article dependency file $article_dep under $article_temp_dir!");
@@ -142,48 +154,49 @@ sub article_dependencies {
       $dep_line_field = substr ($semi_dep_line_field, -2);
       my @dep_line_entries = split (/\ /x,$dep_line_field);
       my $first_element = pop (@dep_line_entries);
+
       if ($first_element eq "vocabularies") {
-	$article_vocabularies = \@dep_line_entries;
+	@article_vocabularies = \@dep_line_entries;
       }
       
       if ($first_element eq "notations") {
-	$article_notations = \@dep_line_entries;
+	@article_notations = \@dep_line_entries;
       }
       
       if ($first_element eq "constructors") {
-	$article_constructors = \@dep_line_entries;
+	@article_constructors = \@dep_line_entries;
       }
       
       if ($first_element eq "registrations") {
-	$article_registrations = \@dep_line_entries;
+	@article_registrations = \@dep_line_entries;
       }
       
       if ($first_element eq "requirements") {
-	$article_requirements = \@dep_line_entries;
+	@article_requirements = \@dep_line_entries;
       }
       
       if ($first_element eq "definitions") {
-	$article_definitions = \@dep_line_entries;
+	@article_definitions = \@dep_line_entries;
       }
       
       if ($first_element eq "theorems") {
-	$article_theorems = \@dep_line_entries;
+	@article_theorems = \@dep_line_entries;
       }
       
       if ($first_element eq "schemes") {
-	$article_schemes = \@dep_line_entries;
+	@article_schemes = \@dep_line_entries;
       }
     }
     system ("cd", $currdir);
   }
-  my @article_deps = (\@dep_line_entries, 
-		      \@dep_line_entries, 
-		      \@dep_line_entries, 
-		      \@dep_line_entries, 
-		      \@dep_line_entries, 
-		      \@dep_line_entries, 
-		      \@dep_line_entries, 
-		      \@dep_line_entries);
+  @article_deps = (\@article_vocabularies,
+		   \@article_notations,
+		   \@article_constructors,
+		   \@article_registrations,
+		   \@article_requirements,
+		   \@article_definitions,
+		   \@article_theorems,
+		   \@article_schemes);
   return (\@article_deps);
 }
 
@@ -212,6 +225,10 @@ my %notations_converse_deps = converse (%notations_deps);
 my %constructors_converse_deps = converse (%constructors_deps);
 my %registrations_converse_deps = converse (%registrations_deps);
 my %requirements_converse_deps = converse (%requirements_deps);
-my %definitions_converse_deps = converse (%definitons_deps);
+my %definitions_converse_deps = converse (%definitions_deps);
 my %theorems_converse_deps = converse (%theorems_deps);
 my %schemes_converse_deps = converse (%schemes_deps);
+
+read_mml_lar ();
+copy_mml_lar ();
+initialize_all_article_dependencies ();
