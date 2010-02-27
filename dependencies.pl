@@ -48,6 +48,7 @@ sub copy_mml_lar {
   # directory.
   my ($article_temp_dir, $article_temp_filename, $article_mml_filename);
   foreach my $article (@mml_lar) {
+    print ("Creating directory for $article...\n");
     $article_temp_dir = "$tempdir/$article";
     $article_mml_filename = $mizfiles . "/" . $article . ".miz";
     $article_temp_filename = $article_temp_dir . "/" . $article . ".miz";
