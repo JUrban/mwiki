@@ -38,9 +38,9 @@ my ($tempdir, $currdir);
 sub copy_mml_lar {
   # Copy the articles to a temporary directory
   $tempdir = tempdir (CLEANUP => 0) # don't clean up the temporary
-                                       # directory -- we may want to
-                                       # look at the damage done there
-                                       # after this script exits
+                                    # directory -- we may want to look
+                                    # at the damage done there after
+                                    # this script exits
   or croak ("Unable to create a temporary directory!");
   $currdir = getcwd ();
 
