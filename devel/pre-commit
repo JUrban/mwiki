@@ -6,8 +6,8 @@ use strict;
 use warnings;
 use Carp;
 
-# Check whether the perl code we're submitting is at least
-# syntactically correct.
+# Check whether the perl code we're submitting is syntactically
+# correct.
 
 # Get the list of perl files in the index.  Define "perl code" as a
 # file whose name ends in either ".pl", ".perl", or ".pm", or a file
