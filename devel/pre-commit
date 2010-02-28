@@ -43,9 +43,10 @@ foreach my $file (@maybe_perl) {
     open ($fh, q{<}, $file)
       or croak ("Ouch: unable to open $file! $!");
     my $first_line = <$fh>;
+    chomp ($first_line);
     close ($fh)
       or croak ("Unable to close filehandle for $file! $!");
-    if (scalar ($first_line) > 5) { # magic constant!
+    if (length ($first_line) > 5) { # magic constant!
       my $first_two_chars = substr ($first_line,0,2);
       if ($first_two_chars eq "#!") {
 	if ($first_line =~ /perl/) {
