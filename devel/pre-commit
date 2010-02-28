@@ -30,7 +30,7 @@ push (@perl_changed, @dot_pm_changed);
 my @maybe_perl = ();
 my @all_files = `git diff-index HEAD | cut -f 2`;
 foreach my $file (@all_files) {
-  if ($file !~ /\.pl/ and $file != /\.perl/ and $file !~ /\.pm/) {
+  if ($file !~ /\.pl/ and $file !~ /\.perl/ and $file !~ /\.pm/) {
     push (@maybe_perl, $file);
   }
 }
@@ -46,7 +46,7 @@ foreach my $file (@maybe_perl) {
       or croak ("Unable to close filehandle for $file! $!");
     if (scalar ($first_line > 5)) {
       my $first_two_chars = substr ($first_line,0,2);
-      if ($first_two_char eq "#!") {
+      if ($first_two_chars eq "#!") {
 	if ($first_line =~ /perl/) {
 	  push (@definitely_perl, $file);
 	}
@@ -60,6 +60,7 @@ push (@perl_changed, @definitely_perl);
 my $ok;
 my @damaged = ();
 foreach my $perl_file (@perl_changed) {
+  chomp ($perl_file);
   $ok = `perl -c $perl_file 2 > &1 > /dev/null`;
   unless ($ok == 0) {
     push (@damaged, $perl_file);
