@@ -63,7 +63,7 @@ my $ok;
 my @damaged = ();
 foreach my $perl_file (@perl_changed) {
   chomp ($perl_file);
-  $ok = `perl -c $perl_file 2 > &1 > /dev/null`;
+  $ok = `perl -c $perl_file`;
   unless ($ok == 0) {
     push (@damaged, $perl_file);
   }
