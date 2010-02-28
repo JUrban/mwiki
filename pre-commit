@@ -39,11 +39,7 @@ my $currdir = getcwd ();
 my $num_changed = scalar (@changed);
 print ("It looks like I have $num_changed to look at\n");
 
-# Determine whether all the newly changed files are part of the MML
-
-
 print ("Copying all these to $tempdir\n");
-
 foreach (@changed) {
   chomp;
   system ("cp", "$currdir/mml/$_.miz", "$tempdir");
