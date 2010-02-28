@@ -1,0 +1,5 @@
+; -*- mode: org; -*-
+* TODO Set up some perl tests
+  As things stand now, I am testing this code by doing a lot of manual
+  changes.  Setting up perl tests would help to make this process more
+  intelligent, and quicker, too.
