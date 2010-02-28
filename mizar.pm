@@ -93,4 +93,45 @@ sub copy_mml_to_tempdir {
   return ($tempdir);
 }
 
+# Running mizar programs in cutomizable ways
+
+sub pad_mizfiles {
+  my $pad = shift ();
+  return (get_MIZFILES () . "$pad");
+}
+
+my $verifier_path;
+
+sub get_verifier_path {
+  if (defined ($verifier_path)) {
+    return ($verifier_path);
+  }
+  return (pad_mizfiles ("/" . "verifier"));
+}
+
+sub set_verifier_path {
+  my $new_verifier_path = shift ();
+  # is this for real?
+  if (-x $new_verifier_path) {
+    $verifier_path = $new_verifier_path;
+    return (0);
+  } else {
+    warn ("The new proposed path for the verifier, $new_verifier_path, isn't executable.");
+    return (-1);
+  }
+}
+
+sub run_verifier {
+  my $arg = shift ();
+  my $verifier = get_verifier_path ();
+  system ("$verifier", "$arg");
+  my $exit_status = ($? >> 8);
+  if ($exit_status == 0) {
+    return (0);
+  } else {
+    warn ("The verifier died while evaluating the text $arg: $!");
+    return (-1);
+  }
+}
+
 1;
