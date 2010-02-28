@@ -68,8 +68,6 @@ foreach (@changed) {
     # keep track of the killers
     push (@killers, $_);
   }
-  chdir ($currdir) 
-    or die ("How odd: I just verified $_.miz in temporary directory $tempdir, but I'm unable to go back to the original directory $currdir!");
 }
 
 print ("I tried to verify your changes.  Let's see whether that worked out.\n");
