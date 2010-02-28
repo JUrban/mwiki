@@ -1,84 +1,48 @@
-#!/usr/bin/perl
-# Mizar plugin
-# based on the WikiText plugin.
-package IkiWiki::Plugin::mizar;
+#!/usr/bin/perl -w
 
-use warnings;
+package Mizar;
+
 use strict;
-use IkiWiki 3.00;
-use File::Temp qw/ :mktemp  /;
-use File::Basename;
+use warnings;
+use Carp;
 
+my $mizfiles = $ENV{"MIZFILES"}; # initial value comes from the environment
+my $mizfiles_must_be_populated = 0;
 
-sub import {
-        add_underlay("javascript");
-	hook(type => "getsetup", id => "miz", call => \&getsetup);
-	hook(type => "htmlize", id => "miz", call => \&htmlize);
+sub require_properly_populated_mizfiles {
+  $mizfiles_must_be_populated = 1;
 }
 
-sub getsetup {
-	return
-		plugin => {
-			safe => 1,
-			rebuild => 1, # format plugin
-		},
+sub permit_possibly_improperly_populated_mizfiles {
+  $mizfiles_must_be_populated = 0;
 }
 
-sub htmlize (@) {
-	my %params=@_;
-	my($pname, $directories, $suffix) = fileparse($params{page});
-#	my $pname = $params{page};
-	my $content = $params{content};
-
-
-	return verify($pname, $content);
+sub properly_populated_mizfiles {
+  my $proposed_mizfiles = shift ();
+  return (1); # we can make this text more robust later
 }
 
-# extensions of the environmental files
-my @gaccexts = (".aco", ".atr", ".dct", ".dfs", ".eid", ".ere", ".esh", ".evl", ".frm", ".prf", ".vcl",
-	       ".ano", ".cho", ".dcx", ".ecl", ".eno", ".eth", ".fil", ".nol", ".sgl");
-
-# extensions of files created/used by verifier, with exception of the .xml file 
-my @gvrfexts = ('.frx', '.idx', '.miz', '.par', '.ref');
-
-
-# Run mizar on $content, giving the file name $pname.miz, return the html
-# Creates temp dir in /tmp, which should be removed at some point (after debuging).
-sub verify {
-    my ($pname, $content) = @_;
-    my $ProblemFile = $pname . '.miz';
-    my $ProblemFileXml = $pname . '.xml';
-#    my $TemporaryDirectory = "/tmp/";
-#    my $TemporaryProblemDirectory = "$TemporaryDirectory/coq_$$";
-    my $TemporaryProblemDirectory = mkdtemp("/tmp/mml_XXXX");
-    my $PidNr = $$;
-    my $mizfiles = '/home/mizarw/mwiki';
-    my $Xsl4MizarDir = $mizfiles;  # "/home/urban/gitrepo/xsl4mizar";
-    my $addabsrefs = "$Xsl4MizarDir/addabsrefs.xsl";
-    my $miz2html = "$Xsl4MizarDir/miz.xsl";
-
-#    if (!mkdir($TemporaryProblemDirectory,0777)) {
-#        print("ERROR: Cannot make temp dir $TemporaryProblemDirectory\n");
-#        die("ERROR: Cannot make temp dir $TemporaryProblemDirectory\n");
-#    }
-
-    system("chmod 0777 $TemporaryProblemDirectory");
-
-    open(PFH, ">$TemporaryProblemDirectory/$ProblemFile") or die "$ProblemFile not writable";
-    printf(PFH "%s",$content);
-    close(PFH);
-
-    my $result = `export MIZFILES=$mizfiles; cd $TemporaryProblemDirectory; $mizfiles/bin/accom $ProblemFile 2>&1 > $ProblemFile.erracc; $mizfiles/bin/verifier -q $ProblemFile 2>&1 > $ProblemFile.errvrf; xsltproc $addabsrefs $ProblemFileXml 2>$ProblemFileXml.errabs > $ProblemFileXml.abs; xsltproc --param const_links 1 --param default_target \\\'_self\\\'  --param linking \\\'l\\\' --param mizhtml \\\'\\\' --param selfext \\\'html\\\'  --param titles 1 --param colored 1 --param proof_links 1 $miz2html $ProblemFileXml.abs |tee $ProblemFile.html 2>$ProblemFileXml.errhtml`;
-
-#    $result =~ s/([a-zA-Z0-9_-]+)\.html/$1\//g;
-#    $result =~ s/(<script(.|[\n])*?<\/script>)/<script language=\"JavaScript\" src=\"tst.js\"><\/script>/;
-#    writefile("tst.js", "$config{destdir}/$pname", $1);
-
-
-#    system("rm -rf $TemporaryProblemDirectory");
-
-    return $result;
+sub set_MIZFILES {
+  my $new_mizfiles = shift ();
+  if (-d $new_mizfiles) {
+    if ($mizfiles_must_be_populated) {
+      if (properly_populated_mizfiles ($new_mizfiles)) {
+	$mizfiles = $new_mizfiles;
+      } else {
+	carp ("We are requiring MIZFILES to be properly populated, but the proposed new value for MIZFILES, \"$new_mizfiles\", is not properly populated.");
+      }
+    } else {
+      warn ("MIZFILES is being set to \"$new_mizfiles\"; we didn't check whether it is properly populated.");
+      warn ("Use this module at your own risk.");
+    }
+  } else {
+    carp ("The proposed new value for MIZFILES, \"$new_mizfiles\", is not a directory.")
+  }
+  $mizfiles = $new_mizfiles;
 }
 
+sub get_MIZFILES {
+  return ($mizfiles);
+}
 
-1
+1;
