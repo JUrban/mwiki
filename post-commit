@@ -6,4 +6,10 @@ use Carp;
 
 # Refresh the JFM-like "portal", in light of the new changes.
 
+# JU: also two options for htmlization (the xsl command)
+#   - do the xsl processing here (post-commit) - once all is verified, we should not fail
+#   - do them as part of pre-commit - to ensure it is ok before commiting, and to ensure commited=shown quickly
+#   - we should investigate if there are any internal locks used by git during pre/post commits, and
+#     how to possibly handle heavy load on one clone by fast rerouting to another one, etc
+
 exit 0;
