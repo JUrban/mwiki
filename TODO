@@ -3,3 +3,5 @@
   As things stand now, I am testing this code by doing a lot of manual
   changes.  Setting up perl tests would help to make this process more
   intelligent, and quicker, too.
+* TODO Generate a JFM-like front page
+  The post-commit hook seems like the right place to do that.
