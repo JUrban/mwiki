@@ -49,45 +49,26 @@ print ("copying done.\n");
 print ("Verifying modified mizar files...\n");
 
 my @killers = ();
+my @bad_guys = ();
 foreach (@changed) {
   chomp;
   my $verifier_result;
   Mizar::set_verifier_path ("/home/mizarw/mwiki/bin/verifier");
   $verifier_result = Mizar::run_verifier ("$_.miz");
-  unless ($verifier_result == 0) {
+
+  if ($verifier_result == -1) {
     push (@killers, $_);
+  }
+
+  if ($verifier_result == -2) {
+    push (@bad_guys, $_);
   }
 }
 
 print ("I tried to verify your changes.  Let's see whether that worked out.\n");
 
-my $killer_len = scalar (@killers);
-if ($killer_len == 0) {
-  print ("Thankfully, no mizar text killed the verifier.\n");
-} else {
-  print ("Amazingly, at least one of the given mizar texts killed the verifier!\n");
-  print ("The kellers are:");
-  foreach (@killers) {
-    print ("$_\n");
-  }
-  print ("There must be something really wrong with these articles.\n");
-}
-
-my @bad_guys = ();
-foreach (@changed) {
-  chomp;
-  print ("Investigating $_.miz...\n");
-  my $err_file = "$tempdir/$_.err";
-  if (-e $err_file) {
-    if (-s $err_file > 0) {
-      print ("Hmm, $err_file exists and is non-empty.  That's bad, right?\n");
-      push (@bad_guys, $_);
-    } else {
-      print ("The error file $err_file exists, but it's empty.  Yay.\n");
-    }
-  } else {
-    print ("$_.err doesn't exist.  Good or bad?  You decide.\n");
-  }
+foreach (@killers) {
+  print ("KILLER: $_ killed the verifier.");
 }
 
 print ("If you like, check out $tempdir to see the generated auxiliary files\n");
@@ -97,6 +78,10 @@ if ($bad_length == 0) {
   exit 0;
 } else {
   print ("Sorry, there were some problems with the texts that you intended to commit.\n");
-  print ("I won't let you proceed.\n");
+  print ("The following articles generated errors when being run on the verifier:\n");
+  foreach (@bad_guys) {
+    print ("* $_\n");
+  }
+  print ("Sorry, I can't let you commit these files.\n");
   exit 1;
 }
