@@ -37,6 +37,7 @@ foreach my $file (@all_files) {
 
 my @definitely_perl = ();
 foreach my $file (@maybe_perl) {
+  chomp ($file);
   if (-s $file > 0) {
     my $fh;
     open ($fh, q{<}, $file)
