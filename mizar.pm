@@ -151,4 +151,33 @@ sub run_verifier {
 }
 
 
+
+
+
+my $gxsldir = "";   	# set this eg. to some git of the xsl4mizar repo
+my $gmizhtml = "";	# where are we linking to
+
+# the stylesheets - might not exist, test with -e before using
+my $addabsrefs = "$gxsldir/addabsrefs.xsl";
+my $miz2html = (-e "$gxsldir/miz.xsl") ? "$gxsldir/miz.xsl" : "$gxsldir/miz.xml";
+
+my $miz2html_params = "--param default_target \\\'_self\\\'  --param linking \\\'l\\\' --param mizhtml \\\'$gmizhtml\\\' --param selfext \\\'html\\\'  --param titles 1 --param colored 1 ";
+
+sub htmlize
+{
+    my ($myfstem, $htmlize, $ajax_proofs, $ajax_proof_dir) = @_;
+    if($htmlize == 2)
+    {
+	system("xsltproc $addabsrefs $myfstem.xml 2> $myfstem.xml.errabs > $myfstem.xml.abs");
+	system("xsltproc $miz2html_params --param proof_links 1 --param ajax_proofs $ajax_proofs -param ajax_proof_dir \\\'$ajax_proof_dir\\\' $miz2html $myfstem.xml.abs 2>$myfstem.xml.errhtml > $myfstem.html");
+    }
+    elsif($htmlize == 1)
+    {
+	system("xsltproc $miz2html_params $miz2html $myfstem.xml 2>$myfstem.xml.errhtml > $myfstem.html");
+    }    
+}
+
+
+
+
 1;
