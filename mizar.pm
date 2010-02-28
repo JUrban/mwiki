@@ -7,6 +7,8 @@ use warnings;
 use Carp;
 use File::Temp qw/ tempfile tempdir /;
 use File::Copy;
+use File::Basename;
+use Cwd;
 
 my $mizfiles;
 my $mizfiles_must_be_populated = 0;
@@ -123,15 +125,30 @@ sub set_verifier_path {
 
 sub run_verifier {
   my $arg = shift ();
+  my $base = basename ($arg, ".miz");
+  my $error_file = $base . ".err";
   my $verifier = get_verifier_path ();
+
+  my $cwd = getcwd ();
+
+  chdir (get_MIZFILES ());
   system ("$verifier", "$arg");
   my $exit_status = ($? >> 8);
-  if ($exit_status == 0) {
+  chdir ($cwd);
+
+  my $error_file_nonempty = (-e $error_file) && (!(-z $error_file));
+ 
+ if ($exit_status == 0) {
+    if ($error_file_nonempty) {
+      return (-2)
+    } else {
     return (0);
+    }
   } else {
-    warn ("The verifier died while evaluating the text $arg: $!");
     return (-1);
   }
+
 }
+
 
 1;
