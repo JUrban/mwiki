@@ -51,17 +51,10 @@ print ("Verifying modified mizar files...\n");
 my @killers = ();
 foreach (@changed) {
   chomp;
-  chdir ($tempdir) 
-    or die ("While attempting to verify $_, I was somehow unable to change to the temporary directory $tempdir!");
-  my $verifier = "/home/mizarw/mwiki/bin/verifier";
-  print ("about to run $verifier $tempdir/$_.miz");
-  system ("$verifier $_.miz 2>&1 > $tempdir/$_.errvrf");
-  my $exit_status = ($? >> 8);
-  unless ($exit_status == 0) {
-    print ("Hmm, verifier seems to have died while verifying your text.\n");
-    print ("The exit status was $exit_status\n");
-    print ("You're not nice.\n");
-    # keep track of the killers
+  my $verifier_result;
+  Mizar::set_verifier_path ("/home/mizarw/mwiki/bin/verifier");
+  $verifier_result = Mizar::run_verifier ("$_.miz");
+  unless ($verifier_result == 0) {
     push (@killers, $_);
   }
 }
