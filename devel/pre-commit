@@ -17,9 +17,9 @@ use Carp;
 my @perl_changed = ();
 
 # First, gather the list of "explicitly" labelled perl
-my @dot_pl_changed = `git diff-index HEAD | cut -f 2 | grep '\.pl\$'`;
-my @dot_perl_changed = `git diff-index HEAD | cut -f 2 | grep '\.perl\$'`;
-my @dot_pm_changed = `git diff-index HEAD | cut -f 2 | grep '\.pm\$'`;
+my @dot_pl_changed = `git diff-index --cached HEAD | cut -f 2 | grep '\.pl\$'`;
+my @dot_perl_changed = `git diff-index --cached HEAD | cut -f 2 | grep '\.perl\$'`;
+my @dot_pm_changed = `git diff-index --cached HEAD | cut -f 2 | grep '\.pm\$'`;
 
 push (@perl_changed, @dot_pl_changed);
 push (@perl_changed, @dot_perl_changed);
@@ -28,7 +28,7 @@ push (@perl_changed, @dot_pm_changed);
 # Now look at the other files 
 
 my @maybe_perl = ();
-my @all_files = `git diff-index HEAD | cut -f 2`;
+my @all_files = `git diff-index --cached HEAD | cut -f 2`;
 foreach my $file (@all_files) {
   if ($file !~ /\.pl/ and $file !~ /\.perl/ and $file !~ /\.pm/) {
     push (@maybe_perl, $file);
@@ -63,7 +63,8 @@ my $ok;
 my @damaged = ();
 foreach my $perl_file (@perl_changed) {
   chomp ($perl_file);
-  $ok = `perl -c $perl_file`;
+  system ("perl", "-c", "$perl_file");
+  $ok = ($? >> 8);
   unless ($ok == 0) {
     push (@damaged, $perl_file);
   }
