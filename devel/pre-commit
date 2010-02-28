@@ -1,0 +1,80 @@
+#!/usr/bin/perl -w
+
+# Simple tools to ensure that OUR commits are coherent.
+
+use strict;
+use warnings;
+use Carp;
+
+# Check whether the perl code we're submitting is at least
+# syntactically correct.
+
+# Get the list of perl files in the index.  Define "perl code" as a
+# file whose name ends in either ".pl", ".perl", or ".pm", or a file
+# that is not empty and whose first line starts with "#!" and contains
+# "perl".  We could be smarter and perhaps use the file(1) utility.
+
+my @perl_changed = ();
+
+# First, gather the list of "explicitly" labelled perl
+my @dot_pl_changed = `git diff-index HEAD | cut -f 2 | grep '\.pl\$'`;
+my @dot_perl_changed = `git diff-index HEAD | cut -f 2 | grep '\.perl\$'`;
+my @dot_pm_changed = `git diff-index HEAD | cut -f 2 | grep '\.pm\$'`;
+
+push (@perl_changed, @dot_pl_changed);
+push (@perl_changed, @dot_perl_changed);
+push (@perl_changed, @dot_pm_changed);
+
+# Now look at the other files 
+
+my @maybe_perl = ();
+my @all_files = `git diff-index HEAD | cut -f 2`;
+foreach my $file (@all_files) {
+  if ($file !~ /\.pl/ and $file != /\.perl/ and $file !~ /\.pm/) {
+    push (@maybe_perl, $file);
+  }
+}
+
+my @definitely_perl = ();
+foreach my $file (@maybe_perl) {
+  if (-s $file > 0) {
+    my $fh;
+    open ($fh, q{<}, $file)
+      or croak ("Ouch: unable to open $file! $!");
+    my $first_line = <$fh>;
+    close ($fh)
+      or croak ("Unable to close filehandle for $file! $!");
+    if (scalar ($first_line > 5)) {
+      my $first_two_chars = substr ($first_line,0,2);
+      if ($first_two_char eq "#!") {
+	if ($first_line =~ /perl/) {
+	  push (@definitely_perl, $file);
+	}
+      }
+    }
+  }
+}
+
+push (@perl_changed, @definitely_perl);
+
+my $ok;
+my @damaged = ();
+foreach my $perl_file (@perl_changed) {
+  $ok = `perl -c $perl_file 2 > &1 > /dev/null`;
+  unless ($ok == 0) {
+    push (@damaged, $perl_file);
+  }
+}
+
+my $num_damaged = scalar (@damaged);
+if ($num_damaged == 0) {
+  exit (0);
+} else {
+  print ("OOPS: some of the perl code you intend to commit is syntactically broken!\n");
+  print ("Here are the offenders:\n");
+  foreach my $offender (@damaged) {
+    print ("* $offender\n");
+  }
+  print ("I won't let you continue.\n");
+  exit (1);
+}
