@@ -30,7 +30,7 @@ if (defined ($ENV{"GIT_DIR"})) {
 # second cut gets rid of the initial "mml/" in filenames like
 # "mml/polyform.miz".  The last cut gives us "polyform" from
 # "polyform.miz".
-my @changed = `git --git-dir=$git_dir diff-index HEAD | cut -f 2 | grep '\.miz\$' | cut -d '/' -f 2 | cut -d '.' -f 1`;
+my @changed = `git --git-dir=$git_dir diff-index --cached HEAD | cut -f 2 | grep '\.miz\$' | cut -d '/' -f 2 | cut -d '.' -f 1`;
 
 my $mizfiles = Mizar::get_MIZFILES ();
 
