@@ -1,0 +1,21 @@
+#!/usr/bin/perl -w
+
+use strict;
+use warnings;
+use File::Temp qw/ tempfile tempdir /;
+use Cwd;
+use Carp;
+
+use Mizar;
+
+# This is the pre-receive hook. It should check that the commiter is
+# updating files that he is allowed to.
+
+
+# Through various tests, we'll try to determine whether the proposed
+# receive is admissible.
+my $admissible_receive = 0;
+
+
+exit ($admissible_receive);
+
