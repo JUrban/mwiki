@@ -72,7 +72,6 @@ my @bad_guys = ();
 foreach (@changed) {
   chomp;
   my $verifier_result;
-  Mizar::set_verifier_path ("/home/mizarw/mwiki/bin/verifier");
   $verifier_result = Mizar::run_verifier ("$_.miz");
 
   if ($verifier_result == -1) {
