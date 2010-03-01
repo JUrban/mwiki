@@ -65,6 +65,34 @@ sub separate_mml_from_non_mml {
 
 separate_mml_from_non_mml ();
 
+my $num_mml_changed = scalar (@mml_changed);
+my $num_non_mml_changed = scalar (@non_mml_changed);
+
+# Through various tests, we'll try to determine whether the proposed
+# commit is admissible.
+my $admissible_commit = 0;
+
+if ($num_mml_changed == 0) {
+  if ($num_non_mml_changed == 1) {
+    # adding exactly one new article; it's enough to simplfy verify it
+    my $new_article = $non_mml_changed[0];
+    my $mizf_status = Mizar::run_mizf ($new_article);
+    if ($mizf_status == 0) {
+      $admissible_commit = 1;
+    } else {
+      $admissible_commit = 1;
+    }
+  } else {
+    # we have to verify more than one new article, but there are no
+    # changes to the MML.
+
+    # we'll work this out later
+    $admissible_commit = 1;
+  }
+} else {
+  $admissible_commit = 1;
+}
+
 print ("Verifying modified mizar files...\n");
 
 my @killers = ();
@@ -93,7 +121,7 @@ print ("If you like, check out $tempdir to see the generated auxiliary files\n")
 
 my $bad_length = scalar (@bad_guys);
 if ($bad_length == 0) {
-  exit 0;
+  $admissible_commit = 1;
 } else {
   print ("Sorry, there were some problems with the texts that you intended to commit.\n");
   print ("The following articles generated errors when being run on the verifier:\n");
@@ -101,5 +129,7 @@ if ($bad_length == 0) {
     print ("* $_\n");
   }
   print ("Sorry, I can't let you commit these files.\n");
-  exit 1;
+  $admissible_commit = 0;
 }
+
+exit ($admissible_commit);
