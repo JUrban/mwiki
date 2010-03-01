@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package Mizar;
+package mizar;
 
 use strict;
 use warnings;
