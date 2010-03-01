@@ -75,24 +75,30 @@ sub get_MML_LAR {
   if ($num_mml_lar_entries == 0) {
     initialize_mml_lar ();
   } 
-  return (\@mml_lar);
+  return (@mml_lar);
+}
+
+sub copy_mml_to_dir {
+  my $dir = shift ();
+  my $temp_mml = "$dir/mml";
+  mkdir ($temp_mml)
+    or croak ("Unable to create the \"mml\" subdirectory of the temporary directory! $!");
+  my $mizfiles = get_MIZFILES ();
+  my @mml_lar = get_MML_LAR ();
+  my $article_path;
+  foreach my $mml_lar_entry (get_MML_LAR) {
+    $article_path = "$mizfiles/mml/$mml_lar_entry.miz";
+    copy ($article_path, $temp_mml)
+      or croak ("Unable to copy the article $article_path to $temp_mml! $!");
+  }
+  return (1);
 }
 
 sub copy_mml_to_tempdir {
   my $cleanup = shift ();
   my $tempdir = tempdir (CLEANUP => $cleanup)
     or die ("Unable to create a temporary directory! $!");
-  my $temp_mml = "$tempdir/mml";
-  mkdir ($temp_mml)
-    or croak ("Unable to create the \"mml\" subdirectory of the temporary directory! $!");
-  my $mizfiles = get_MIZFILES ();
-  my @mml_lar = get_MML_LAR ();
-  my $article_path;
-  foreach my $mml_lar_entry (@mml_lar) {
-    $article_path = "$mizfiles/mml/$mml_lar_entry.miz";
-    copy ($article_path, $temp_mml)
-      or croak ("Unable to copy the article $article_path to $temp_mml! $!");
-  }
+  copy_mml_to_dir ($tempdir);
   return ($tempdir);
 }
 
