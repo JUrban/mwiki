@@ -46,6 +46,25 @@ foreach (@changed) {
 }
 print ("copying done.\n");
 
+my @mml_changed = ();
+my @non_mml_changed = ();
+
+sub separate_mml_from_non_mml {
+  foreach my $edited (@changed) {
+    chomp ($edited);
+    my ($name, $path, $extension) = fileparse ($edited);
+    if ($extension eq ".miz") {
+      if (Mizar::belongs_to_mml ($name)) {
+	push (@mml_changed, $edited);
+      } else {
+	push (@non_mml_changed, $edited);
+      }
+    }
+  }
+}
+
+separate_mml_from_non_mml ();
+
 print ("Verifying modified mizar files...\n");
 
 my @killers = ();
