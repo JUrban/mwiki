@@ -89,3 +89,10 @@ pod2usage(2) if ($#ARGV != 0);
 
 
 
+## TODO: take the ikiwiki setup bits - generate the secure wrappers,
+## etc.  We will mimic the ikiwiki setup with the working repo used for
+## web edits, and the bare repo used for post-commit hook updating the
+## working repo, and ikiwiki updating the html from the working repo. The
+## bare repo will have a pre-receive and pre-commit hooks, for security
+## and depndency checking and verification, and post-commit for updating
+## the working repo and htmlization.
