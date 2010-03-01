@@ -9,6 +9,7 @@ use File::Temp qw/ tempfile tempdir /;
 use File::Copy;
 use File::Basename;
 use Cwd;
+use List::MoreUtils qw (any);
 
 my $mizfiles;
 my $mizfiles_must_be_populated = 0;
@@ -95,6 +96,12 @@ sub copy_mml_to_tempdir {
   return ($tempdir);
 }
 
+sub belongs_to_mml {
+  my $article_id = shift ();
+  my @mml = get_MML_LAR ();
+  return (any { $_ eq $article_id } @mml);
+}
+
 # Running mizar programs in cutomizable ways
 
 sub pad_mizfiles {
@@ -137,12 +144,12 @@ sub run_verifier {
   chdir ($cwd);
 
   my $error_file_nonempty = (-e $error_file) && (!(-z $error_file));
- 
- if ($exit_status == 0) {
+
+  if ($exit_status == 0) {
     if ($error_file_nonempty) {
       return (-2)
     } else {
-    return (0);
+      return (0);
     }
   } else {
     return (-1);
