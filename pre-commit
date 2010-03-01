@@ -30,17 +30,18 @@ if (defined ($ENV{"GIT_DIR"})) {
 # second cut gets rid of the initial "mml/" in filenames like
 # "mml/polyform.miz".  The last cut gives us "polyform" from
 # "polyform.miz".
-my @changed = `git --git-dir=$git_dir diff-index --cached HEAD | cut -f 2 | grep '\.miz\$' | cut -d '/' -f 2 | cut -d '.' -f 1`;
+my @miz_changed = `git --git-dir=$git_dir diff-index --cached HEAD | cut -f 2 | grep '\.miz\$' | cut -d '/' -f 2 | cut -d '.' -f 1`;
+my @non_miz_changed = `git --git-dir=$git_dir diff-index --cached HEAD | cut -f 2 | grep --invert-match '\.miz\$'`;
 
 my $mizfiles = Mizar::get_MIZFILES ();
 
 my $tempdir = tempdir (CLEANUP => 0);
 my $currdir = getcwd ();
-my $num_changed = scalar (@changed);
-print ("It looks like I have $num_changed to look at\n");
+my $num_miz_changed = scalar (@miz_changed);
+print ("It looks like I have $num_miz_changed to look at\n");
 
 print ("Copying all these to $tempdir\n");
-foreach (@changed) {
+foreach (@miz_changed) {
   chomp;
   system ("cp", "$currdir/mml/$_.miz", "$tempdir");
 }
@@ -50,7 +51,7 @@ my @mml_changed = ();
 my @non_mml_changed = ();
 
 sub separate_mml_from_non_mml {
-  foreach my $edited (@changed) {
+  foreach my $edited (@miz_changed) {
     chomp ($edited);
     my ($name, $path, $extension) = fileparse ($edited);
     if ($extension eq ".miz") {
@@ -97,7 +98,7 @@ print ("Verifying modified mizar files...\n");
 
 my @killers = ();
 my @bad_guys = ();
-foreach (@changed) {
+foreach (@miz_changed) {
   chomp;
   my $verifier_result;
   $verifier_result = Mizar::run_verifier ("$_.miz");
