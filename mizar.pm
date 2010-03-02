@@ -7,6 +7,7 @@ use warnings;
 use Carp;
 use File::Temp qw/ tempfile tempdir /;
 use File::Copy;
+use File::Copy::Recursive qw/ dircopy /;
 use File::Basename;
 use Cwd;
 use List::MoreUtils qw (any);
@@ -78,8 +79,56 @@ sub get_MML_LAR {
   return (@mml_lar);
 }
 
+sub copy_mizar_article_to_dir {
+  my $article_id = shift;
+  my $dir = shift;
+  my $article_path = get_MIZFILES () . "/" . "mml" . "/" . $article_id . ".miz";
+  unless (-d $dir) {
+    croak ("Unable to copy $article_id to $dir because $dir isn't a directory!");
+  }
+  File::copy ($article_path, $dir) 
+      or croak ("Something went wrong copying $article_id (more exactly, $article_path) to $dir");
+}
+
+sub sparse_MIZFILES_in_dir {
+  my $dir = shift ();
+  my $cwd = getcwd ();
+  unless (-d $dir) {
+    croak ("The given directory, $dir, isn't actually a directory");
+  }
+  my $mizfiles = get_MIZFILES ();
+
+  # toplevel data
+  copy ($mizfiles . "/" . "miz.xml", $dir);
+  copy ($mizfiles . "/" . "mizar.dct", $dir);
+  copy ($mizfiles . "/" . "mizar.msg", $dir);
+  copy ($mizfiles . "/" . "mml.ini", $dir);
+  copy ($mizfiles . "/" . "mml.lar", $dir);
+  copy ($mizfiles . "/" . "mml.vct", $dir);
+
+  # empty mml subdirectory
+  mkdir ("$dir" . "/" . "mml");
+
+  # prel
+  my $real_prel_dir = $mizfiles . "/" . "prel";
+  my $new_prel_dir = $dir . "/" . "prel";
+  dircopy ($real_prel_dir, $new_prel_dir)
+    or croak ("Error copying PREL directory: $!");
+
+  return (0);
+}
+
+sub sparse_MIZFILES_in_tempdir {
+  my $tempd = tempdir ();
+  sparse_MIZFILES_in_dir ($tempd);
+  return ($tempd);
+}
+
 sub copy_mml_to_dir {
   my $dir = shift ();
+  unless (-d $dir) {
+    croak ("The given directory, $dir, isn't actually a directory!");
+  }
   my $temp_mml = "$dir/mml";
   mkdir ($temp_mml)
     or croak ("Unable to create the \"mml\" subdirectory of the temporary directory! $!");
@@ -119,6 +168,9 @@ sub pad_mizfiles {
 }
 
 my $verifier_path;
+my $accom_path;
+my $makeenv_path;
+my $exporter_path;
 
 sub get_verifier_path {
   if (defined ($verifier_path)) {
@@ -166,8 +218,6 @@ sub run_verifier {
 
 }
 
-my $accom_path;
-
 sub get_accom_path {
   if (defined ($accom_path)) {
     return ($accom_path);
@@ -214,9 +264,129 @@ sub run_accom {
 
 }
 
+sub get_makeenv_path {
+  if (defined ($makeenv_path)) {
+    return ($makeenv_path);
+  }
+  return (pad_mizfiles ("/" . "makeenv"));
+}
 
+sub set_makeenv_path {
+  my $new_makeenv_path = shift ();
+  # is this for real?
+  if (-x $new_makeenv_path) {
+    $makeenv_path = $new_makeenv_path;
+    return (0);
+  } else {
+    warn ("The new proposed path for the makeenv, $new_makeenv_path, isn't executable.");
+    return (-1);
+  }
+}
 
+sub run_makeenv_in_dir {
+  my $arg = shift;
+  my $dir = shift;
 
+  unless (-d $dir) {
+    croak ("The given directory, $dir, isn't actually a directory");
+  }
+
+  my $base = basename ($arg, ".miz");
+  my $error_file = $base . ".err";
+  my $makeenv = get_makeenv_path ();
+
+  my $cwd = getcwd ();
+
+  chdir ($dir);
+  my $old_mizfiles = $ENV{"MIZFILES"};
+  my $new_mizfiles = get_MIZFILES ();
+  $ENV{"MIZFILES"} = $new_mizfiles;
+  system ("$makeenv", "$base.miz");
+  $ENV{"MIZFILES"} = $old_mizfiles;
+  my $exit_status = ($? >> 8);
+  chdir ($cwd);
+
+  my $error_file_nonempty = (-e $error_file) && (!(-z $error_file));
+
+  if ($exit_status == 0) {
+    if ($error_file_nonempty) {
+      return (-2)
+    } else {
+      return (0);
+    }
+  } else {
+    return (-1);
+  }
+
+}
+
+sub run_makeenv {
+  my $arg = shift;
+  return (run_makeenv_in_dir ($arg, get_MIZFILES ()));
+}
+
+sub get_exporter_path {
+  if (defined ($exporter_path)) {
+    return ($exporter_path);
+  }
+  return (pad_mizfiles ("/" . "exporter"));
+}
+
+sub set_exporter_path {
+  my $new_exporter_path = shift ();
+  # is this for real?
+  if (-x $new_exporter_path) {
+    $exporter_path = $new_exporter_path;
+    return (0);
+  } else {
+    warn ("The new proposed path for the exporter, $new_exporter_path, isn't executable.");
+    return (-1);
+  }
+}
+
+sub run_exporter_in_dir {
+
+  my $arg = shift ();
+  my $dir = shift ();
+
+  unless (-d $dir) {
+    croak ("The given directory in which to run exporter, $dir, isn't actually a directory");
+  }
+
+  my $base = basename ($arg, ".miz");
+  my $error_file = $base . ".err";
+  my $exporter = get_exporter_path ();
+
+  my $cwd = getcwd ();
+
+  chdir ($dir);
+
+  my $old_mizfiles = $ENV{"MIZFILES"};
+  my $new_mizfiles = get_MIZFILES ();
+  $ENV{"MIZFILES"} = $new_mizfiles;
+  system ("$exporter", "$base.miz");
+  $ENV{"MIZFILES"} = $old_mizfiles;
+  my $exit_status = ($? >> 8);
+  chdir ($cwd);
+
+  my $error_file_nonempty = (-e $error_file) && (!(-z $error_file));
+
+  if ($exit_status == 0) {
+    if ($error_file_nonempty) {
+      return (-2)
+    } else {
+      return (0);
+    }
+  } else {
+    return (-1);
+  }
+
+}
+
+sub run_exporter {
+  my $arg = shift ();
+  return (run_exporter_in_dir ($arg, get_MIZFILES ()));
+}
 
 my $gxsldir = "";   	# set this eg. to some git of the xsl4mizar repo
 my $gmizhtml = "";	# where are we linking to
