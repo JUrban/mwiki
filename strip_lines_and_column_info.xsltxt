@@ -1,0 +1,9 @@
+stylesheet 1.0;
+output method=xml;
+tpl [@line];
+tpl [@col];
+tpl [node()|@*] {
+  copy {
+    apply [@*|node()];
+  }
+}
