@@ -110,6 +110,9 @@ sub belongs_to_mml {
 
 # Running mizar programs in cutomizable ways
 
+# Eventually we can adapt the parallelization code to carry out these
+# tasks.
+
 sub pad_mizfiles {
   my $pad = shift ();
   return (get_MIZFILES () . "$pad");
@@ -146,6 +149,54 @@ sub run_verifier {
 
   chdir (get_MIZFILES ());
   system ("$verifier", "$arg");
+  my $exit_status = ($? >> 8);
+  chdir ($cwd);
+
+  my $error_file_nonempty = (-e $error_file) && (!(-z $error_file));
+
+  if ($exit_status == 0) {
+    if ($error_file_nonempty) {
+      return (-2)
+    } else {
+      return (0);
+    }
+  } else {
+    return (-1);
+  }
+
+}
+
+my $accom_path;
+
+sub get_accom_path {
+  if (defined ($accom_path)) {
+    return ($accom_path);
+  }
+  return (pad_mizfiles ("/" . "accom"));
+}
+
+sub set_accom_path {
+  my $new_accom_path = shift ();
+  # is this for real?
+  if (-x $new_accom_path) {
+    $accom_path = $new_accom_path;
+    return (0);
+  } else {
+    warn ("The new proposed path for the accom, $new_accom_path, isn't executable.");
+    return (-1);
+  }
+}
+
+sub run_accom {
+  my $arg = shift ();
+  my $base = basename ($arg, ".miz");
+  my $error_file = $base . ".err";
+  my $accom = get_accom_path ();
+
+  my $cwd = getcwd ();
+
+  chdir (get_MIZFILES ());
+  system ("$accom", "$arg");
   my $exit_status = ($? >> 8);
   chdir ($cwd);
 
