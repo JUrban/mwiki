@@ -96,3 +96,61 @@ pod2usage(2) if ($#ARGV != 0);
 ## bare repo will have a pre-receive and pre-commit hooks, for security
 ## and depndency checking and verification, and post-commit for updating
 ## the working repo and htmlization.
+
+
+## we should setup things for anonymous push, following the instructions
+## at http://ikiwiki.info/tips/untrusted_git_push/
+
+## pseudo code follows:
+
+# add anonymous user
+sub AddAnonUser { system("adduser --shell=/usr/bin/git-shell --disabled-password anon"); }
+
+# unix users whose commits should be checked by the pre-receive hook
+# untrusted_committers => ['anon'],
+sub SetupUntrustedCommitters {};
+
+
+# The untrusted_committers list is the list of unix users who will be pushing in untrusted changes.
+# It should not include the user that ikiwiki normally runs as.
+sub SetupGitPreReceiveHook  {};
+
+
+# One way to do it is to create a group, and put both anon and your
+# regular user in that group. Then make the bare git repository owned
+# and writable by the group. See git for some more tips on setting up a
+# git repository with multiple committers.  Note that anon should not be
+# able to write to the srcdir, only to the bare git repository for your
+# wiki.
+
+sub SetupGitRepoPermissions {};
+
+# Now set up git-daemon. It will need to run as user anon, and be
+# configured to export your wiki's bare git repository. I set it up as
+# follows in /etc/inetd.conf, and ran /etc/init.d/openbsd-inetd restart.
+# git     stream  tcp     nowait  anon          /usr/bin/git-daemon git-daemon --inetd --export-all --interpolated-path=/srv/git/%H%D /srv/git
+#
+# At this point you should be able to git clone git://your.wiki/path
+# from anywhere, and check out the source to your wiki. But you won't be
+# able to push to it yet, one more change is needed to turn that
+# on. Edit the config file of your bare git repository, and allow
+# git-daemon to receive pushes:
+
+# [daemon]
+#     receivepack = true
+
+# Now pushes should be accepted, and your wiki immediatly be updated. If
+# it doesn't, check your git repo's permissions, and make sure that the
+# post-update and pre-receive hooks are suid so they run as the user who
+# owns the srcdir.
+
+
+sub SetupGitDaemon {}
+
+AddAnonUser();
+SetupUntrustedCommitters();
+SetupGitPreReceiveHook();
+SetupGitRepoPermissions()
+SetupGitDaemon();
+
+
