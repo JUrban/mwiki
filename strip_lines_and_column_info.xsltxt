@@ -1,7 +1,10 @@
 stylesheet 1.0;
 output method=xml;
+tpl [processing-instruction('xml-stylesheet')];
 tpl [@line];
 tpl [@col];
+tpl [@href];
+tpl [@mizfiles];
 tpl [node()|@*] {
   copy {
     apply [@*|node()];
