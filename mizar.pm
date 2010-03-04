@@ -99,12 +99,12 @@ sub sparse_MIZFILES_in_dir {
   my $mizfiles = get_MIZFILES ();
 
   # toplevel data
-  copy ($mizfiles . "/" . "miz.xml", $dir);
-  copy ($mizfiles . "/" . "mizar.dct", $dir);
-  copy ($mizfiles . "/" . "mizar.msg", $dir);
-  copy ($mizfiles . "/" . "mml.ini", $dir);
-  copy ($mizfiles . "/" . "mml.lar", $dir);
-  copy ($mizfiles . "/" . "mml.vct", $dir);
+  symlink ($mizfiles . "/" . "miz.xml", $dir . "/" . "miz.xml");
+  symlink ($mizfiles . "/" . "mizar.dct", $dir . "/" . "mizar.dct");
+  symlink ($mizfiles . "/" . "mizar.msg", $dir . "/" . "mizar.msg");
+  symlink ($mizfiles . "/" . "mml.ini", $dir . "/" . "mml.ini");
+  symlink ($mizfiles . "/" . "mml.lar", $dir . "/" . "mml.lar");
+  symlink ($mizfiles . "/" . "mml.vct", $dir . "/" . "mml.vct");
 
   # empty mml subdirectory
   mkdir ("$dir" . "/" . "mml");
@@ -112,8 +112,8 @@ sub sparse_MIZFILES_in_dir {
   # prel
   my $real_prel_dir = $mizfiles . "/" . "prel";
   my $new_prel_dir = $dir . "/" . "prel";
-  dircopy ($real_prel_dir, $new_prel_dir)
-    or croak ("Error copying PREL directory: $!");
+
+  symlink ($real_prel_dir, $new_prel_dir);
 
   return (0);
 }
