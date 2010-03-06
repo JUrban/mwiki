@@ -15,6 +15,17 @@ use List::MoreUtils qw (any);
 my $mizfiles;
 my $mizfiles_must_be_populated = 0;
 
+
+# run in the quite mode - default 1
+my $gquite = 1;
+my $gquietflag = $gquiet ? ' -q ' : '';
+
+# accept longlines - default 1
+my $glonglines = 1;
+my $glflag = $glonglines ? ' -l ' : '';
+
+
+
 # toplevel files in the mml distro
 my @mml_toplevel_files = ("miz.xml", "mizar.dct", "mizar.msg", "mml.ini", "mml.lar", "mml.vct");
 
@@ -168,7 +179,7 @@ sub belongs_to_mml {
   return (any { $_ eq $article_id } @mml);
 }
 
-# Running mizar programs in cutomizable ways
+# Running mizar programs in customizable ways
 
 # Eventually we can adapt the parallelization code to carry out these
 # tasks.
@@ -211,7 +222,7 @@ sub run_verifier {
   my $cwd = getcwd ();
 
   chdir (get_MIZFILES ());
-  system ("$verifier", "$arg");
+  system ("$verifier $glflag $gquietflag $arg");
   my $exit_status = ($? >> 8);
   chdir ($cwd);
 
@@ -375,7 +386,7 @@ sub run_exporter_in_dir {
   my $old_mizfiles = $ENV{"MIZFILES"};
   my $new_mizfiles = get_MIZFILES ();
   $ENV{"MIZFILES"} = $new_mizfiles;
-  system ("$exporter", "$base.miz");
+  system ("$exporter $glonglines $gquietflag $base.miz");
   $ENV{"MIZFILES"} = $old_mizfiles;
   my $exit_status = ($? >> 8);
   chdir ($cwd);
