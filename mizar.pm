@@ -69,11 +69,19 @@ sub sparse_MIZFILES_in_dir {
   unless (-d $dir) {
     croak ("The given directory, $dir, isn't actually a directory");
   }
-  my $mizfiles = get_MIZFILES ();
 
   # toplevel data
+  my $mizfiles = get_MIZFILES ();
   for my $mizfile (qw/miz.xml mizar.dct mizar.msg mml.ini mml.lar mml.vct/) {
-    symlink ($mizfiles . "/" . $mizfile, $dir . "/" . $mizfile);
+    my $real_mizfile = $mizfiles . "/" . $mizfile;
+    unless (-e $real_mizfile) {
+      croak ("Unable to link to a non-existent target: $real_mizfile");
+    }
+    my $linked_mizfile = $dir . "/" . $mizfile;
+    if (-e $linked_mizfile) {
+      croak ("Unwilling to overwrite an existing link");
+    }
+    symlink ($real_mizfile, $linked_mizfile);
   }
 
   # empty mml subdirectory
@@ -86,39 +94,79 @@ sub sparse_MIZFILES_in_dir {
   mkdir ($new_prel_dir);
 
   # hidden
-  symlink ($real_prel_dir . "/" . "h" . "/" . "hidden.dco",
-	   $new_prel_dir . "/" . "hidden.dco");
-  symlink ($real_prel_dir . "/" . "h" . "/" . "hidden.dno",
-	   $new_prel_dir . "/" . "hidden.dno");
+  my $real_hidden_dco = $real_prel_dir . "/" . "h" . "/" . "hidden.dco";
+  unless (-e $real_hidden_dco) {
+    croak ("Unable to link to non-existent target: $real_hidden_dco");
+  }
+  my $linked_hidden_dco = $new_prel_dir . "/" . "hidden.dco";
+  my $real_hidden_dno = $real_prel_dir . "/" . "h" . "/" . "hidden.dno";
+  unless (-e $real_hidden_dno) {
+    croak ("Unable to link to non-existent target: $real_hidden_dno");
+  }
+  my $linked_hidden_dno = $new_prel_dir . "/" . "hidden.dno";
+  symlink ($real_hidden_dco, $linked_hidden_dco);
+  symlink ($real_hidden_dno, $linked_hidden_dno);
 
   # tarski
-  symlink ($real_prel_dir . "/" . "t" . "/" . "tarski.dco",
-	   $new_prel_dir . "/" . "tarski.dco");
-  symlink ($real_prel_dir . "/" . "t" . "/" . "tarski.def",
-	   $new_prel_dir . "/" . "tarski.def");
-  symlink ($real_prel_dir . "/" . "t" . "/" . "tarski.dno",
-	   $new_prel_dir . "/" . "tarski.dno");
-  symlink ($real_prel_dir . "/" . "t" . "/" . "tarski.sch",
-	   $new_prel_dir . "/" . "tarski.sch");
-  symlink ($real_prel_dir . "/" . "t" . "/" . "tarski.the",
-	   $new_prel_dir . "/" . "tarski.the");
+  my $real_tarski_dco = $real_prel_dir . "/" . "t" . "/" . "tarski.dco";
+  my $real_tarski_def = $real_prel_dir . "/" . "t" . "/" . "tarski.def";
+  my $real_tarski_dno = $real_prel_dir . "/" . "t" . "/" . "tarski.dno";
+  my $real_tarski_sch = $real_prel_dir . "/" . "t" . "/" . "tarski.sch";
+  my $real_tarski_the = $real_prel_dir . "/" . "t" . "/" . "tarski.the";
+  unless (-e $real_tarski_dco) {
+    croak ("Unable to link to non-existent target: $real_tarski_dco");
+  }
+  unless (-e $real_tarski_def) {
+    croak ("Unable to link to non-existent target: $real_tarski_def");
+  }
+  unless (-e $real_tarski_dno) {
+    croak ("Unable to link to non-existent target: $real_tarski_dno");
+  }
+  unless (-e $real_tarski_sch) {
+    croak ("Unable to link to non-existent target: $real_tarski_sch");
+  }
+  unless (-e $real_tarski_the) {
+    croak ("Unable to link to non-existent target: $real_tarski_the");
+  }
+  symlink ($real_tarski_dco, $new_prel_dir . "/" . "tarski.dco");
+  symlink ($real_tarski_def, $new_prel_dir . "/" . "tarski.def");
+  symlink ($real_tarski_dno, $new_prel_dir . "/" . "tarski.dno");
+  symlink ($real_tarski_sch, $new_prel_dir . "/" . "tarski.sch");
+  symlink ($real_tarski_the, $new_prel_dir . "/" . "tarski.the");
 
-  # requirements: 
-  symlink ($real_prel_dir . "/" . "h" . "/" . "hidden.dre",
-	   $new_prel_dir . "/" . "hidden.dre");
-  symlink ($real_prel_dir . "/" . "b" . "/" . "boole.dre",
-	  $new_prel_dir . "/" . "boole.dre");
-  symlink ($real_prel_dir . "/" . "s" . "/" . "subset.dre",
-	  $new_prel_dir . "/" . "subset.dre");
-  symlink ($real_prel_dir . "/" . "a" . "/" . "arithm.dre",
-	  $new_prel_dir . "/" . "arithm.dre");
-  symlink ($real_prel_dir . "/" . "h" . "/" . "hidden.dre",
-	  $new_prel_dir . "/" . "hidden.dre");
-  symlink ($real_prel_dir . "/" . "n" . "/" . "numerals.dre",
-	  $new_prel_dir . "/" . "numerals.dre");
-  symlink ($real_prel_dir . "/" . "r" . "/" . "real.dre",
-	  $new_prel_dir . "/" . "real.dre");
- 
+  # requirements:
+  my $real_hidden_dre = $real_prel_dir . "/" . "h" . "/" . "hidden.dre";
+  my $real_boole_dre = $real_prel_dir . "/" . "b" . "/" . "boole.dre";
+  my $real_subset_dre = $real_prel_dir . "/" . "s" . "/" . "subset.dre";
+  my $real_arithm_dre = $real_prel_dir . "/" . "a" . "/" . "arithm.dre";
+  my $real_numerals_dre = $real_prel_dir . "/" . "n" . "/" . "numerals.dre";
+  my $real_real_dre = $real_prel_dir . "/" . "r" . "/" . "real.dre";
+
+  unless (-e $real_hidden_dre) {
+    croak ("Unable to link to non-existent target: $real_hidden_dre");
+  }
+  unless (-e $real_boole_dre) {
+    croak ("Unable to link to non-existent target: $real_boole_dre");
+  }
+  unless (-e $real_subset_dre) {
+    croak ("Unable to link to non-existent target: $real_subset_dre");
+  }
+  unless (-e $real_arithm_dre) {
+    croak ("Unable to link to non-existent target: $real_arithm_dre");
+  }
+  unless (-e $real_numerals_dre) {
+    croak ("Unable to link to non-existent target: $real_numerals_dre");
+  }
+  unless (-e $real_real_dre) {
+    croak ("Unable to link to non-existent target: $real_real_dre");
+  }
+
+  symlink ($real_hidden_dre, $new_prel_dir . "/" . "hidden.dre");
+  symlink ($real_boole_dre, $new_prel_dir . "/" . "boole.dre");
+  symlink ($real_subset_dre, $new_prel_dir . "/" . "subset.dre");
+  symlink ($real_arithm_dre, $new_prel_dir . "/" . "arithm.dre");
+  symlink ($real_numerals_dre, $new_prel_dir . "/" . "numerals.dre");
+  symlink ($real_real_dre, $new_prel_dir . "/" . "real.dre");
 
   return (0);
 }
