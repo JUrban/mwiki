@@ -92,8 +92,6 @@ sub sparse_MIZFILES_in_dir {
 	   $new_prel_dir . "/" . "hidden.dco");
   symlink ($real_prel_dir . "/" . "h" . "/" . "hidden.dno",
 	   $new_prel_dir . "/" . "hidden.dno");
-  symlink ($real_prel_dir . "/" . "h" . "/" . "hidden.dre",
-	   $new_prel_dir . "/" . "hidden.dre");
 
   # tarski
   symlink ($real_prel_dir . "/" . "t" . "/" . "tarski.dco",
@@ -106,6 +104,23 @@ sub sparse_MIZFILES_in_dir {
 	   $new_prel_dir . "/" . "tarski.sch");
   symlink ($real_prel_dir . "/" . "t" . "/" . "tarski.the",
 	   $new_prel_dir . "/" . "tarski.the");
+
+  # requirements: 
+  symlink ($real_prel_dir . "/" . "h" . "/" . "hidden.dre",
+	   $new_prel_dir . "/" . "hidden.dre");
+  symlink ($real_prel_dir . "/" . "b" . "/" . "boole.dre",
+	  $new_prel_dir . "/" . "boole.dre");
+  symlink ($real_prel_dir . "/" . "s" . "/" . "subset.dre",
+	  $new_prel_dir . "/" . "subset.dre");
+  symlink ($real_prel_dir . "/" . "a" . "/" . "arithm.dre",
+	  $new_prel_dir . "/" . "arithm.dre");
+  symlink ($real_prel_dir . "/" . "h" . "/" . "hidden.dre",
+	  $new_prel_dir . "/" . "hidden.dre");
+  symlink ($real_prel_dir . "/" . "n" . "/" . "numerals.dre",
+	  $new_prel_dir . "/" . "numerals.dre");
+  symlink ($real_prel_dir . "/" . "r" . "/" . "real.dre",
+	  $new_prel_dir . "/" . "real.dre");
+ 
 
   return (0);
 }
