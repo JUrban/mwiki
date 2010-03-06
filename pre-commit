@@ -3,49 +3,24 @@
 use strict;
 use warnings;
 use File::Temp qw/ tempfile tempdir /;
+use File::Copy;
+use File::Basename;
 use Cwd;
 use Carp;
 
-use Mizar;
+use mizar;
 
 # Compute list of mizar files that belong to the index (i.e., the
-# mizar files that are about to be committed).
-
-# We might want to use a perl package for git later on
-my $git_dir;
-if (defined ($ENV{"GIT_DIR"})) {
-  if (-d $ENV{"GIT_DIR"}) {
-    $git_dir = $ENV{"GIT_DIR"};
-  } else {
-    croak ("The GIT_DIR environment variable is set, but it's not a directory")
-  }
-} else {
-  $git_dir = getcwd ();
-}
-
-# git diff-index will give a list of changed files.  We compare the
-# index to HEAD, the most recent commit known to be valid/coherent.
-# The actual file name is the second field of the line (where the
-# field separator is tab), hence the first call to "cut -f 2".  The
-# second cut gets rid of the initial "mml/" in filenames like
-# "mml/polyform.miz".  The last cut gives us "polyform" from
-# "polyform.miz".
-my @miz_changed = `git --git-dir=$git_dir diff-index --cached HEAD | cut -f 2 | grep '\.miz\$' | cut -d '/' -f 2 | cut -d '.' -f 1`;
-my @non_miz_changed = `git --git-dir=$git_dir diff-index --cached HEAD | cut -f 2 | grep --invert-match '\.miz\$'`;
-
-my $mizfiles = Mizar::get_MIZFILES ();
-
-my $tempdir = tempdir (CLEANUP => 0);
-my $currdir = getcwd ();
-my $num_miz_changed = scalar (@miz_changed);
-print ("It looks like I have $num_miz_changed to look at\n");
-
-print ("Copying all these to $tempdir\n");
-foreach (@miz_changed) {
-  chomp;
-  system ("cp", "$currdir/mml/$_.miz", "$tempdir");
-}
-print ("copying done.\n");
+# mizar files that are about to be committed). git diff-index will
+# give a list of changed files.  We compare the index to HEAD, the
+# most recent commit known to be valid/coherent.  The actual file name
+# is the second field of the line (where the field separator is tab),
+# hence the first call to "cut -f 2".  The last cut gives us
+# "polyform" from "polyform.miz".
+my @miz_changed 
+  = `git diff-index --cached HEAD | cut -f 2 | grep '\.miz\$'`;
+my @non_miz_changed 
+  = `git diff-index --cached HEAD | cut -f 2 | grep --invert-match '\.miz\$'`;
 
 my @mml_changed = ();
 my @non_mml_changed = ();
@@ -53,84 +28,79 @@ my @non_mml_changed = ();
 sub separate_mml_from_non_mml {
   foreach my $edited (@miz_changed) {
     chomp ($edited);
-    my ($name, $path, $extension) = fileparse ($edited);
-    if ($extension eq ".miz") {
-      if (Mizar::belongs_to_mml ($name)) {
-	push (@mml_changed, $edited);
+    my ($name, $path, $extension) = fileparse ($edited, qr/\.[^.]+/);
+    if ($path eq "mml/") {
+      if (mizar::belongs_to_mml ($name)) {
+	push (@mml_changed, $name);
       } else {
-	push (@non_mml_changed, $edited);
+	push (@non_mml_changed, $name);
       }
+    } else {
+      carp ("You're committing a mizar file ($edited) outside the MML subdirectory; we don'handle this case yet");
     }
   }
 }
 
 separate_mml_from_non_mml ();
 
-my $num_mml_changed = scalar (@mml_changed);
-my $num_non_mml_changed = scalar (@non_mml_changed);
+my @new_articles = (@mml_changed, @non_mml_changed);
 
-# Through various tests, we'll try to determine whether the proposed
-# commit is admissible.
+print ("Here are the changes to the MML:\n");
+foreach my $mml (@mml_changed) {
+  print ($mml);
+  print ("\n");
+}
+
+print ("Here are the changes outside the MML:\n");
+foreach my $non_mml (@non_mml_changed) {
+  print ($non_mml);
+  print ("\n");
+}
+
+my $git_dir = $ENV{GIT_DIR};
+my $working_directory = dirname ($git_dir);
+my $temp_mizfiles = mizar::sparse_MIZFILES_in_tempdir ();
+print ("Setting MIZFILES to $temp_mizfiles\n");
+mizar::set_MIZFILES ($temp_mizfiles);
+my $temp_mml = $temp_mizfiles . "/" . "mml";
+foreach my $changed (@mml_changed) {
+  unless (-e "$working_directory/mml/$changed.miz") {
+    croak ("WTF? $working_directory/mml/$changed.miz doesn't exist.  What directory are we doing this in?");
+  }
+  copy ("$working_directory/mml/$changed.miz", $temp_mml)
+    or croak ("Something went wrong copying $changed to $temp_mml: $!");
+}
+
 my $admissible_commit = 0;
 
-if ($num_mml_changed == 0) {
-  if ($num_non_mml_changed == 1) {
-    # adding exactly one new article; it's enough to simplfy verify it
-    my $new_article = $non_mml_changed[0];
-    my $mizf_status = Mizar::run_mizf ($new_article);
-    if ($mizf_status == 0) {
-      $admissible_commit = 1;
-    } else {
-      $admissible_commit = 1;
-    }
-  } else {
-    # we have to verify more than one new article, but there are no
-    # changes to the MML.
+# Now that we've called envget on the new articles, we can compute
+# their dependencies.
 
-    # we'll work this out later
-    $admissible_commit = 1;
+my $num_mml_changed = scalar (@mml_changed);
+my $num_non_mml_changed = scalar (@non_mml_changed);
+my $num_new_articles = scalar (@new_articles);
+my $new_articles_as_str = join (" ", @new_articles);
+print ("About to call the dependency generator with the argument:\n$new_articles_as_str\n");
+my $dependency_makefile
+  = `MIZFILES=$temp_mizfiles /Users/alama/sources/mizar/mwiki/dependencies.pl --makefile --proper $new_articles_as_str`;
+my $dependency_makefile_converse
+  = `MIZFILES=$temp_mizfiles /Users/alama/sources/mizar/mwiki/dependencies.pl --makefile --proper --converse $new_articles_as_str`;
+print "Dependency makefile:\n$dependency_makefile\n";
+print "Converse of dependency makefile:\n$dependency_makefile_converse\n";
+my $all_ok = 1;
+for (my $i = 0; $i < $num_new_articles && $all_ok; $i++) {
+  my $new_article = $new_articles[$i];
+  my $mizf_status = mizar::run_mizf ($new_article);
+  unless ($mizf_status == 0) {
+    $all_ok = 0;
   }
+}
+$admissible_commit = $all_ok;
+
+if ($admissible_commit) {
+  print ("Your changes are admissible\n");
 } else {
-  $admissible_commit = 1;
-}
-
-print ("Verifying modified mizar files...\n");
-
-my @killers = ();
-my @bad_guys = ();
-foreach (@miz_changed) {
-  chomp;
-  my $verifier_result;
-  $verifier_result = Mizar::run_verifier ("$_.miz");
-
-  if ($verifier_result == -1) {
-    push (@killers, $_);
-  }
-
-  if ($verifier_result == -2) {
-    push (@bad_guys, $_);
-  }
-}
-
-print ("I tried to verify your changes.  Let's see whether that worked out.\n");
-
-foreach (@killers) {
-  print ("KILLER: $_ killed the verifier.");
-}
-
-print ("If you like, check out $tempdir to see the generated auxiliary files\n");
-
-my $bad_length = scalar (@bad_guys);
-if ($bad_length == 0) {
-  $admissible_commit = 1;
-} else {
-  print ("Sorry, there were some problems with the texts that you intended to commit.\n");
-  print ("The following articles generated errors when being run on the verifier:\n");
-  foreach (@bad_guys) {
-    print ("* $_\n");
-  }
-  print ("Sorry, I can't let you commit these files.\n");
-  $admissible_commit = 0;
+  print ("Your changes are inadmissible\n");
 }
 
 exit ($admissible_commit);
