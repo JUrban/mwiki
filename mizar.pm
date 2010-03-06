@@ -15,6 +15,17 @@ use List::MoreUtils qw (any);
 my $mizfiles;
 my $mizfiles_must_be_populated = 0;
 
+# toplevel files in the mml distro
+my @mml_toplevel_files = ("miz.xml", "mizar.dct", "mizar.msg", "mml.ini", "mml.lar", "mml.vct");
+
+# extensions of the environmental files
+my @gaccexts = (".aco", ".atr", ".dct", ".dfs", ".eid", ".ere", ".esh", ".evl", ".frm", ".prf", ".vcl",
+	       ".ano", ".cho", ".dcx", ".ecl", ".eno", ".eth", ".fil", ".nol", ".sgl");
+
+# extensions of files created/used by verifier, with exception of the .xml file 
+my @gvrfexts = ('.frx', '.idx', '.miz', '.par', '.ref');
+
+
 sub require_properly_populated_mizfiles {
   $mizfiles_must_be_populated = 1;
 }
@@ -90,6 +101,9 @@ sub copy_mizar_article_to_dir {
       or croak ("Something went wrong copying $article_id (more exactly, $article_path) to $dir");
 }
 
+
+
+
 sub sparse_MIZFILES_in_dir {
   my $dir = shift ();
   my $cwd = getcwd ();
@@ -98,13 +112,10 @@ sub sparse_MIZFILES_in_dir {
   }
   my $mizfiles = get_MIZFILES ();
 
-  # toplevel data
-  symlink ($mizfiles . "/" . "miz.xml", $dir . "/" . "miz.xml");
-  symlink ($mizfiles . "/" . "mizar.dct", $dir . "/" . "mizar.dct");
-  symlink ($mizfiles . "/" . "mizar.msg", $dir . "/" . "mizar.msg");
-  symlink ($mizfiles . "/" . "mml.ini", $dir . "/" . "mml.ini");
-  symlink ($mizfiles . "/" . "mml.lar", $dir . "/" . "mml.lar");
-  symlink ($mizfiles . "/" . "mml.vct", $dir . "/" . "mml.vct");
+  foreach my $file (@mml_toplevel_files)
+  {
+      symlink ($mizfiles . "/" . $file, $dir . "/" . $file);
+  }
 
   # empty mml subdirectory
   mkdir ("$dir" . "/" . "mml");
