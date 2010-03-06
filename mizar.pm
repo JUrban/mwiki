@@ -1,5 +1,3 @@
-#!/usr/bin/perl -w
-
 package mizar;
 
 use strict;
