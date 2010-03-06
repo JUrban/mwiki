@@ -74,12 +74,9 @@ sub sparse_MIZFILES_in_dir {
   my $mizfiles = get_MIZFILES ();
 
   # toplevel data
-  symlink ($mizfiles . "/" . "miz.xml", $dir . "/" . "miz.xml");
-  symlink ($mizfiles . "/" . "mizar.dct", $dir . "/" . "mizar.dct");
-  symlink ($mizfiles . "/" . "mizar.msg", $dir . "/" . "mizar.msg");
-  symlink ($mizfiles . "/" . "mml.ini", $dir . "/" . "mml.ini");
-  symlink ($mizfiles . "/" . "mml.lar", $dir . "/" . "mml.lar");
-  symlink ($mizfiles . "/" . "mml.vct", $dir . "/" . "mml.vct");
+  for my $mizfile (qw/miz.xml mizar.dct mizar.msg mml.ini mml.lar mml.vct/) {
+    symlink ($mizfiles . "/" . $mizfile, $dir . "/" . $mizfile);
+  }
 
   # empty mml subdirectory
   mkdir ("$dir" . "/" . "mml");
