@@ -2,6 +2,10 @@
 
 package mizar;
 
+## ubuntu packages required:
+## REQ: libfile-copy-recursive-perl
+## REQ: liblist-moreutils-perl
+
 use strict;
 use warnings;
 use Carp;
@@ -17,12 +21,26 @@ my $mizfiles_must_be_populated = 0;
 
 
 # run in the quite mode - default 1
-my $gquite = 1;
+my $gquiet = 1;
 my $gquietflag = $gquiet ? ' -q ' : '';
 
 # accept longlines - default 1
 my $glonglines = 1;
 my $glflag = $glonglines ? ' -l ' : '';
+
+
+# hash of paths to the tools
+my %toolpath = ();
+
+# hash of flags of the tools
+my %toolflags =
+    (
+     'exporter', 	" $glonglines $gquietflag ",
+     'verifier', 	" $glonglines $gquietflag ",
+     'makeenv', 	"",
+     'accom',		""
+    );
+
 
 
 
@@ -213,6 +231,7 @@ sub set_verifier_path {
   }
 }
 
+## todo: replace with run_mizar_tool('verifier', $arg), and remove the redundant stuff
 sub run_verifier {
   my $arg = shift ();
   my $base = basename ($arg, ".miz");
@@ -259,6 +278,7 @@ sub set_accom_path {
   }
 }
 
+## TODO: replace with run_mizar_tool('accom', $arg), and remove the redundant stuff
 sub run_accom {
   my $arg = shift ();
   my $base = basename ($arg, ".miz");
@@ -342,6 +362,7 @@ sub run_makeenv_in_dir {
 
 }
 
+## TODO: replace with run_mizar_tool('makeenv', $arg), and remove the redundant stuff
 sub run_makeenv {
   my $arg = shift;
   return (run_makeenv_in_dir ($arg, get_MIZFILES ()));
@@ -405,10 +426,91 @@ sub run_exporter_in_dir {
 
 }
 
+## TODO: replace with run_mizar_tool('exporter', $arg), and remove the redundant stuff
 sub run_exporter {
   my $arg = shift ();
   return (run_exporter_in_dir ($arg, get_MIZFILES ()));
 }
+
+
+
+
+## TODO: binaries should be assumed to be in $MIZFILES/bin, either change this or the pad function
+sub get_tool_path {
+  my ($tool) = @_;
+  if (defined ($toolpath{$tool})) {
+    return ($toolpath{$tool});
+  }
+  return (pad_mizfiles ("/" . $tool));
+}
+
+sub set_tool_path
+{
+    my ($tool, $new_tool_path) = @_;
+    # is this for real?
+    if (-x $new_tool_path) {
+	$toolpath{$tool} = $new_tool_path;
+	return (0);
+    } else {
+	warn ("The new proposed path for the $tool, $new_tool_path, isn't executable.");
+	return (-1);
+    }
+}
+
+sub run_tool_in_dir {
+    my ($tool, $arg, $dir) = @_;
+
+    unless (-d $dir) 
+    {
+	croak ("The given directory in which to run $tool, $dir, isn't actually a directory");
+    }
+
+  my $base = basename ($arg, ".miz");
+  my $error_file = $base . ".err";
+  my $tool_path = get_tool_path($tool);
+  my $tool_flags = $toolflags{$tool};
+
+  my $cwd = getcwd ();
+
+  chdir ($dir);
+
+  my $old_mizfiles = $ENV{"MIZFILES"};
+  my $new_mizfiles = get_MIZFILES ();
+  $ENV{"MIZFILES"} = $new_mizfiles;
+  system ("$tool_path $tool_flags $base.miz");
+  $ENV{"MIZFILES"} = $old_mizfiles;
+  my $exit_status = ($? >> 8);
+  chdir ($cwd);
+
+  my $error_file_nonempty = (-e $error_file) && (!(-z $error_file));
+
+  if ($exit_status == 0) {
+    if ($error_file_nonempty) {
+      return (-2)
+    } else {
+      return (0);
+    }
+  } else {
+    return (-1);
+  }
+
+}
+
+
+
+
+
+
+
+# Run a Mizar tool on an argument file in a suitable way
+sub run_mizar_tool {
+    my ($tool, $arg) = @_;
+    return (run_tool_in_dir ($tool, $arg, get_MIZFILES ()));
+}
+
+
+
+
 
 my $gxsldir = "";   	# set this eg. to some git of the xsl4mizar repo
 my $gmizhtml = "";	# where are we linking to
