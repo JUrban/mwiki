@@ -8,55 +8,68 @@ use warnings;
 use File::Temp qw/ tempfile tempdir /;
 use Cwd;
 use Carp qw/ croak /;
+use Getopt::Long;
+
+use mizar;
+
+my $tsort_output = 0;
+my $makefile_output = 0;
+my $do_converse = 0;
+my $do_proper = 1;
+my $do_full_mml = 0;
+my $opt_mizfiles;
+
+GetOptions (
+	    "tsort" => \$tsort_output,
+	    "makefile" => \$makefile_output,
+	    "proper" => \$do_proper,
+	    "full-mml" => \$do_full_mml,
+	    "converse" => \$do_converse,
+	    "with-mizfiles" => \$opt_mizfiles
+	   );
+
+my $mizfiles;
+
+if (defined ($opt_mizfiles)) {
+  $mizfiles = $opt_mizfiles;
+} else {
+  $mizfiles = $ENV{"MIZFILES"};
+}
+
+unless (scalar (@ARGV) == 0) {
+  if (-d $mizfiles) {
+    unless (-x $mizfiles) {
+      croak ("Unable to write to the given MIZFILES directory, $mizfiles");
+    }
+  } else {
+    croak ("Given MIZFILES directoy, $mizfiles, isn't a directory");
+  }
+}
 
 # Global variables
-my $mizfiles = $ENV{"MIZFILES"};
 my $mml_dir = $mizfiles . "/" . "mml";
 my $mml_lar_path = $mizfiles . "/" . "mml.lar";
-my $envget = "/Users/alama/sources/mizar/mizar-source-git/envget";
 my $evl2txt = "/Users/alama/sources/mizar/xsl4mizar/evl2txt.xsl";
+
+if (!($tsort_output) && !($makefile_output)) {
+  croak ("Either tsort or makefile output format should be specified");
+}
+
+if ($tsort_output && $makefile_output) {
+  croak ("One cannot specify both tsort and makefile output format");
+}
+
+my @articles;
+if ($do_full_mml) {
+  @articles = mizar::get_MML_LAR ();
+} else {
+  @articles = @ARGV;
+}
 
 # Compute the articles mentioned in mml.lar
 
-my @mml_lar = ();
-sub read_mml_lar {
-  my $mml_lar_fh;
-  open ($mml_lar_fh, q{<}, $mml_lar_path)
-    or croak ("Unable to open the mml.lar at $mml_lar_path!");
-  while (<$mml_lar_fh>) {
-    chomp ();
-    push (@mml_lar, $_);
-  }
-  close ($mml_lar_fh) 
-    or croak ("Unable to close the filehandle created when scanning mml.lar!");
-  @mml_lar = reverse (@mml_lar);
-  push (@mml_lar, "tarski");
-  return (\@mml_lar);
-}
-
-my $tempdir;
-my $currdir = getcwd ();
-sub copy_mml_lar {
-  # Copy the articles to a temporary directory
-  $tempdir = tempdir (CLEANUP => 0) # don't clean up the temporary
-                                    # directory -- we may want to look
-                                    # at the damage done there after
-                                    # this script exits
-  or croak ("Unable to create a temporary directory!");
-
-  # Copy the MML to the temporary directory, giving each article its own
-  # directory.
-  my ($article_temp_dir, $article_temp_filename, $article_mml_filename);
-  foreach my $article (@mml_lar) {
-    $article_temp_dir = "$tempdir/$article";
-    $article_mml_filename = $mml_dir . "/" . $article . ".miz";
-    $article_temp_filename = $article_temp_dir . "/" . $article . ".miz";
-    system ("mkdir", $article_temp_dir) == 0
-      or croak ("Unable to make a subdirecory for $article in the temporary directory $tempdir!");
-    system ("cp", $article_mml_filename, $article_temp_filename);
-  }
-  return ($tempdir);
-}
+my %proper_deps;
+my %proper_converse_deps;
 
 my %vocabularies_deps;
 my %notations_deps;
@@ -76,8 +89,8 @@ my %theorems_converse_deps;
 my %schemes_converse_deps;
 
 sub initialize_all_article_dependencies {
-  foreach my $article (@mml_lar) {
-    my @article_deps = @{article_dependencies ($article)};
+  foreach my $article (@articles) {
+    my @article_deps = @{article_dependencies_by_directive ($article)};
     my @article_vocabularies = @{$article_deps[0]};
     my @article_notations = @{$article_deps[1]};
     my @article_constructors = @{$article_deps[2]};
@@ -97,43 +110,30 @@ sub initialize_all_article_dependencies {
   }
 }
 
+sub initialize_proper_article_dependencies {
+  foreach my $article (@articles) {
+    my @article_deps = @{article_proper_dependencies ($article)};
+    $proper_deps{$article} = \@article_deps;
+  }
+}
+
 sub article_envget {
   my $article = shift ();
-  my $article_temp_dir = $tempdir . "/" . $article;
-  # Call envget and use the evl2txt XSLT sheet to get the dependenceis
-  # for each article.  Die immediately if anything goes wrong.
-  my $envget_exit_status;
-  my ($article_evl, $article_err, $article_dep);
-  chdir ($article_temp_dir);
-  system ($envget, "$article.miz");
-  $envget_exit_status = ($? >> 8);
-  unless ($envget_exit_status == 0) {
-    # It is not enough to simply note articles on which envget dies or
-    # produces errors, and continue processing.  We must die here
-    # because if some article generates errors, then we cannot rely on
-    # the data computed from the articles on which envget does not
-    # die; the generated dependency graph would simply not represent
-    # the MML, and it would be impossible to compute the missing data.
-    croak ("envget died while processing $article");
+  my $envget_return = mizar::run_envget ($article);
+  unless ($envget_return == 0) {
+    croak ("Something went wrong running envget on $article!");
   }
-  $article_err = $article_temp_dir . "/" . $article. ".err";
-  $article_evl = $article_temp_dir . "/" . $article. ".evl";
-  if (-s $article_err > 0) {
-    # As above: if errors were generated, then we can't trust the data
-    # generated by envget.
-    croak ("envget generated errors when given $article; unable to proceed");
-  }
-
 }
 
 sub article_evl2txt {
   my $article = shift ();
   article_envget ($article);
-  my $article_evl = $article . ".evl";
-  my $article_dep = $article . ".dep";
-  my $article_temp_dir = $tempdir . "/" . $article;
+  my $article_evl = $mml_dir . "/" . $article . ".evl";
+  my $article_dep = $mml_dir . "/" . $article . ".dep";
+  unless (-e $article_evl) {
+    croak ("The EVL file, $article.evl, doesn't exist under $mml_dir");
+  }
   my $xsltproc_exit_status;
-  chdir ($article_temp_dir);
   system ("xsltproc", "--output", $article_dep, $evl2txt, $article_evl);
   $xsltproc_exit_status = ($? >> 8);
   unless ($xsltproc_exit_status == 0) {
@@ -142,7 +142,7 @@ sub article_evl2txt {
   }
 }
 
-sub article_dependencies {
+sub article_dependencies_by_directive {
   my $article = shift ();
   article_evl2txt ($article);
   # Parse the output from xsltproc generated by applying the evl2txt sheet.
@@ -157,12 +157,10 @@ sub article_dependencies {
   my @article_theorems = ();
   my @article_schemes = ();
   my @article_deps;
-  my $article_temp_dir = $tempdir . "/" . $article;
   my $article_dep = $article . ".dep";
-  chdir ($article_temp_dir);
   my $article_dep_fh;
   open ($article_dep_fh, q{<}, $article_dep)
-    or croak ("Unable to open article dependency file $article_dep under $article_temp_dir!");
+    or croak ("Unable to open article dependency file $article_dep!");
   while (defined ($dep_line = <$article_dep_fh>)) {
     chomp ($dep_line);
     # there's always a blank line at the end of the file -- yuck
@@ -224,30 +222,119 @@ sub article_dependencies {
   return (\@article_deps);
 }
 
+sub article_proper_dependencies {
+  my $article = shift ();
+  # The "proper" dependencies of an article is the union of the
+  # contents of all directives EXCEPT vocabularies.
+  article_evl2txt ($article);
+  # Parse the output from xsltproc generated by applying the evl2txt sheet.
+  my ($dep_line, $semi_dep_line_field, $dep_line_field);
+  my @dep_line_fields = ();
+  my @article_notations = ();
+  my @article_constructors = ();
+  my @article_registrations = ();
+  my @article_requirements = ();
+  my @article_definitions = ();
+  my @article_theorems = ();
+  my @article_schemes = ();
+  my $article_dep = $article . ".dep";
+  my $article_dep_path = $mml_dir . "/" . $article_dep;
+  my $article_dep_fh;
+  open ($article_dep_fh, q{<}, $article_dep_path)
+    or croak ("Unable to open article dependency file $article_dep_path!");
+  while (defined ($dep_line = <$article_dep_fh>)) {
+    chomp ($dep_line);
+    # there's always a blank line at the end of the file -- yuck
+    unless ($dep_line eq "") {
+      push (@dep_line_fields, $dep_line);
+    }
+  }
+  close ($article_dep_fh);
+  foreach my $dep_line_field (@dep_line_fields) {
+    # should look like (e.g.) "(vocabularies ...)".
+    # First, delete the trailing ")"
+    $dep_line_field = substr ($dep_line_field, 0, -1);
+    # New get rid of the initial "(";
+    $dep_line_field = substr ($dep_line_field, 1);
+    my @dep_line_entries = split (/\ /x,$dep_line_field);
+    my $first_element = shift (@dep_line_entries);
+
+    if ($first_element eq "notations") {
+      @article_notations = @dep_line_entries;
+    }
+    
+    if ($first_element eq "constructors") {
+      @article_constructors = @dep_line_entries;
+    }
+    
+    if ($first_element eq "registrations") {
+      @article_registrations = @dep_line_entries;
+    }
+
+    if ($first_element eq "requirements") {
+      @article_requirements = @dep_line_entries;
+    }
+    
+    if ($first_element eq "definitions") {
+      @article_definitions = @dep_line_entries;
+    }
+    
+    if ($first_element eq "theorems") {
+      @article_theorems = @dep_line_entries;
+    }
+    
+    if ($first_element eq "schemes") {
+      @article_schemes = @dep_line_entries;
+    }
+  }
+  
+
+  # Compute union
+  my @article_deps_with_dups = (@article_notations,
+				@article_constructors,
+				@article_registrations,
+				@article_requirements,
+				@article_definitions,
+				@article_theorems,
+				@article_schemes);
+  my @article_deps = ();
+  my %article_deps_hash = ();
+  foreach my $article (@article_deps_with_dups) {
+    unless (defined ($article_deps_hash{$article})) {
+      push (@article_deps, $article);
+      $article_deps_hash{$article} = 0;
+    }
+  }
+
+  return (\@article_deps);
+}
+
 sub converse {
   # Naive quadratic implementation.  Tons of intermediate junk
   # generated along the way.  Does perl have a garbage collector?
-  my $arg = shift ();
-  my %relation = %{$arg};
+  my $relation_ref = shift;
+  my %relation = %{$relation_ref};
   my %converse = ();
-  my $elt;
   my $range_elt;
   foreach my $elt (keys (%relation)) {
-    my $value = $relation{$elt};
-    my @range = @{$value};
+    my @range = @{$relation{$elt}};
     foreach my $range_elt (@range) {
-      my @domain;
-      my $range_value = $converse{$range_elt};
-      if (defined ($range_value)) {
-	@domain = @{$range_value};
-      } else {
-	@domain = ();
+      my @domain = ();
+      my $range_ref = $converse{$range_elt};
+      if (defined ($range_ref)) {
+	my @previous_value = @{$range_ref};
+	push (@domain, @previous_value);
       }
       push (@domain, $elt);
       $converse{$range_elt} = \@domain;
     }
   }
   return (\%converse);
+}
+
+sub compute_proper_converse {
+  my $proper_converse_ref = converse (\%proper_deps);
+  %proper_converse_deps = %{$proper_converse_ref};
 }
 
 sub compute_converses {
@@ -269,12 +356,25 @@ sub compute_converses {
   %schemes_converse_deps = %{$schemes_converse};
 }
 
-sub print_table {
+sub print_tsort_table {
   my $arg = shift ();
   my %table = %{$arg};
   foreach my $key (keys (%table)) {
     my $value = $table{$key};
     my @values = @{$value};
+    my $num_values = scalar (@values);
+    for (my $i = 0; $i < $num_values; $i++) {
+      print ("$key $values[$i]\n");
+    }
+  }
+}
+
+sub print_table {
+  my $arg = shift ();
+  my %table = %{$arg};
+  foreach my $key (keys (%table)) {
+    my $value_ref = $table{$key};
+    my @values = @{$value_ref};
     my $num_values = scalar (@values);
     print ("$key: ");
     for (my $i = 0; $i < $num_values; $i++) {
@@ -306,6 +406,22 @@ sub print_relations {
   print_table (\%schemes_deps);
 }
 
+sub print_makefile_proper_dependency_relation {
+  print_table (\%proper_deps);
+}
+
+sub print_makefile_proper_converse {
+  print_table (\%proper_converse_deps)
+}
+
+sub print_tsort_proper_dependency_relation {
+  print_tsort_table (\%proper_deps);
+}
+
+sub print_tsort_converse_dependency_relation {
+  print_tsort_table (\%proper_converse_deps);
+}
+
 sub print_converses {
   print ("Converse of the vocabularies relation:\n");
   print_table (\%vocabularies_converse_deps);
@@ -325,9 +441,34 @@ sub print_converses {
   print_table (\%schemes_converse_deps);
 }
 
-read_mml_lar ();
-copy_mml_lar ();
-initialize_all_article_dependencies ();
-print_relations ();
-compute_converses ();
-print_converses ();
+if ($do_proper) {
+  initialize_proper_article_dependencies ();
+} else {
+  initialize_all_article_dependencies ();
+}
+
+if ($do_converse) {
+  if ($do_proper) {
+    compute_proper_converse ();
+  } else {
+    compute_converses ();
+  }
+}
+
+if ($tsort_output) {
+  if ($do_converse) {
+    print_tsort_converse_dependency_relation ();
+  }  else {
+    print_tsort_proper_dependency_relation ();
+  }
+} else {
+  if ($do_proper) {
+    if ($do_converse) {
+      print_makefile_proper_converse ();
+    } else {
+      print_makefile_proper_dependency_relation ();
+    }
+  } else {
+    print_relations ();
+  }
+}

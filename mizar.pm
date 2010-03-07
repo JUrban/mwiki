@@ -1,5 +1,3 @@
-#!/usr/bin/perl -w
-
 package mizar;
 
 ## ubuntu packages required:
@@ -70,19 +68,8 @@ sub properly_populated_mizfiles {
 
 sub set_MIZFILES {
   my $new_mizfiles = shift ();
-  if (-d $new_mizfiles) {
-    if ($mizfiles_must_be_populated) {
-      if (properly_populated_mizfiles ($new_mizfiles)) {
-	$mizfiles = $new_mizfiles;
-      } else {
-	carp ("We are requiring MIZFILES to be properly populated, but the proposed new value for MIZFILES, \"$new_mizfiles\", is not properly populated.");
-      }
-    } else {
-      warn ("MIZFILES is being set to \"$new_mizfiles\"; we didn't check whether it is properly populated.");
-      warn ("Use this module at your own risk.");
-    }
-  } else {
-    carp ("The proposed new value for MIZFILES, \"$new_mizfiles\", is not a directory.")
+  unless (-d $new_mizfiles) {
+    croak ("The proposed new value for MIZFILES, \"$new_mizfiles\", is not a directory.");
   }
   $mizfiles = $new_mizfiles;
 }
@@ -139,11 +126,20 @@ sub sparse_MIZFILES_in_dir {
   unless (-d $dir) {
     croak ("The given directory, $dir, isn't actually a directory");
   }
-  my $mizfiles = get_MIZFILES ();
 
-  foreach my $file (@mml_toplevel_files)
-  {
-      symlink ($mizfiles . "/" . $file, $dir . "/" . $file);
+  # toplevel data
+  my $mizfiles = get_MIZFILES ();
+  foreach my $mizfile (@mml_toplevel_files) {
+#  for my $mizfile (qw/miz.xml mizar.dct mizar.msg mml.ini mml.lar mml.vct/) {
+    my $real_mizfile = $mizfiles . "/" . $mizfile;
+    unless (-e $real_mizfile) {
+      croak ("Unable to link to a non-existent target: $real_mizfile");
+    }
+    my $linked_mizfile = $dir . "/" . $mizfile;
+    if (-e $linked_mizfile) {
+      croak ("Unwilling to overwrite an existing link");
+    }
+    symlink ($real_mizfile, $linked_mizfile);
   }
 
   # empty mml subdirectory
@@ -153,7 +149,82 @@ sub sparse_MIZFILES_in_dir {
   my $real_prel_dir = $mizfiles . "/" . "prel";
   my $new_prel_dir = $dir . "/" . "prel";
 
-  symlink ($real_prel_dir, $new_prel_dir);
+  mkdir ($new_prel_dir);
+
+  # hidden
+  my $real_hidden_dco = $real_prel_dir . "/" . "h" . "/" . "hidden.dco";
+  unless (-e $real_hidden_dco) {
+    croak ("Unable to link to non-existent target: $real_hidden_dco");
+  }
+  my $linked_hidden_dco = $new_prel_dir . "/" . "hidden.dco";
+  my $real_hidden_dno = $real_prel_dir . "/" . "h" . "/" . "hidden.dno";
+  unless (-e $real_hidden_dno) {
+    croak ("Unable to link to non-existent target: $real_hidden_dno");
+  }
+  my $linked_hidden_dno = $new_prel_dir . "/" . "hidden.dno";
+  symlink ($real_hidden_dco, $linked_hidden_dco);
+  symlink ($real_hidden_dno, $linked_hidden_dno);
+
+  # tarski
+  my $real_tarski_dco = $real_prel_dir . "/" . "t" . "/" . "tarski.dco";
+  my $real_tarski_def = $real_prel_dir . "/" . "t" . "/" . "tarski.def";
+  my $real_tarski_dno = $real_prel_dir . "/" . "t" . "/" . "tarski.dno";
+  my $real_tarski_sch = $real_prel_dir . "/" . "t" . "/" . "tarski.sch";
+  my $real_tarski_the = $real_prel_dir . "/" . "t" . "/" . "tarski.the";
+  unless (-e $real_tarski_dco) {
+    croak ("Unable to link to non-existent target: $real_tarski_dco");
+  }
+  unless (-e $real_tarski_def) {
+    croak ("Unable to link to non-existent target: $real_tarski_def");
+  }
+  unless (-e $real_tarski_dno) {
+    croak ("Unable to link to non-existent target: $real_tarski_dno");
+  }
+  unless (-e $real_tarski_sch) {
+    croak ("Unable to link to non-existent target: $real_tarski_sch");
+  }
+  unless (-e $real_tarski_the) {
+    croak ("Unable to link to non-existent target: $real_tarski_the");
+  }
+  symlink ($real_tarski_dco, $new_prel_dir . "/" . "tarski.dco");
+  symlink ($real_tarski_def, $new_prel_dir . "/" . "tarski.def");
+  symlink ($real_tarski_dno, $new_prel_dir . "/" . "tarski.dno");
+  symlink ($real_tarski_sch, $new_prel_dir . "/" . "tarski.sch");
+  symlink ($real_tarski_the, $new_prel_dir . "/" . "tarski.the");
+
+  # requirements:
+  my $real_hidden_dre = $real_prel_dir . "/" . "h" . "/" . "hidden.dre";
+  my $real_boole_dre = $real_prel_dir . "/" . "b" . "/" . "boole.dre";
+  my $real_subset_dre = $real_prel_dir . "/" . "s" . "/" . "subset.dre";
+  my $real_arithm_dre = $real_prel_dir . "/" . "a" . "/" . "arithm.dre";
+  my $real_numerals_dre = $real_prel_dir . "/" . "n" . "/" . "numerals.dre";
+  my $real_real_dre = $real_prel_dir . "/" . "r" . "/" . "real.dre";
+
+  unless (-e $real_hidden_dre) {
+    croak ("Unable to link to non-existent target: $real_hidden_dre");
+  }
+  unless (-e $real_boole_dre) {
+    croak ("Unable to link to non-existent target: $real_boole_dre");
+  }
+  unless (-e $real_subset_dre) {
+    croak ("Unable to link to non-existent target: $real_subset_dre");
+  }
+  unless (-e $real_arithm_dre) {
+    croak ("Unable to link to non-existent target: $real_arithm_dre");
+  }
+  unless (-e $real_numerals_dre) {
+    croak ("Unable to link to non-existent target: $real_numerals_dre");
+  }
+  unless (-e $real_real_dre) {
+    croak ("Unable to link to non-existent target: $real_real_dre");
+  }
+
+  symlink ($real_hidden_dre, $new_prel_dir . "/" . "hidden.dre");
+  symlink ($real_boole_dre, $new_prel_dir . "/" . "boole.dre");
+  symlink ($real_subset_dre, $new_prel_dir . "/" . "subset.dre");
+  symlink ($real_arithm_dre, $new_prel_dir . "/" . "arithm.dre");
+  symlink ($real_numerals_dre, $new_prel_dir . "/" . "numerals.dre");
+  symlink ($real_real_dre, $new_prel_dir . "/" . "real.dre");
 
   return (0);
 }
@@ -209,14 +280,23 @@ sub pad_mizfiles {
 
 my $verifier_path;
 my $accom_path;
+my $envget_path;
 my $makeenv_path;
 my $exporter_path;
+my $mizf_path;
+
+sub which {
+  my $program = shift ();
+  my $location = `which $program`;
+  chomp ($location);
+  return ($location);
+}
 
 sub get_verifier_path {
   if (defined ($verifier_path)) {
     return ($verifier_path);
   }
-  return (pad_mizfiles ("/" . "verifier"));
+  return (which ("verifier"));
 }
 
 sub set_verifier_path {
@@ -259,11 +339,63 @@ sub run_verifier {
 
 }
 
+sub get_mizf_path {
+  if (defined ($mizf_path)) {
+    return ($mizf_path);
+  }
+  return (which ("mizf"));
+}
+
+sub set_mizf_path {
+  my $new_mizf_path = shift ();
+  # is this for real?
+  if (-x $new_mizf_path) {
+    $mizf_path = $new_mizf_path;
+    return (0);
+  } else {
+    warn ("The new proposed path for the mizf, $new_mizf_path, isn't executable.");
+    return (-1);
+  }
+}
+
+sub run_mizf_in_dir {
+  my $arg = shift;
+  my $dir = shift;
+  my $base = basename ($arg, ".miz");
+  my $miz = $base . ".miz";
+  my $error_file = $base . ".err";
+  my $mizf = get_mizf_path ();
+
+  my $cwd = getcwd ();
+
+  chdir ($dir);
+  system ($mizf, $miz);
+  my $exit_status = ($? >> 8);
+  chdir ($cwd);
+
+  my $error_file_nonempty = (-e $error_file) && (!(-z $error_file));
+
+  if ($exit_status == 0) {
+    if ($error_file_nonempty) {
+      return (-2)
+    } else {
+      return (0);
+    }
+  } else {
+    return (-1);
+  }
+}
+
+sub run_mizf {
+  my $arg = shift ();
+  return (run_mizf_in_dir ($arg, get_MIZFILES () . "/" . "mml"));
+}
+
 sub get_accom_path {
   if (defined ($accom_path)) {
     return ($accom_path);
   }
-  return (pad_mizfiles ("/" . "accom"));
+  return (which ("verifier"));
 }
 
 sub set_accom_path {
@@ -310,7 +442,7 @@ sub get_makeenv_path {
   if (defined ($makeenv_path)) {
     return ($makeenv_path);
   }
-  return (pad_mizfiles ("/" . "makeenv"));
+  return (which ("makeenv"));
 }
 
 sub set_makeenv_path {
@@ -368,11 +500,76 @@ sub run_makeenv {
   return (run_makeenv_in_dir ($arg, get_MIZFILES ()));
 }
 
+sub get_envget_path {
+  if (defined ($envget_path)) {
+    return ($envget_path);
+  }
+  return (which ("envget"));
+}
+
+sub set_envget_path {
+  my $new_envget_path = shift ();
+  # is this for real?
+  if (-x $new_envget_path) {
+    $envget_path = $new_envget_path;
+    return (0);
+  } else {
+    warn ("The new proposed path for the envget, $new_envget_path, isn't executable.");
+    return (-1);
+  }
+}
+
+sub run_envget_in_dir {
+  my $arg = shift;
+  my $dir = shift;
+
+  unless (-d $dir) {
+    croak ("The given directory, $dir, isn't actually a directory");
+  }
+
+  unless (-w $dir) {
+    croak ("One cannot write to the given directory, $dir");
+  }
+
+  my $base = basename ($arg, ".miz");
+  my $miz = $base . ".miz";
+  my $error_file = $base . ".err";
+  my $envget = get_envget_path ();
+
+  my $cwd = getcwd ();
+
+  my $old_mizfiles = $ENV{"MIZFILES"};
+  $ENV{"MIZFILES"} = get_MIZFILES ();
+  chdir ($dir);
+  system ($envget, $miz);
+  my $exit_status = ($? >> 8);
+  $ENV{"MIZFILES"} = $old_mizfiles;
+  chdir ($cwd);
+
+  my $error_file_nonempty = (-e $error_file) && (!(-z $error_file));
+
+  if ($exit_status == 0) {
+    if ($error_file_nonempty) {
+      return (-2)
+    } else {
+      return (0);
+    }
+  } else {
+    return (-1);
+  }
+
+}
+
+sub run_envget {
+  my $arg = shift;
+  return (run_envget_in_dir ($arg, get_MIZFILES () . "/" . "mml"));
+}
+
 sub get_exporter_path {
   if (defined ($exporter_path)) {
     return ($exporter_path);
   }
-  return (pad_mizfiles ("/" . "exporter"));
+  return (which ("exporter"));
 }
 
 sub set_exporter_path {
