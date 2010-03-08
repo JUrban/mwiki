@@ -931,28 +931,26 @@ sub mml_dependencies {
 
 sub mml_dependencies_as_makefile_str {
   my @articles = mizar::get_MML_LAR ();
-  my $makefile_str = "";
-  $makefile_str .= ".PHONY: all xml html\n";
-  $makefile_str .= "VPATH = mml\n";
-  $makefile_str .= "XSLHOME = xsl\n";
-  $makefile_str .= "ABSREFSXSL = \$(XSLHOME)/addabsrefs.xsl\n";
-  $makefile_str .= "XML2HTML = \$(XSLHOME)/miz.xsl\n";
-  $makefile_str .= "XSLTPROC = xsltproc\n";
-  $makefile_str .= "MML = @articles\n";
-  $makefile_str .= "xml: ";
-  foreach my $article (@articles) {
-    $makefile_str .=  $article . ".xml" . " ";
-  }
-  $makefile_str .= "\n";
-  foreach my $article (@articles) {
-    $makefile_str .= "$article.xml: $article.miz $article-prel\n";
-    $makefile_str .= "\tmizf mml/$article.miz;\n";
-  }
-
-  # special: hidden-prel rule
-  $makefile_str .= "hidden-prel:\n";
-  $makefile_str .= "\ttouch mml/hidden-prel;\n";
-
+  my $makefile_str = <<"END_MAKE_BEFORE_DEPS";
+.PHONY: all xml html
+VPATH = mml
+XSLHOME = xsl
+ABSREFSXSL = \$(XSLHOME)/addabsrefs.xsl
+XML2HTML = \$(XSLHOME)/miz.xsl
+XSLTPROC = xsltproc
+MML = @articles
+xml: \$(patsubst \%, \%.xml, \$(MML))
+\%.xml: \%.miz \%-prel
+	mizf mml/\$*.miz;
+\%-absrefs.xml: \%.xml
+	\$(XSLTPROC) --output mml/\$*-absrefs.xml \$(ABSREFSXSL) mml/\$*.xml;
+html: \$(patsubst \%, \%.html, \$(MML))
+	mkdir html;
+\%.html: \%-absrefs.xml
+	\$(XSLTPROC) --output html/\$*.html \$(XML2HTML) mml/\$*-absrefs.xml;
+hidden-prel:
+	touch mml/hidden-prel;
+END_MAKE_BEFORE_DEPS
   foreach my $article (@articles) {
     my @deps = @{article_proper_dependencies ($article)};
     $makefile_str .= "$article-prel: $article.miz ";
@@ -963,14 +961,6 @@ sub mml_dependencies_as_makefile_str {
     $makefile_str .= "\tmiz2prel mml/$article.miz;\n";
     $makefile_str .= "\ttouch mml/$article-prel;\n";
   }
-
-  $makefile_str .= "\%-absrefs.xml: \%.xml\n";
-  $makefile_str .= "\t\$(XSLTPROC) --output mml/\$*-absrefs.xml \$(ABSREFSXSL) mml/\$*.xml;\n";
-  $makefile_str .= "html: \$(patsubst \%, \%.html, \$(MML))\n";
-  $makefile_str .= "\tmkdir html;\n";
-  $makefile_str .= "\%.html: \%-absrefs.xml\n";
-  $makefile_str .= "\t\$(XSLTPROC) --output html/\$*.html \$(XML2HTML) mml/\$*-absrefs.xml;\n";
-
   return ($makefile_str);
 }
 
