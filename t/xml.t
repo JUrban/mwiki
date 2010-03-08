@@ -110,6 +110,7 @@ my $original_zfrefle1_xml_filename =
 my $original_zfrefle1_stripped_filename = "$tempdir2_mml" . "/" . "zfrefle1.stripped";
 is (system ("xsltproc", 
 	    "--output", $original_zfrefle1_stripped_filename,
+	    "--param", "href", "",
 	    $xsl_filename, $original_zfrefle1_xml_filename),
     0,
     "strip line and column infor from original article");
@@ -118,12 +119,14 @@ my $zfrefle1_initial_comment_xml_filename =
 my $zfrefle1_initial_comment_stripped_filename = "$tempdir2_mml" . "/" . "zfrefle1.stripped";
 is (system ("xsltproc",
 	    "--output", $zfrefle1_initial_comment_stripped_filename,
+	    "--param", "href", "",
 	   $xsl_filename, $zfrefle1_initial_comment_xml_filename),
     0,
     "strip line and column info from padded article");
 
-# I don't know how to test identity of XML documents, so for now I'll
-# just use diff on the newly-created .stripped files.
+# I don't know how to test identity of XML documents using the XML
+# tools, so for now I'll just use diff on the newly-created .stripped
+# files.  This seems fragile to me, but I guess it works.
 
 is (system ("diff",
 	    "--brief",
