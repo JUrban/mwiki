@@ -25,6 +25,38 @@ my @non_miz_changed
 my @mml_changed = ();
 my @non_mml_changed = ();
 
+my %dependencies = ();
+my $dependency_makefile = "/Users/alama/sources/mizar/mwiki/pure-MML.makefile";
+my $full_makefile = "/Users/alama/sources/mizar/mwiki/MML.makefile";
+
+sub load_dependencies {
+  my $dep_fh;
+  open ($dep_fh, q{<}, $dependency_makefile)
+    or croak ("Unable to load the dependency makefile at $dependency_makefile: $!");
+  my $dep_line;
+  while (defined ($dep_line = <$dep_fh>)) {
+    chomp ($dep_line);
+    $dep_line =~ /^([^:]+):($|(.+))/;
+    my $article = $1;
+    unless (defined ($article)) {
+      croak ("Unable to parse the line:\n$dep_line\n");
+    }
+    my $deps_str = $2;
+    unless ($deps_str eq "") {
+      $deps_str = substr ($deps_str, 1);
+    }
+    my @deps = split (/\ /, $deps_str);
+    if (defined ($dependencies{$article})) {
+      croak ("Each article is supposed to appear exactly once in the dependency structure, but we're encountering it again!");
+    }
+    $dependencies{$article} = \@deps;
+  }
+  close ($dep_fh)
+    or croak ("Something went wrong when closing the dependency makefile input filehandle: $!");
+}
+
+load_dependencies ();
+
 sub separate_mml_from_non_mml {
   foreach my $edited (@miz_changed) {
     chomp ($edited);
@@ -41,61 +73,99 @@ sub separate_mml_from_non_mml {
   }
 }
 
-separate_mml_from_non_mml ();
+sub dependencies_as_makefile_str {
+  my @articles = mizar::get_MML_LAR ();
+  my $makefile_str = "";
+  $makefile_str .= "all: xml\n";
+  $makefile_str .= "\n";
+  $makefile_str .= "xml: ";
+  foreach my $article (@articles) {
+    $makefile_str .= $article . ".xml" . " ";
+  }
+  $makefile_str .= "\n";
+  foreach my $article (@articles) {
+    $makefile_str .= "$article.xml: $article.miz $article-prel\n";
+    $makefile_str .= "\tmizf $article.miz;\n";
+  }
+  # special: hidden-prel rule
+  $makefile_str .= "hidden-prel:\n";
+  $makefile_str .= "\ttouch hidden-prel;\n";
+  foreach my $article (@articles) {
+    my @deps = @{$dependencies{$article}};
+    $makefile_str .= "$article-prel: $article.miz ";
+    foreach my $dep (@deps) {
+      $makefile_str .= "$dep-prel ";
+    }
+    $makefile_str .= "\n";
+    $makefile_str .= "\tmiz2prel $article.miz;\n";
+    $makefile_str .= "\ttouch $article-prel;\n";
+  }
+  return ($makefile_str);
+}
 
+sub write_dependencies_as_makefile {
+  my $dir = shift;
+  unless (-d $dir) {
+    croak ("The given directory argument, $dir, is not actually a directory!");
+  }
+  my $makefile_path = $dir . "/" . "Makefile";
+  my $dep_fh;
+  my $makefile_str = dependencies_as_makefile_str ();
+  open ($dep_fh, q{>}, $makefile_path)
+    or croak ("Unable to write open an output filehandle for updating the dependency makefile: $!");
+  print $dep_fh ($makefile_str);
+
+  close ($dep_fh)
+    or croak ("Something went wrong closing the output filehandle for the dependency makefile: $!");
+}
+
+separate_mml_from_non_mml ();
 my @new_articles = (@mml_changed, @non_mml_changed);
 
-print ("Here are the changes to the MML:\n");
-foreach my $mml (@mml_changed) {
-  print ($mml);
-  print ("\n");
-}
-
-print ("Here are the changes outside the MML:\n");
-foreach my $non_mml (@non_mml_changed) {
-  print ($non_mml);
-  print ("\n");
-}
-
-my $git_dir = $ENV{GIT_DIR};
-my $working_directory = dirname ($git_dir);
-my $temp_mizfiles = mizar::sparse_MIZFILES_in_tempdir ();
-print ("Setting MIZFILES to $temp_mizfiles\n");
+my $working_directory = "/Users/alama/sources/mizar/mwiki/t/hooks/devel-repo";
+my $temp_mizfiles = mizar::full_MIZFILES_in_tempdir ();
 mizar::set_MIZFILES ($temp_mizfiles);
 my $temp_mml = $temp_mizfiles . "/" . "mml";
 foreach my $changed (@mml_changed) {
-  unless (-e "$working_directory/mml/$changed.miz") {
-    croak ("WTF? $working_directory/mml/$changed.miz doesn't exist.  What directory are we doing this in?");
+  my $changed_path = "$working_directory/mml/$changed.miz";
+  my $temp_path = $temp_mml . "/" . "$changed.miz";
+  # First, remove the old version
+  my $unlink_status = unlink $temp_path
+    or croak ("Something went wrong when removing $temp_path: $!");
+  unless ($unlink_status == 1) {
+    croak ("We tried to remove $temp_path; we apparently didn't!");
   }
-  copy ("$working_directory/mml/$changed.miz", $temp_mml)
-    or croak ("Something went wrong copying $changed to $temp_mml: $!");
+  copy ($changed_path, $temp_path)
+    or croak ("Something went wrong copying $changed_path to $temp_path: $!");
 }
+
+# Update the dependencies for each of the new MML edits
+foreach my $new_article (@mml_changed) {
+  my @deps = mizar::article_proper_dependencies ($new_article);
+  $dependencies{$new_article} = \@deps;
+}
+
+# Write a makefile that reflects how to build these new articles
+write_dependencies_as_makefile ($temp_mml);
 
 my $admissible_commit = 0;
 
-# Now that we've called envget on the new articles, we can compute
-# their dependencies.
-
-my $num_mml_changed = scalar (@mml_changed);
-my $num_non_mml_changed = scalar (@non_mml_changed);
-my $num_new_articles = scalar (@new_articles);
-my $new_articles_as_str = join (" ", @new_articles);
-print ("About to call the dependency generator with the argument:\n$new_articles_as_str\n");
-my $dependency_makefile
-  = `MIZFILES=$temp_mizfiles /Users/alama/sources/mizar/mwiki/dependencies.pl --makefile --proper $new_articles_as_str`;
-my $dependency_makefile_converse
-  = `MIZFILES=$temp_mizfiles /Users/alama/sources/mizar/mwiki/dependencies.pl --makefile --proper --converse $new_articles_as_str`;
-print "Dependency makefile:\n$dependency_makefile\n";
-print "Converse of dependency makefile:\n$dependency_makefile_converse\n";
-my $all_ok = 1;
-for (my $i = 0; $i < $num_new_articles && $all_ok; $i++) {
-  my $new_article = $new_articles[$i];
-  my $mizf_status = mizar::run_mizf ($new_article);
-  unless ($mizf_status == 0) {
-    $all_ok = 0;
-  }
+# The commit is admissible if we can make the all target belonging to
+# the newly-updated  makefile.
+my $make_out = $temp_mml . "/" . "make-out";
+my $make_err = $temp_mml . "/" . "make-err";
+chdir $temp_mml;
+my $make_cmd = "make -f $temp_mml/Makefile all > $make_out 2> $make_err";
+warn ("About to execute make with the command\n$make_cmd\n...");
+warn ("MIZFILES is set to $temp_mizfiles");
+warn ("Working directory is $temp_mml");
+my $make_result = `MIZFILES=$temp_mizfiles $make_cmd`;
+warn ("result of make: $make_result\n");
+if (defined ($make_result)) {
+  $admissible_commit = 1;
+} else {
+  $admissible_commit = 0;
 }
-$admissible_commit = $all_ok;
 
 if ($admissible_commit) {
   print ("Your changes are admissible\n");
