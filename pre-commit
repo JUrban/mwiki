@@ -28,8 +28,7 @@ my @mml_changed = ();
 my @non_mml_changed = ();
 
 my %dependencies = ();
-my $dependency_makefile = "/Users/alama/sources/mizar/mwiki/pure-MML.makefile";
-my $full_makefile = "/Users/alama/sources/mizar/mwiki/MML.makefile";
+my $dependency_makefile = "Makefile";
 
 sub load_dependencies {
   my $dep_fh;
