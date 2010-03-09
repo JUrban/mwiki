@@ -9,7 +9,8 @@ VPATH = mml
 
 xml: $(patsubst %, %.xml, $(MMLLAR))
 %.xml: %.miz %-dep
-	makeenv mml/$*.miz && verifier -q -l mml/$*.miz
+	makeenv mml/$*.miz;
+	verifier -q -l mml/$*.miz
 
 %-prel: %.xml
 #	miz2prel $*.miz
