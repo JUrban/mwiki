@@ -13,4 +13,4 @@ deps: $(DEP-MAKEFILES)
 	envget $*.miz;
 
 %.dep: %.evl
-	xsltproc --output $*.dep $(XSL4MIZAR)/evl2dep.xsl $*.evl;
+	xsltproc --output $*.dep ../xsl/evl2dep.xsl $*.evl;
