@@ -18,7 +18,7 @@ xml: $(patsubst %, %.xml, $(MMLLAR))
 	fi;
 
 %-prel: %.xml
-	exporter mml/$*.miz
+	exporter -q -l mml/$*.miz
 	transfer mml/$*.miz
 	for ext in dno dcl dco def the sch; do \
 		if test -f "mml/$*.$$ext"; then \
