@@ -14,7 +14,13 @@ xml: $(patsubst %, %.xml, $(MMLLAR))
 
 %-prel: %.xml
 #	miz2prel $*.miz
-	exporter mml/$*.miz && transfer mml/$*.miz && for ext in dno dcl dco def the sch; do if test -f "mml/$*.$$ext"; then rm "mml/$*.$$ext"; fi; done
+	exporter mml/$*.miz
+	transfer mml/$*.miz
+	for ext in dno dcl dco def the sch; do \
+		if test -f "mml/$*.$$ext"; then \
+			rm -f "mml/$*.$$ext"; \
+		fi; \
+	done
 
 # HIDDEN is a special case
 hidden-prel:
