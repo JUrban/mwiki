@@ -4,6 +4,7 @@ MIZ = $(patsubst %, %.miz, $(MMLLAR))
 VPATH = mml
 
 .PHONY: deps
+.PHONY: $(patsubst %, %-dep, $(MMLLAR))
 
 deps: $(DEP-MAKEFILES)
 
