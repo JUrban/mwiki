@@ -3,6 +3,7 @@
 REPO=$1
 XSL4MIZ=$2
 MWIKI=$3
+OLDMIZFILES=$MIZFILES
 
 MIZBINARIES="absedt accom addfmsg checkvoc chklab clearenv.pl constr edtfile errflag exporter findvoc inacc irrths irrvoc lisppars listvoc makeenv mglue miz2abs miz2prel mizf msplit prune.mizar ratproof relinfer reliters relprem remflags renthlab revedt revf transfer trivdemo verifier";
 
@@ -51,8 +52,9 @@ echo "Making the deps...here we go...";
 MMLLAR=`cat mml.lar`;
 cd mml
 cp  $MWIKI/Makefile-depsrepo Makefile
-MIZFILES=$MIZFILES make evls
-MIZFILES=$MIZFILES make deps
+export MIZFILES=$REPO
+make evls
+make deps
 echo "That was fun.  Let's make the xml!";
 cd ..
-MIZFILES=$MIZFILES make xml;
+make xml;
