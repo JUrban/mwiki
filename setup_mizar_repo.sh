@@ -1,5 +1,5 @@
 #!/bin/bash
-# usage $1 = repo-directory; $2=xsl4mizar directory ; $3 mwiki directory
+# usage $1 = repo-directory; $2=full path xsl4mizar directory ; $3 full path mwiki directory
 REPO=$1
 XSL4MIZ=$2
 MWIKI=$3
