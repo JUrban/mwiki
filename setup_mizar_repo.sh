@@ -32,6 +32,7 @@ done
 mkdir $REPO/xsl
 cp $XSL4MIZ/addabsrefs.xsl $REPO/xsl
 cp $XSL4MIZ/miz.xsl $REPO/xsl
+cp $XSL4MIZ/evl2dep.xsl $REPO/xsl
 
 mkdir $REPO/.perl
 cp $XSL4MIZ/mkxmlhead.pl $REPO/.perl
