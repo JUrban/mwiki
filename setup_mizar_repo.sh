@@ -51,10 +51,14 @@ git add .
 echo "Making the deps...here we go...";
 MMLLAR=`cat mml.lar`;
 cd mml
+touch hidden-prel
 cp  $MWIKI/Makefile-depsrepo Makefile
 export MIZFILES=$REPO
 make evls
 make deps
 echo "That was fun.  Let's make the xml!";
 cd ..
-make xml;
+make xmlvrf
+make prels
+make absrefs
+make html
