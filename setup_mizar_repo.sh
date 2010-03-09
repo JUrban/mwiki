@@ -58,7 +58,7 @@ make evls
 make deps
 echo "That was fun.  Let's make the xml!";
 cd ..
-make xmlvrf
+make xmlvrfs
 make prels
 make absrefs
-make html
+make htmls
