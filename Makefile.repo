@@ -1,3 +1,4 @@
+# -*- mode: makefile; -*-
 # MMLLAR, available in the environment, is the list of articles in the MML
 MMLLAR=$(shell head -n 10 $(MIZFILES)/mml.lar) tarski
 DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
@@ -29,5 +30,11 @@ xml: $(patsubst %, %.xml, $(MMLLAR))
 # HIDDEN is a special case
 hidden-prel:
 	touch mml/hidden-prel;
+
+%-absrefs.xml: %.xml
+	xsltproc --param explainbyfrom  0 --output mml/$*-absrefs.xml xsl/addabsrefs.xsl mml/$*.xml;
+
+%.html: %-absrefs.xml
+	xsltproc --param default_target \'_self\'  --param linking \'l\' --param mizhtml \'\' --param selfext \'html\'  --param titles 1 --param colored 1  --param proof_links 1 --param ajax_proofs 1 --param ajax_proof_dir \'proofs\' --output html/$*.html xsl/miz.xsl mml/$*-absrefs.xml;
 
 include mml/*.dep
