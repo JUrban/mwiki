@@ -32,8 +32,8 @@ prels: $(patsubst %, %-prel, $(MMLLAR))
 	mv mml/$*.xml mml/$*.xmlexp
 
 # HIDDEN is a special case
-#hidden-prel:
-#	touch mml/hidden-prel;
+hidden-prel:
+	touch mml/hidden-prel;
 
 absrefs: $(patsubst %, %-absrefs.xml, $(MMLLAR))
 
