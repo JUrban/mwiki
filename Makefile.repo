@@ -1,5 +1,5 @@
 # MMLLAR, available in the environment, is the list of articles in the MML
-MMLLAR=$(shell head -n 100 $(MIZFILES)/mml.lar) tarski
+MMLLAR=$(shell head -n 25 $(MIZFILES)/mml.lar) tarski
 DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
 VPATH = mml
@@ -9,11 +9,21 @@ VPATH = mml
 
 xml: $(patsubst %, %.xml, $(MMLLAR))
 %.xml: %.miz %-dep
-	makeenv mml/$*.miz && verifier -q -l mml/$*.miz
+	makeenv mml/$*.miz;
+	if [ "$*" == "tarski" ]; then \
+		verifier -a -q -l mml/$*.miz; \
+	else \
+		verifier -q -l mml/$*.miz; \
+	fi;
 
 %-prel: %.xml
-#	miz2prel $*.miz
-	exporter mml/$*.miz && transfer mml/$*.miz && for ext in dno dcl dco def the sch; do if test -f "mml/$*.$$ext"; then rm "mml/$*.$$ext"; fi; done
+	exporter mml/$*.miz
+	transfer mml/$*.miz
+	for ext in dno dcl dco def the sch; do \
+		if test -f "mml/$*.$$ext"; then \
+			rm -f "mml/$*.$$ext"; \
+		fi; \
+	done
 
 # HIDDEN is a special case
 hidden-prel:

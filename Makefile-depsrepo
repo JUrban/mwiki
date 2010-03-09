@@ -8,6 +8,8 @@ MIZ = $(patsubst %, %.miz, $(MMLLAR))
 .PHONY: deps
 .PHONY: $(patsubst %, %-dep, $(MMLLAR))
 
+.SECONDARY: $(patsubst %, %.evl, $(MMLLAR))
+
 deps: $(DEP-MAKEFILES)
 evls: $(EVL-FILES)
 
