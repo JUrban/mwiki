@@ -5,8 +5,9 @@ DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
 EVL-FILES = $(patsubst %, %.evl, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
 
-.PHONY: deps
-.PHONY: $(patsubst %, %-dep, $(MMLLAR))
+# .PHONY is a bad bad thing, it remakes the target all over; don't use this
+#.PHONY: deps
+#.PHONY: $(patsubst %, %-dep, $(MMLLAR))
 
 .SECONDARY: $(patsubst %, %.evl, $(MMLLAR))
 
@@ -18,4 +19,4 @@ evls: $(EVL-FILES)
 
 %.dep: %.evl
 	xsltproc ../xsl/evl2dep.xsl $*.evl | \
-	perl -e '%h=(); $$_=<>; chop; m/(.*):(.*)/; ($$k,$$l)=($$1,$$2); @aa=split(/\ +/,$$l); @h{@aa} = (); print "$$k: "; print join(" ", keys %h);' > $*.dep
+	perl -e '%h=(); $$_=<>; chop; m/(.*):(.*)/; ($$k,$$l)=($$1,$$2); @aa=split(/\ +/,$$l); @h{@aa} = (); print "$$k: "; print join(" ", keys %h); print "\n\ttouch $*-dep"' > $*.dep
