@@ -69,11 +69,10 @@ make evls
 make deps
 echo "That was fun.  Let's make the xml!";
 cd ..
-make xml;
-make xmlvrf
+make xmlvrfs
 make prels
 make absrefs
-make html
-
+make htmls
 cp $MWIKI/pre-commit .git/hooks
 cp $MWIKI/post-commit .git/hooks
+
