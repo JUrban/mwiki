@@ -9,16 +9,17 @@ export SHELL=/bin/bash
 .PHONY: deps
 .PHONY: $(patsubst %, %-dep, $(MMLLAR))
 
-xml: $(patsubst %, %.xml, $(MMLLAR))
-%.xml: %.miz %-dep
+xmlvrf: $(patsubst %, %.xmlvrf, $(MMLLAR))
+%.xmlvrf: %.miz %-dep
 	makeenv mml/$*.miz;
 	if [ "$*" == "tarski" ]; then \
 		verifier -a -q -l mml/$*.miz; \
 	else \
 		verifier -q -l mml/$*.miz; \
 	fi;
+	mv $*.xml $*.xmlvrf
 
-%-prel: %.xml
+%-prel: %.xmlvrf
 	exporter -q -l mml/$*.miz
 	transfer mml/$*.miz
 	for ext in dno dcl dco def the sch; do \
@@ -26,6 +27,7 @@ xml: $(patsubst %, %.xml, $(MMLLAR))
 			rm -f "mml/$*.$$ext"; \
 		fi; \
 	done
+	mv $*.xml $*.xmlexp
 
 # HIDDEN is a special case
 hidden-prel:
@@ -33,8 +35,8 @@ hidden-prel:
 
 absrefs: $(patsubst %, %-absrefs.xml, $(MMLLAR))
 
-%-absrefs.xml: %.xml
-	xsltproc --param explainbyfrom  0 --output mml/$*-absrefs.xml xsl/addabsrefs.xsl mml/$*.xml;
+%-absrefs.xml: %.xmlvrf
+	xsltproc --param explainbyfrom  0 --output mml/$*-absrefs.xml xsl/addabsrefs.xsl mml/$*.xmlvrf;
 
 html: $(patsubst %, %.html, $(MMLLAR))
 
