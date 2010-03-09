@@ -32,4 +32,4 @@ xml: $(patsubst %, %.xml, $(MMLLAR))
 hidden-prel:
 	touch mml/hidden-prel;
 
-include mml/*.dep;
+include mml/*.dep
