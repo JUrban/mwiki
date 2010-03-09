@@ -2,6 +2,7 @@
 # MMLLAR, available in the environment, is the list of articles in the MML
 MMLLAR=$(shell head -n 10 $(MIZFILES)/mml.lar) tarski
 DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
+EVL-FILES = $(patsubst %, %.evl, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
 
 .PHONY: deps
@@ -10,6 +11,7 @@ MIZ = $(patsubst %, %.miz, $(MMLLAR))
 .SECONDARY: $(patsubst %, %.evl, $(MMLLAR))
 
 deps: $(DEP-MAKEFILES)
+evls: $(EVL-FILES)
 
 %.evl: %.miz
 	envget $*.miz;

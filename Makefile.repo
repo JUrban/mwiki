@@ -3,6 +3,7 @@ MMLLAR=$(shell head -n 10 $(MIZFILES)/mml.lar) tarski
 DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
 VPATH = mml
+export SHELL=/bin/bash
 
 .PHONY: deps
 .PHONY: $(patsubst %, %-dep, $(MMLLAR))

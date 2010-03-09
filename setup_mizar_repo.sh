@@ -51,6 +51,7 @@ echo "Making the deps...here we go...";
 MMLLAR=`cat mml.lar`;
 cd mml
 cp  $MWIKI/Makefile-depsrepo Makefile
+make evls
 make deps
 echo "That was fun.  Let's make the xml!";
 cd ..
