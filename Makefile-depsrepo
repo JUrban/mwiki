@@ -1,3 +1,4 @@
+# -*- mode: makefile; -*-
 # MMLLAR, available in the environment, is the list of articles in the MML
 DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
