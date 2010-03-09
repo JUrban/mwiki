@@ -3,7 +3,12 @@
 REPO=$1
 XSL4MIZ=$2
 MWIKI=$3
+
+if [ -e $REPO ]; then
+    echo "Target repository $REPO already exists; overwriting anyway...";
+fi
 mkdir -p $REPO
+
 cp -a $MIZFILES/mml $REPO/mml
 mkdir -p $REPO/prel
 cp -p $MIZFILES/prel/h/hidden.* $REPO/prel
@@ -28,3 +33,6 @@ cp $MWIKI/pre-commit .git/hooks
 cp $MWIKI/post-commit .git/hooks
 git add .
 
+echo "Making xml...here we go...";
+MMLLAR=`cat mml.lar`;
+make xml;
