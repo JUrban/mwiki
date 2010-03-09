@@ -18,6 +18,7 @@ cp $XSL4MIZ/miz.xsl $REPO/xsl
 mkdir $REPO/.perl
 cp $XSL4MIZ/mkxmlhead.pl $REPO/.perl
 cp $MWIKI/mizar.pm $REPO/.perl
+cp $MWIKI/Makefile-mmlrepo $REPO/Makefile
 
 cd $REPO
 git init
