@@ -1,16 +1,18 @@
 # MMLLAR, available in the environment, is the list of articles in the MML
 DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
-VPATH = mml
 
 .PHONY: deps
 .PHONY: $(patsubst %, %-dep, $(MMLLAR))
 
 deps: $(DEP-MAKEFILES)
 
-%.dep: %.evl %.miz
-	xsltproc --output mml/$*.dep \
-		$(XSL4MIZAR)/evl2dep.xsl mml/$*.evl;
+%.evl: %.miz
+	envget $*.miz;
+
+%.dep: %.evl
+	xsltproc --output $*.dep \
+		$(XSL4MIZAR)/evl2dep.xsl $*.evl;
 	# the output of makefile-ize-evl.xsl, when applied to .evl
 	# file, should look like this:
 	#
