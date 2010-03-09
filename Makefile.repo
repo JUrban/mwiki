@@ -10,6 +10,10 @@ export SHELL=/bin/bash
 #.PHONY: deps
 #.PHONY: $(patsubst %, %-dep, $(MMLLAR))
 
+hdrs: $(patsubst %, %.hdr, $(MMLLAR))
+%.hdr: %.miz
+	.perl/mkxmlhead.pl mml/$*.miz > mml/$*.hdr
+
 xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 %.xmlvrf: %.miz %-dep
 	makeenv mml/$*.miz;
@@ -43,7 +47,7 @@ absrefs: $(patsubst %, %-absrefs.xml, $(MMLLAR))
 
 htmls: $(patsubst %, %.html, $(MMLLAR))
 
-%.html: %-absrefs.xml
-	xsltproc --param default_target \'_self\'  --param linking \'l\' --param mizhtml \'\' --param selfext \'html\'  --param titles 1 --param colored 1  --param proof_links 1 --param ajax_proofs 1 --param ajax_proof_dir \'proofs\' --output html/$*.html xsl/miz.xsl mml/$*-absrefs.xml;
+%.html: %-absrefs.xml %.hdr
+	xsltproc --param mk_header 1 --param default_target \'_self\'  --param linking \'l\' --param mizhtml \'\' --param selfext \'html\'  --param titles 1 --param colored 1  --param proof_links 1 --param ajax_proofs 1 --param ajax_proof_dir \'proofs\' --output html/$*.html xsl/miz.xsl mml/$*-absrefs.xml;
 
 include mml/*.dep
