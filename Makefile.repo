@@ -31,8 +31,12 @@ xml: $(patsubst %, %.xml, $(MMLLAR))
 hidden-prel:
 	touch mml/hidden-prel;
 
+absrefs: $(patsubst %, %-absrefs.xml, $(MMLLAR))
+
 %-absrefs.xml: %.xml
 	xsltproc --param explainbyfrom  0 --output mml/$*-absrefs.xml xsl/addabsrefs.xsl mml/$*.xml;
+
+html: $(patsubst %, %.html, $(MMLLAR))
 
 %.html: %-absrefs.xml
 	xsltproc --param default_target \'_self\'  --param linking \'l\' --param mizhtml \'\' --param selfext \'html\'  --param titles 1 --param colored 1  --param proof_links 1 --param ajax_proofs 1 --param ajax_proof_dir \'proofs\' --output html/$*.html xsl/miz.xsl mml/$*-absrefs.xml;
