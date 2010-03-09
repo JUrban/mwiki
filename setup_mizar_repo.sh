@@ -60,6 +60,12 @@ mkdir -p .git/hooks
 git add .
 git commit -m 'Initial commit.'
 
+# We put these in the git repo after the initial commit because
+# calling the hook on the initial commit doesn't make sense (there's
+# no index, and HEAD points to nothing).
+cp $MWIKI/pre-commit .git/hooks
+cp $MWIKI/post-commit .git/hooks
+
 echo "Making the deps...here we go...";
 MMLLAR=`cat mml.lar`;
 cd mml
@@ -75,7 +81,10 @@ make xmlvrfs
 make prels
 make absrefs
 make htmls
+echo "Successfully (???) compiled everything."
+
+
+echo "Copying $REPO to $REPO-compiled; this will be our sandbox." 
 rsync -a --del --exclude=".gitignore" --exclude=".git/" $REPO $REPO-compiled
-cp $MWIKI/pre-commit .git/hooks
-cp $MWIKI/post-commit .git/hooks
+
 
