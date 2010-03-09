@@ -8,7 +8,7 @@ use File::Basename;
 use Cwd;
 use Carp;
 
-use lib '../.perl';
+use lib '.perl';
 
 use mizar;
 
@@ -28,35 +28,11 @@ my @mml_changed = ();
 my @non_mml_changed = ();
 
 my %dependencies = ();
-my $dependency_makefile = "Makefile";
+my $cwd = getcwd ();
+my $dependency_makefile = $cwd . '/' . 'mml' . '/' . 'Makefile';
+my $master_makefile = $cwd . '/' . 'Makefile';
 
-sub load_dependencies {
-  my $dep_fh;
-  open ($dep_fh, q{<}, $dependency_makefile)
-    or croak ("Unable to load the dependency makefile at $dependency_makefile: $!");
-  my $dep_line;
-  while (defined ($dep_line = <$dep_fh>)) {
-    chomp ($dep_line);
-    $dep_line =~ /^([^:]+):($|(.+))/;
-    my $article = $1;
-    unless (defined ($article)) {
-      croak ("Unable to parse the line:\n$dep_line\n");
-    }
-    my $deps_str = $2;
-    unless ($deps_str eq "") {
-      $deps_str = substr ($deps_str, 1);
-    }
-    my @deps = split (/\ /, $deps_str);
-    if (defined ($dependencies{$article})) {
-      croak ("Each article is supposed to appear exactly once in the dependency structure, but we're encountering it again!");
-    }
-    $dependencies{$article} = \@deps;
-  }
-  close ($dep_fh)
-    or croak ("Something went wrong when closing the dependency makefile input filehandle: $!");
-}
-
-load_dependencies ();
+warn ("HEre's miz_changed: @miz_changed");
 
 sub separate_mml_from_non_mml {
   foreach my $edited (@miz_changed) {
@@ -64,8 +40,10 @@ sub separate_mml_from_non_mml {
     my ($name, $path, $extension) = fileparse ($edited, qr/\.[^.]+/);
     if ($path eq "mml/") {
       if (mizar::belongs_to_mml ($name)) {
+	warn ("Article $name belongs to the MML");
 	push (@mml_changed, $name);
       } else {
+	warn ("Article $name does not belong to the MML");
 	push (@non_mml_changed, $name);
       }
     } else {
@@ -74,61 +52,15 @@ sub separate_mml_from_non_mml {
   }
 }
 
-sub dependencies_as_makefile_str {
-  my @articles = mizar::get_MML_LAR ();
-  my $makefile_str = "";
-  $makefile_str .= "all: xml\n";
-  $makefile_str .= "\n";
-  $makefile_str .= "xml: ";
-  foreach my $article (@articles) {
-    $makefile_str .= $article . ".xml" . " ";
-  }
-  $makefile_str .= "\n";
-  foreach my $article (@articles) {
-    $makefile_str .= "$article.xml: $article.miz $article-prel\n";
-    $makefile_str .= "\tmizf $article.miz;\n";
-  }
-  # special: hidden-prel rule
-  $makefile_str .= "hidden-prel:\n";
-  $makefile_str .= "\ttouch hidden-prel;\n";
-  foreach my $article (@articles) {
-    my @deps = @{$dependencies{$article}};
-    $makefile_str .= "$article-prel: $article.miz ";
-    foreach my $dep (@deps) {
-      $makefile_str .= "$dep-prel ";
-    }
-    $makefile_str .= "\n";
-    $makefile_str .= "\tmiz2prel $article.miz;\n";
-    $makefile_str .= "\ttouch $article-prel;\n";
-  }
-  return ($makefile_str);
-}
-
-sub write_dependencies_as_makefile {
-  my $dir = shift;
-  unless (-d $dir) {
-    croak ("The given directory argument, $dir, is not actually a directory!");
-  }
-  my $makefile_path = $dir . "/" . "Makefile";
-  my $dep_fh;
-  my $makefile_str = dependencies_as_makefile_str ();
-  open ($dep_fh, q{>}, $makefile_path)
-    or croak ("Unable to write open an output filehandle for updating the dependency makefile: $!");
-  print $dep_fh ($makefile_str);
-
-  close ($dep_fh)
-    or croak ("Something went wrong closing the output filehandle for the dependency makefile: $!");
-}
-
 separate_mml_from_non_mml ();
+
 my @new_articles = (@mml_changed, @non_mml_changed);
 
-my $working_directory = "/Users/alama/sources/mizar/mwiki/t/hooks/devel-repo";
 my $temp_mizfiles = mizar::full_MIZFILES_in_tempdir ();
 mizar::set_MIZFILES ($temp_mizfiles);
 my $temp_mml = $temp_mizfiles . "/" . "mml";
 foreach my $changed (@mml_changed) {
-  my $changed_path = "$working_directory/mml/$changed.miz";
+  my $changed_path = "mml/$changed.miz";
   my $temp_path = $temp_mml . "/" . "$changed.miz";
   # First, remove the old version
   my $unlink_status = unlink $temp_path
@@ -140,26 +72,30 @@ foreach my $changed (@mml_changed) {
     or croak ("Something went wrong copying $changed_path to $temp_path: $!");
 }
 
-# Update the dependencies for each of the new MML edits
-foreach my $new_article (@mml_changed) {
-  my @deps = mizar::article_proper_dependencies ($new_article);
-  $dependencies{$new_article} = \@deps;
-}
-
-# Write a makefile that reflects how to build these new articles
-write_dependencies_as_makefile ($temp_mml);
+# XSL directory
+mkdir ($temp_mizfiles . "/" . "xsl");
+`cp -R $cwd/xsl $temp_mizfiles`;
 
 my $admissible_commit = 0;
 
-# The commit is admissible if we can make the all target belonging to
-# the newly-updated  makefile.
-my $make_out = $temp_mml . "/" . "make-out";
-my $make_err = $temp_mml . "/" . "make-err";
-chdir $temp_mml;
-my $make_cmd = "make -f $temp_mml/Makefile all > $make_out 2> $make_err";
+# Call the dependency makefile on the new targets
+
+my $make_deps_out = $temp_mml . "/" . "make-deps-out";
+my $make_deps_err = $temp_mml . "/" . "make-deps-err";
+warn ("About to call make thus:");
+warn ("make -f $dependency_makefile deps");
+chdir ($temp_mml);
+`make -f $dependency_makefile deps > $make_deps_out 2> $make_deps_err`;
+my $dep_make_exit_status = ($? >> 8);
+
+# Now try to verify the new articles
+
+my $make_xml_out = $temp_mizfiles . "/" . "make-xml-out";
+my $make_xml_err = $temp_mizfiles . "/" . "make-xml-err";
+chdir ($temp_mizfiles);
+my $make_cmd = "make -f $master_makefile xmlvrfs > $make_xml_out 2> $make_xml_err";
 warn ("About to execute make with the command\n$make_cmd\n...");
 warn ("MIZFILES is set to $temp_mizfiles");
-warn ("Working directory is $temp_mml");
 my $make_result = `MIZFILES=$temp_mizfiles $make_cmd`;
 warn ("result of make: $make_result\n");
 if (defined ($make_result)) {
