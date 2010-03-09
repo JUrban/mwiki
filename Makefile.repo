@@ -8,7 +8,8 @@ VPATH = mml
 deps: $(DEP-MAKEFILES)
 
 %.dep: %.evl %.miz
-	xsltproc --output mml/$*.dep $(XSL4MIZAR)/makefile-ize-evl.xsl $*.evl;
+	xsltproc --output mml/$*.dep \
+		$(XSL4MIZAR)/makefile-ize-evl.xsl mml/$*.evl;
 	# the output of makefile-ize-evl.xsl, when applied to .evl
 	# file, should look like this:
 	#
@@ -21,6 +22,7 @@ deps: $(DEP-MAKEFILES)
 %.xml: %.miz
 	verifier -q %.miz;
 
+# HIDDEN is a special case
 hidden-prel:
 	touch mml/hidden-prel;
 
