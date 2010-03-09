@@ -19,4 +19,4 @@ evls: $(EVL-FILES)
 
 %.dep: %.evl
 	xsltproc ../xsl/evl2dep.xsl $*.evl | \
-	perl -e '%h=(); $$_=<>; chop; m/(.*):(.*)/; ($$k,$$l)=($$1,$$2); @aa=split(/\ +/,$$l); @h{@aa} = (); print "$$k: "; print join(" ", keys %h); print "\n\ttouch $*-dep"' > $*.dep
+	perl -e '%h=(); $$_=<>; chop; m/(.*):(.*)/; ($$k,$$l)=($$1,$$2); @aa=split(/\ +/,$$l); @h{@aa} = (); print "$$k: "; print join(" ", keys %h); print "\n\ttouch mml/$*-dep"' > $*.dep
