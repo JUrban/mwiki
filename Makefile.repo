@@ -17,8 +17,9 @@ xmlvrf: $(patsubst %, %.xmlvrf, $(MMLLAR))
 	else \
 		verifier -q -l mml/$*.miz; \
 	fi;
-	mv $*.xml $*.xmlvrf
+	mv mml/$*.xml mml/$*.xmlvrf
 
+prels: $(patsubst %, %-prel, $(MMLLAR))
 %-prel: %.xmlvrf
 	exporter -q -l mml/$*.miz
 	transfer mml/$*.miz
@@ -27,11 +28,11 @@ xmlvrf: $(patsubst %, %.xmlvrf, $(MMLLAR))
 			rm -f "mml/$*.$$ext"; \
 		fi; \
 	done
-	mv $*.xml $*.xmlexp
+	mv mml/$*.xml mml/$*.xmlexp
 
 # HIDDEN is a special case
-hidden-prel:
-	touch mml/hidden-prel;
+#hidden-prel:
+#	touch mml/hidden-prel;
 
 absrefs: $(patsubst %, %-absrefs.xml, $(MMLLAR))
 
