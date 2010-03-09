@@ -48,4 +48,8 @@ git add .
 
 echo "Making xml...here we go...";
 MMLLAR=`cat mml.lar`;
+cd mml
+cp  $MWIKI/Makefile-depsrepo Makefile
+make deps
+cd ..
 make xml;
