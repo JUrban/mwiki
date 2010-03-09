@@ -6,8 +6,9 @@ MIZ = $(patsubst %, %.miz, $(MMLLAR))
 VPATH = mml
 export SHELL=/bin/bash
 
-.PHONY: deps
-.PHONY: $(patsubst %, %-dep, $(MMLLAR))
+# .PHONY is a bad bad thing, it remakes the target all over; don't use this
+#.PHONY: deps
+#.PHONY: $(patsubst %, %-dep, $(MMLLAR))
 
 xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 %.xmlvrf: %.miz %-dep
