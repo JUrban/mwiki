@@ -5,7 +5,7 @@ XSL4MIZ=$2
 MWIKI=$3
 OLDMIZFILES=$MIZFILES
 
-MIZBINARIES="absedt accom addfmsg checkvoc chklab clearenv.pl constr edtfile errflag exporter findvoc inacc irrths irrvoc lisppars listvoc makeenv mglue miz2abs miz2prel mizf msplit prune.mizar ratproof relinfer reliters relprem remflags renthlab revedt revf transfer trivdemo verifier";
+MIZBINARIES="absedt accom addfmsg checkvoc chklab clearenv.pl constr edtfile envget errflag exporter findvoc inacc irrths irrvoc lisppars listvoc makeenv mglue miz2abs miz2prel mizf msplit prune.mizar ratproof relinfer reliters relprem remflags renthlab revedt revf transfer trivdemo verifier";
 
 if [ -z $MIZBIN ]; then
     MIZBIN=$MIZFILES/bin;
@@ -54,6 +54,7 @@ cd mml
 touch hidden-prel
 cp  $MWIKI/Makefile-depsrepo Makefile
 export MIZFILES=$REPO
+export PATH=$PATH:$MIZBIN
 make evls
 make deps
 echo "That was fun.  Let's make the xml!";
