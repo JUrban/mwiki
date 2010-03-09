@@ -1,4 +1,5 @@
 # MMLLAR, available in the environment, is the list of articles in the MML
+MMLLAR=$(shell cat $(MIZFILES)/mml.lar)
 DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
 VPATH = mml
@@ -6,20 +7,6 @@ VPATH = mml
 .PHONY: deps
 .PHONY: $(patsubst %, %-dep, $(MMLLAR))
 
-deps: $(DEP-MAKEFILES)
-
-%.dep: %.evl %.miz
-	xsltproc --output mml/$*.dep \
-		$(XSL4MIZAR)/evl2dep.xsl mml/$*.evl;
-	# the output of makefile-ize-evl.xsl, when applied to .evl
-	# file, should look like this:
-	#
-	# funct_1-prel: xboole_1-prel xboole_0-prel
-	# 	miz2prel funct_1-prel;
-	#	touch funct_1-prel;
-	#
-%.evl: %.miz
-	envget mml/$*.miz;
 xml: $(patsubst %, %.xml, $(MMLLAR))
 %.xml: %.miz %-dep
 	makeenv mml/$*.miz && verifier -q -l mml/$*.miz
@@ -32,4 +19,4 @@ xml: $(patsubst %, %.xml, $(MMLLAR))
 hidden-prel:
 	touch mml/hidden-prel;
 
-include mml/*.dep;
+include mml/*.dep
