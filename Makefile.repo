@@ -20,8 +20,8 @@ deps: $(DEP-MAKEFILES)
 	#
 %.evl: %.miz
 	envget $*.miz;
-%.xml: %.miz
-	makeenv $1 && verifier -q -l $1
+%.xml: %.miz %-dep
+	makeenv $*.miz && verifier -q -l $*.miz
 
 # HIDDEN is a special case
 hidden-prel:
