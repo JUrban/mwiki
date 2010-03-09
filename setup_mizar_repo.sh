@@ -75,6 +75,7 @@ make xmlvrfs
 make prels
 make absrefs
 make htmls
+rsync -a --del --exclude=".gitignore" --exclude=".git/" $REPO $REPO-wc
 cp $MWIKI/pre-commit .git/hooks
 cp $MWIKI/post-commit .git/hooks
 
