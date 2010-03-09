@@ -4,6 +4,10 @@ use strict;
 use warnings;
 use Carp;
 
+use lib '../.perl';
+
+use mizar;
+
 # Refresh the JFM-like "portal", in light of the new changes.
 
 # JU: also two options for htmlization (the xsl command)
