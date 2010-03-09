@@ -10,10 +10,13 @@ VPATH = mml
 xml: $(patsubst %, %.xml, $(MMLLAR))
 %.xml: %.miz %-dep
 	makeenv mml/$*.miz;
-	verifier -q -l mml/$*.miz
+	if [ "$*" == "tarski" ]; then \
+		verifier -a -q -l mml/$*.miz; \
+	else \
+		verifier -q -l mml/$*.miz; \
+	fi;
 
 %-prel: %.xml
-#	miz2prel $*.miz
 	exporter mml/$*.miz
 	transfer mml/$*.miz
 	for ext in dno dcl dco def the sch; do \
