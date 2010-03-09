@@ -24,7 +24,8 @@ INITIAL_SEGMENT=`head -n $NUM_ARTICLES $MIZFILES/mml.lar`
 for article in $INITIAL_SEGMENT; do
     cp -a $MIZFILES/mml/$article.miz $REPO/mml;
 done
-# ensure tarski is there
+# ensure tarski and hidden are there
+cp -a $MIZFILES/mml/hidden.miz $REPO/mml;
 cp -a $MIZFILES/mml/tarski.miz $REPO/mml;
 
 mkdir -p $REPO/prel
