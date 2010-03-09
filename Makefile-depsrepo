@@ -14,7 +14,8 @@ deps: $(DEP-MAKEFILES)
 evls: $(EVL-FILES)
 
 %.evl: %.miz
-	envget $*.miz;
+	envget $*.miz; echo $$MIZFILES
 
 %.dep: %.evl
-	xsltproc --output $*.dep ../xsl/evl2dep.xsl $*.evl;
+	xsltproc ../xsl/evl2dep.xsl $*.evl | \
+	perl -e '%h=(); $$_=<>; chop; m/(.*):(.*)/; ($$k,$$l)=($$1,$$2); @aa=split(/\ +/,$$l); @h{@aa} = (); print "$$k: "; print join(" ", keys %h);' > $*.dep
