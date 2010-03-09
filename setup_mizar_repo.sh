@@ -4,6 +4,14 @@ REPO=$1
 XSL4MIZ=$2
 MWIKI=$3
 
+MIZBINARIES="absedt accom addfmsg checkvoc chklab clearenv.pl constr edtfile errflag exporter findvoc inacc irrths irrvoc lisppars listvoc makeenv mglue miz2abs miz2prel mizf msplit prune.mizar ratproof relinfer reliters relprem remflags renthlab revedt revf transfer trivdemo verifier";
+
+if [ -z $MIZBIN ]; then
+    MIZBIN=$MIZFILES/bin;
+else
+    MIZBIN=$MIZBIN;
+fi
+
 if [ -e $REPO ]; then
     echo "Target repository $REPO already exists; overwriting anyway...";
 fi
@@ -15,7 +23,11 @@ cp -p $MIZFILES/prel/h/hidden.* $REPO/prel
 cp -p $MIZFILES/prel/*/*.dre $REPO/prel
 cp  $MIZFILES/mml.* $REPO
 cp  $MIZFILES/mizar.* $REPO
-cp -a $MIZFILES/bin $REPO/bin
+
+for binary in $MIZBINARIES; do
+    cp -a $MIZBIN/$binary $REPO/$binary;
+done
+
 mkdir $REPO/xsl
 cp $XSL4MIZ/addabsrefs.xsl $REPO/xsl
 cp $XSL4MIZ/miz.xsl $REPO/xsl
