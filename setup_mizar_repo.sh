@@ -15,9 +15,15 @@ mkdir $REPO/xsl
 cp $XSL4MIZ/addabsrefs.xsl $REPO/xsl
 cp $XSL4MIZ/miz.xsl $REPO/xsl
 
+mkdir $REPO/.perl
+cp $XSL4MIZ/mkxmlhead.pl $REPO/.perl
+cp $MWIKI/mizar.pm $REPO/.perl
+
 cd $REPO
 git init
 cp $MWIKI/mml-gitignore .gitignore
+mkdir -p .git/hooks
+cp $MWIKI/pre-commit .git/hooks
+cp $MWIKI/post-commit .git/hooks
 git add .
-
 
