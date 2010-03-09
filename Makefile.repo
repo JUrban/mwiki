@@ -23,6 +23,10 @@ deps: $(DEP-MAKEFILES)
 %.xml: %.miz %-dep
 	makeenv $*.miz && verifier -q -l $*.miz
 
+%-prel: %.xml
+#	miz2prel $*.miz
+	exporter $*.miz && transfer $*.miz && for ext in dno dcl dco def the sch; do if test -f "$*.$$ext"; then rm "$*.$$ext"; fi; done
+
 # HIDDEN is a special case
 hidden-prel:
 	touch mml/hidden-prel;
