@@ -9,7 +9,7 @@ export SHELL=/bin/bash
 .PHONY: deps
 .PHONY: $(patsubst %, %-dep, $(MMLLAR))
 
-xmlvrf: $(patsubst %, %.xmlvrf, $(MMLLAR))
+xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 %.xmlvrf: %.miz %-dep
 	makeenv mml/$*.miz;
 	if [ "$*" == "tarski" ]; then \
