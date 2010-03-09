@@ -24,8 +24,9 @@ cp -p $MIZFILES/prel/*/*.dre $REPO/prel
 cp  $MIZFILES/mml.* $REPO
 cp  $MIZFILES/mizar.* $REPO
 
+mkdir $REPO/bin
 for binary in $MIZBINARIES; do
-    cp -a $MIZBIN/$binary $REPO/$binary;
+    cp -a $MIZBIN/$binary $REPO/bin/$binary;
 done
 
 mkdir $REPO/xsl
