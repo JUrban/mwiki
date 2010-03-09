@@ -8,5 +8,5 @@ cp -p $MIZFILES/prel/h/hidden.* $REPO/prel
 cp -p $MIZFILES/prel/*/*.dre $REPO/prel
 cp  $MIZFILES/mml.* $REPO
 cp  $MIZFILES/mizar.* $REPO
-cp $MIZFILES/bin $REPO
+cp -a $MIZFILES/bin $REPO/bin
 
