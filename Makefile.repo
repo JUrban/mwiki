@@ -9,7 +9,7 @@ deps: $(DEP-MAKEFILES)
 
 %.dep: %.evl %.miz
 	xsltproc --output mml/$*.dep \
-		$(XSL4MIZAR)/makefile-ize-evl.xsl mml/$*.evl;
+		$(XSL4MIZAR)/evl2dep.xsl mml/$*.evl;
 	# the output of makefile-ize-evl.xsl, when applied to .evl
 	# file, should look like this:
 	#
