@@ -56,9 +56,8 @@ cd $REPO
 git init
 cp $MWIKI/mml-gitignore .gitignore
 mkdir -p .git/hooks
-cp $MWIKI/pre-commit .git/hooks
-cp $MWIKI/post-commit .git/hooks
 git add .
+git commit -m 'Initial commit.'
 
 echo "Making the deps...here we go...";
 MMLLAR=`cat mml.lar`;
@@ -70,3 +69,6 @@ make deps
 echo "That was fun.  Let's make the xml!";
 cd ..
 make xml;
+
+cp $MWIKI/pre-commit .git/hooks
+cp $MWIKI/post-commit .git/hooks
