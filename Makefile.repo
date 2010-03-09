@@ -19,14 +19,14 @@ deps: $(DEP-MAKEFILES)
 	#	touch funct_1-prel;
 	#
 %.evl: %.miz
-	envget $*.miz;
+	envget mml/$*.miz;
 xml: $(patsubst %, %.xml, $(MMLLAR))
 %.xml: %.miz %-dep
-	makeenv $*.miz && verifier -q -l $*.miz
+	makeenv mml/$*.miz && verifier -q -l mml/$*.miz
 
 %-prel: %.xml
 #	miz2prel $*.miz
-	exporter $*.miz && transfer $*.miz && for ext in dno dcl dco def the sch; do if test -f "$*.$$ext"; then rm "$*.$$ext"; fi; done
+	exporter mml/$*.miz && transfer mml/$*.miz && for ext in dno dcl dco def the sch; do if test -f "mml/$*.$$ext"; then rm "mml/$*.$$ext"; fi; done
 
 # HIDDEN is a special case
 hidden-prel:
