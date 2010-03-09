@@ -44,7 +44,7 @@ my %toolflags =
 
 
 # toplevel files in the mml distro
-my @mml_toplevel_files = ("miz.xml", "mizar.dct", "mizar.msg", "mml.ini", "mml.lar", "mml.vct");
+my @mml_toplevel_files = ("mizar.dct", "mizar.msg", "mml.ini", "mml.lar", "mml.vct");
 
 # extensions of the environmental files
 my @gaccexts = (".aco", ".atr", ".dct", ".dfs", ".eid", ".ere", ".esh", ".evl", ".frm", ".prf", ".vcl",
@@ -160,7 +160,7 @@ sub sparse_MIZFILES_in_dir {
   # constructed MIZFILES differs from the MIZFILES in the official
   # mizar distro.
   my $real_prel_dir = $mizfiles . "/" . "prel";
-  my $new_prel_dir = $new_mml . "/" . "prel";
+  my $new_prel_dir = $dir . "/" . "prel";
 
   mkdir ($new_prel_dir);
 
@@ -178,32 +178,32 @@ sub sparse_MIZFILES_in_dir {
   symlink ($real_hidden_dco, $linked_hidden_dco);
   symlink ($real_hidden_dno, $linked_hidden_dno);
 
-  # tarski
-  my $real_tarski_dco = $real_prel_dir . "/" . "t" . "/" . "tarski.dco";
-  my $real_tarski_def = $real_prel_dir . "/" . "t" . "/" . "tarski.def";
-  my $real_tarski_dno = $real_prel_dir . "/" . "t" . "/" . "tarski.dno";
-  my $real_tarski_sch = $real_prel_dir . "/" . "t" . "/" . "tarski.sch";
-  my $real_tarski_the = $real_prel_dir . "/" . "t" . "/" . "tarski.the";
-  unless (-e $real_tarski_dco) {
-    croak ("Unable to link to non-existent target: $real_tarski_dco");
-  }
-  unless (-e $real_tarski_def) {
-    croak ("Unable to link to non-existent target: $real_tarski_def");
-  }
-  unless (-e $real_tarski_dno) {
-    croak ("Unable to link to non-existent target: $real_tarski_dno");
-  }
-  unless (-e $real_tarski_sch) {
-    croak ("Unable to link to non-existent target: $real_tarski_sch");
-  }
-  unless (-e $real_tarski_the) {
-    croak ("Unable to link to non-existent target: $real_tarski_the");
-  }
-  symlink ($real_tarski_dco, $new_prel_dir . "/" . "tarski.dco");
-  symlink ($real_tarski_def, $new_prel_dir . "/" . "tarski.def");
-  symlink ($real_tarski_dno, $new_prel_dir . "/" . "tarski.dno");
-  symlink ($real_tarski_sch, $new_prel_dir . "/" . "tarski.sch");
-  symlink ($real_tarski_the, $new_prel_dir . "/" . "tarski.the");
+  # # tarski
+  # my $real_tarski_dco = $real_prel_dir . "/" . "t" . "/" . "tarski.dco";
+  # my $real_tarski_def = $real_prel_dir . "/" . "t" . "/" . "tarski.def";
+  # my $real_tarski_dno = $real_prel_dir . "/" . "t" . "/" . "tarski.dno";
+  # my $real_tarski_sch = $real_prel_dir . "/" . "t" . "/" . "tarski.sch";
+  # my $real_tarski_the = $real_prel_dir . "/" . "t" . "/" . "tarski.the";
+  # unless (-e $real_tarski_dco) {
+  #   croak ("Unable to link to non-existent target: $real_tarski_dco");
+  # }
+  # unless (-e $real_tarski_def) {
+  #   croak ("Unable to link to non-existent target: $real_tarski_def");
+  # }
+  # unless (-e $real_tarski_dno) {
+  #   croak ("Unable to link to non-existent target: $real_tarski_dno");
+  # }
+  # unless (-e $real_tarski_sch) {
+  #   croak ("Unable to link to non-existent target: $real_tarski_sch");
+  # }
+  # unless (-e $real_tarski_the) {
+  #   croak ("Unable to link to non-existent target: $real_tarski_the");
+  # }
+  # symlink ($real_tarski_dco, $new_prel_dir . "/" . "tarski.dco");
+  # symlink ($real_tarski_def, $new_prel_dir . "/" . "tarski.def");
+  # symlink ($real_tarski_dno, $new_prel_dir . "/" . "tarski.dno");
+  # symlink ($real_tarski_sch, $new_prel_dir . "/" . "tarski.sch");
+  # symlink ($real_tarski_the, $new_prel_dir . "/" . "tarski.the");
 
   # requirements:
   my $real_hidden_dre = $real_prel_dir . "/" . "h" . "/" . "hidden.dre";
