@@ -46,10 +46,11 @@ cp $MWIKI/pre-commit .git/hooks
 cp $MWIKI/post-commit .git/hooks
 git add .
 
-echo "Making xml...here we go...";
+echo "Making the deps...here we go...";
 MMLLAR=`cat mml.lar`;
 cd mml
 cp  $MWIKI/Makefile-depsrepo Makefile
 make deps
+echo "That was fun.  Let's make the xml!";
 cd ..
 make xml;
