@@ -8,6 +8,8 @@ use File::Basename;
 use Cwd;
 use Carp;
 
+use lib '../.perl';
+
 use mizar;
 
 # Compute list of mizar files that belong to the index (i.e., the
