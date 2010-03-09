@@ -1,8 +1,9 @@
 #!/bin/bash
-# usage $1 = repo-directory; $2=full path xsl4mizar directory ; $3 full path mwiki directory
+# usage $1 = repo-directory; $2=full path xsl4mizar directory ; $3 full path mwiki directory $4 = number of articles from MML.LAR to work with
 REPO=$1
 XSL4MIZ=$2
 MWIKI=$3
+NUM_ARTICLES=$4
 
 MIZBINARIES="absedt accom addfmsg checkvoc chklab clearenv.pl constr edtfile errflag exporter findvoc inacc irrths irrvoc lisppars listvoc makeenv mglue miz2abs miz2prel mizf msplit prune.mizar ratproof relinfer reliters relprem remflags renthlab revedt revf transfer trivdemo verifier";
 
@@ -17,11 +18,22 @@ if [ -e $REPO ]; then
 fi
 mkdir -p $REPO
 
-cp -a $MIZFILES/mml $REPO/mml
+mkdir $REPO/mml
+INITIAL_SEGMENT=`head -n $NUM_ARTICLES $MIZFILES/mml.lar`
+for article in $INITIAL_SEGMENT; do
+    cp -a $MIZFILES/mml/$article.miz $REPO/mml;
+done
+# ensure tarski is there
+cp -a $MIZFILES/mml/tarski.miz $REPO/mml;
+
 mkdir -p $REPO/prel
 cp -p $MIZFILES/prel/h/hidden.* $REPO/prel
 cp -p $MIZFILES/prel/*/*.dre $REPO/prel
-cp  $MIZFILES/mml.* $REPO
+cp  $MIZFILES/mml.ini $REPO
+cp  $MIZFILES/mml.vct $REPO
+# initial segment
+head -n $NUM_ARTICLES $MIZFILES/mml.lar > $REPO/mml.lar
+
 cp  $MIZFILES/mizar.* $REPO
 
 mkdir $REPO/bin
