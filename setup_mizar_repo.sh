@@ -17,7 +17,7 @@ cp $XSL4MIZ/miz.xsl $REPO/xsl
 
 cd $REPO
 git init
-cp $MWIKI/mml-gitignore $REPO/.gitignore
+cp $MWIKI/mml-gitignore .gitignore
 git add .
 
 
