@@ -23,7 +23,7 @@ chdir ($sandbox);
 `MIZFILES=$sandbox make absrefs`;
 `MIZFILES=$sandbox make htmls`;
 chdir ($sandbox_mml);
-`../.perl/mkmmlindex.pl *.hdr > ../html/index.html`
+`../.perl/mkmmlindex.pl *.hdr > ../html/index.html`;
 chdir ($cwd);
 
 # Copy the sandbox: force compiled to be a copy of the known compiled MML.
