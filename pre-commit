@@ -86,8 +86,14 @@ if (!defined ($ENV{"MIZBIN"}) or -z $ENV{"MIZBIN"}) {
 }
 $ENV{"PATH"} = $ENV{"PATH"} . ":" . $ENV{"MIZBIN"};
 
+# MAKEJOBS: number of different make jobs to run simultaneously
+my $makejobs = 1;
+if (defined ($ENV{"MAKEJOBS"})) {
+  $makejobs = $ENV{"MAKEJOBS"};
+}
+
 chdir ($sandbox_mml);
-`MIZFILES=$sandbox make evls deps > make-deps-out 2> make-deps-err`;
+`MIZFILES=$sandbox make --jobs $makejobs evls deps > make-deps-out 2> make-deps-err`;
 
 unless (-z "$sandbox_mml/make-deps-err") {
   warn ("Something went wrong in compiling the dependencies");
@@ -97,7 +103,7 @@ unless (-z "$sandbox_mml/make-deps-err") {
 # Now try to verify the new articles
 
 chdir ($sandbox);
-`MIZFILES=$sandbox make xmlvrfs > make-xml-out 2> make-xml-err`;
+`MIZFILES=$sandbox make --jobs $makejobs xmlvrfs > make-xml-out 2> make-xml-err`;
 
 if (-z "$sandbox/make-xml-err") {
   $admissible_commit = 1;
@@ -106,7 +112,7 @@ if (-z "$sandbox/make-xml-err") {
   $admissible_commit = 0;
 }
 
-`MIZFILES=. make prels > make-prel-out 2> make-prel-err`;
+`MIZFILES=. make --jobs $makejobs prels > make-prel-out 2> make-prel-err`;
 if (-z "$sandbox/make-prel-err") {
   $admissible_commit = 1;
 } else {
