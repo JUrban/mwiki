@@ -86,6 +86,6 @@ echo "Successfully (???) compiled everything."
 
 
 echo "Copying $REPO to $REPO-compiled; this will be our sandbox." 
-rsync -a --del --exclude=".gitignore" --exclude=".git/" $REPO $REPO-compiled
+rsync -a --del --exclude=".gitignore" --exclude=".git/" $REPO/ $REPO-compiled
 
 
