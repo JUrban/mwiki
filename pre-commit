@@ -74,9 +74,9 @@ my $admissible_commit = 0;
 # Call the dependency makefile on the new targets
 
 chdir ($sandbox_mml);
-`MIZFILES=.. make deps > make-deps-out 2> make-deps-err`;
+`MIZFILES=.. make evls deps > make-deps-out 2> make-deps-err`;
 
-unless (-z "make-deps-err") {
+unless (-z "$sandbox_mml/make-deps-err") {
   warn ("Something went wrong in compiling the dependencies");
   exit (1);
 }
