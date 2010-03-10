@@ -5,7 +5,8 @@ use warnings;
 use File::Temp qw/ tempfile tempdir /;
 use File::Copy;
 use File::Basename;
-use Cwd;
+use File::Spec;
+use Cwd qw/ getcwd abs_path/;
 use Carp;
 
 use lib '.perl';
@@ -27,12 +28,19 @@ my @non_miz_changed
 my @mml_changed = ();
 my @non_mml_changed = ();
 
-my %dependencies = ();
 my $cwd = getcwd ();
-my $dependency_makefile = $cwd . '/' . 'mml' . '/' . 'Makefile';
-my $master_makefile = $cwd . '/' . 'Makefile';
+my @repo_path_dirs = File::Spec->splitdir ($cwd);
+my $repo_name = $repo_path_dirs[$#repo_path_dirs];
+my $compiled = abs_path ("../$repo_name-compiled");
+my $sandbox = abs_path ("../$repo_name-sandbox");
+my $sandbox_mizfiles = abs_path ($sandbox . "/" . $repo_name);
+my $sandbox_mml = abs_path ($sandbox_mizfiles . "/" . "mml");
 
-warn ("HEre's miz_changed: @miz_changed");
+# Clean the sandbox: force it to be a copy of the known compiled MML.
+# We are hoping that this is fairly fast.
+warn ("rsync-ing...");
+`rsync --compress -a --del $compiled/ $sandbox/`;
+warn ("rsync-ing complete.");
 
 sub separate_mml_from_non_mml {
   foreach my $edited (@miz_changed) {
@@ -54,60 +62,43 @@ sub separate_mml_from_non_mml {
 
 separate_mml_from_non_mml ();
 
-my @new_articles = (@mml_changed, @non_mml_changed);
-
-my $temp_mizfiles = mizar::full_MIZFILES_in_tempdir ();
-mizar::set_MIZFILES ($temp_mizfiles);
-my $temp_mml = $temp_mizfiles . "/" . "mml";
-foreach my $changed (@mml_changed) {
-  my $changed_path = "mml/$changed.miz";
-  my $temp_path = $temp_mml . "/" . "$changed.miz";
-  # First, remove the old version
-  my $unlink_status = unlink $temp_path
-    or croak ("Something went wrong when removing $temp_path: $!");
-  unless ($unlink_status == 1) {
-    croak ("We tried to remove $temp_path; we apparently didn't!");
-  }
-  copy ($changed_path, $temp_path)
-    or croak ("Something went wrong copying $changed_path to $temp_path: $!");
+foreach my $article (@mml_changed) {
+  my $real_article_path = "mml/$article.miz";
+  my $sandbox_article_path = "$sandbox_mml/$article.miz";
+  copy ($real_article_path, $sandbox_article_path)
+    or croak ("You can't copy $real_article_path to $sandbox_article_path!");
 }
-
-# XSL directory
-mkdir ($temp_mizfiles . "/" . "xsl");
-`cp -R $cwd/xsl $temp_mizfiles`;
 
 my $admissible_commit = 0;
 
 # Call the dependency makefile on the new targets
 
-my $make_deps_out = $temp_mml . "/" . "make-deps-out";
-my $make_deps_err = $temp_mml . "/" . "make-deps-err";
-warn ("About to call make thus:");
-warn ("make -f $dependency_makefile deps");
-chdir ($temp_mml);
-`make -f $dependency_makefile deps > $make_deps_out 2> $make_deps_err`;
-my $dep_make_exit_status = ($? >> 8);
+chdir ($sandbox_mml);
+`MIZFILES=.. make deps > make-deps-out 2> make-deps-err`;
+
+unless (-z "make-deps-err") {
+  warn ("Something went wrong in compiling the dependencies");
+  exit (1);
+}
 
 # Now try to verify the new articles
 
-my $make_xml_out = $temp_mizfiles . "/" . "make-xml-out";
-my $make_xml_err = $temp_mizfiles . "/" . "make-xml-err";
-chdir ($temp_mizfiles);
-my $make_cmd = "make -f $master_makefile xmlvrfs > $make_xml_out 2> $make_xml_err";
-warn ("About to execute make with the command\n$make_cmd\n...");
-warn ("MIZFILES is set to $temp_mizfiles");
-my $make_result = `MIZFILES=$temp_mizfiles $make_cmd`;
-warn ("result of make: $make_result\n");
-if (defined ($make_result)) {
+chdir ($sandbox_mizfiles);
+`MIZFILES=. make xmlvrfs > make-xml-out 2> make-xml-err`;
+
+if (-z "$sandbox_mizfiles/make-xml-err") {
   $admissible_commit = 1;
 } else {
+  warn ("Errors were detected while verifying your changes!");
   $admissible_commit = 0;
 }
 
-if ($admissible_commit) {
-  print ("Your changes are admissible\n");
-} else {
+if ($admissible_commit == 0) {
   print ("Your changes are inadmissible\n");
+  exit (1); # i.e., fail
+} else {
+  print ("Your changes are admissible\n");
+  exit (0); # i.e., ok
 }
 
-exit ($admissible_commit);
+
