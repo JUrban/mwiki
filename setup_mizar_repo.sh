@@ -51,6 +51,7 @@ cp $XSL4MIZ/evl2dep.xsl $REPO/xsl
 mkdir $REPO/.perl
 cp $XSL4MIZ/mkxmlhead.pl $REPO/.perl
 cp $MWIKI/mizar.pm $REPO/.perl
+cp $MWIKI/mkmmlindex.pl $REPO/.perl
 cp $MWIKI/Makefile.repo $REPO/Makefile
 
 cd $REPO
