@@ -121,5 +121,3 @@ if ($admissible_commit == 0) {
   print ("Your changes are admissible\n");
   exit (0); # i.e., ok
 }
-
-
