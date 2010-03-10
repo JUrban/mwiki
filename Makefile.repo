@@ -1,6 +1,6 @@
 # -*- mode: makefile; -*-
 # MMLLAR, available in the environment, is the list of articles in the MML
-MMLLAR=$(shell head -n 10 $(MIZFILES)/mml.lar) tarski
+MMLLAR=$(shell head -n 10000 $(MIZFILES)/mml.lar) tarski
 DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
 VPATH = mml
