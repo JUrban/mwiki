@@ -5,10 +5,6 @@ use warnings;
 use Carp;
 use File::Spec;
 
-use lib '.perl';
-
-use mizar;
-
 # Move changes from the sandbox, where we just successfully
 # verified/compiled a bunch of changes to the MML.
 
@@ -24,8 +20,8 @@ if (!defined ($ENV{"MIZBIN"}) or -z $ENV{"MIZBIN"}) {
   $ENV{"MIZBIN"} = $sandbox . "/bin";
 }
 $ENV{"PATH"} = $ENV{"PATH"} . ":" . $ENV{"MIZBIN"};
-`MIZFILES=$sandbox make absrefs`;
-`MIZFILES=$sandbox make htmls`;
+`MIZFILES=$sandbox make absrefs > make-absrefs-out 2> make-absrefs-err`;
+`MIZFILES=$sandbox make htmls > make-htmls-out 2> make-htmls-err`;
 chdir ($sandbox_mml);
 `../.perl/mkmmlindex.pl *.hdr > ../html/index.html`;
 chdir ($cwd);
