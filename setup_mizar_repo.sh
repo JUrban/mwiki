@@ -14,6 +14,12 @@ else
     MIZBIN=$MIZBIN;
 fi
 
+if [ -z $MAKEJOBS ]; then
+    MAKEJOBS=1;
+fi
+
+
+
 if [ -e $REPO ]; then
     echo "Target repository $REPO already exists; overwriting anyway...";
 fi
@@ -74,14 +80,14 @@ touch hidden-prel
 cp  $MWIKI/Makefile-depsrepo Makefile
 export MIZFILES=$REPO
 export PATH=$PATH:$MIZBIN
-make evls
-make deps
+make $MAKEJOBS evls
+make $MAKEJOBS deps
 echo "That was fun.  Let's make the xml!";
 cd ..
-make xmlvrfs
-make prels
-make absrefs
-make htmls
+make $MAKEJOBS xmlvrfs
+make $MAKEJOBS prels
+make $MAKEJOBS absrefs
+make $MAKEJOBS htmls
 echo "Successfully (???) compiled everything."
 
 
