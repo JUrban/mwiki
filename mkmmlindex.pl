@@ -52,6 +52,32 @@ Mizar Mathematical Library (current wiki state), Index of Identifiers
 Index of MML Identifiers
 </h1>
 <hr>
+[<A HREF="#A">A</A>,
+<A HREF="#B">B</A>,
+<A HREF="#C">C</A>,
+<A HREF="#D">D</A>,
+<A HREF="#E">E</A>,
+<A HREF="#F">F</A>,
+<A HREF="#G">G</A>,
+<A HREF="#H">H</A>,
+<A HREF="#I">I</A>,
+<A HREF="#J">J</A>,
+<A HREF="#K">K</A>,
+<A HREF="#L">L</A>,
+<A HREF="#M">M</A>,
+<A HREF="#N">N</A>,
+<A HREF="#O">O</A>,
+<A HREF="#P">P</A>,
+<A HREF="#Q">Q</A>,
+<A HREF="#R">R</A>,
+<A HREF="#S">S</A>,
+<A HREF="#T">T</A>,
+<A HREF="#U">U</A>,
+<A HREF="#V">V</A>,
+<A HREF="#W">W</A>,
+<A HREF="#X">X</A>,
+<A HREF="#Y">Y</A>,
+<A HREF="#Z">Z</A>]
 <p>
 <hr>
 <dl>
