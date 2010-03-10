@@ -3,10 +3,27 @@
 use strict;
 use warnings;
 use Carp;
+use File::Spec;
 
-use lib '../.perl';
+use lib '.perl';
 
 use mizar;
+
+# Move changes from the sandbox, where we just successfully
+# verified/compiled a bunch of changes to the MML.
+
+my $cwd = getcwd ();
+my @repo_path_dirs = File::Spec->splitdir ($cwd);
+my $repo_name = $repo_path_dirs[$#repo_path_dirs];
+my $compiled = $cwd . "/" . "../$repo_name-compiled";
+my $sandbox = $cwd . "/" . "../$repo_name-sandbox";
+my $sandbox_mml = $sandbox . "/" . "mml";
+
+# Copy the sandbox: force compiled to be a copy of the known compiled MML.
+# We are hoping that this is fairly fast.
+warn ("rsync-ing...");
+`rsync -a --del $sandbox/ $compiled`;
+warn ("rsync-ing complete.");
 
 # Refresh the JFM-like "portal", in light of the new changes.
 
