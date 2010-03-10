@@ -80,14 +80,14 @@ touch hidden-prel
 cp  $MWIKI/Makefile-depsrepo Makefile
 export MIZFILES=$REPO
 export PATH=$PATH:$MIZBIN
-make $MAKEJOBS evls
-make $MAKEJOBS deps
+make -j $MAKEJOBS evls
+make -j $MAKEJOBS deps
 echo "That was fun.  Let's make the xml!";
 cd ..
-make $MAKEJOBS xmlvrfs
-make $MAKEJOBS prels
-make $MAKEJOBS absrefs
-make $MAKEJOBS htmls
+make -j $MAKEJOBS xmlvrfs
+make -j $MAKEJOBS prels
+make -j $MAKEJOBS absrefs
+make -j $MAKEJOBS htmls
 echo "Successfully (???) compiled everything."
 
 
