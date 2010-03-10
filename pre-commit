@@ -13,6 +13,13 @@ use lib '.perl';
 
 use mizar;
 
+# Set up PATH and MIZBIN
+
+if (-z $ENV{"MIZBIN"}) {
+  $ENV{"MIZBIN"} = getcwd () . "/bin";
+}
+$ENV{"PATH"} = $ENV{"PATH"} . ":" . $ENV{"MIZBIN"};
+
 # Compute list of mizar files that belong to the index (i.e., the
 # mizar files that are about to be committed). git diff-index will
 # give a list of changed files.  We compare the index to HEAD, the
@@ -80,7 +87,7 @@ my $admissible_commit = 0;
 # Call the dependency makefile on the new targets
 
 chdir ($sandbox_mml);
-`MIZFILES=.. make evls deps > make-deps-out 2> make-deps-err`;
+`MIZFILES=$sandbox make evls deps > make-deps-out 2> make-deps-err`;
 
 unless (-z "$sandbox_mml/make-deps-err") {
   warn ("Something went wrong in compiling the dependencies");
@@ -90,7 +97,7 @@ unless (-z "$sandbox_mml/make-deps-err") {
 # Now try to verify the new articles
 
 chdir ($sandbox);
-`MIZFILES=. make xmlvrfs > make-xml-out 2> make-xml-err`;
+`MIZFILES=$sandbox make xmlvrfs > make-xml-out 2> make-xml-err`;
 
 if (-z "$sandbox/make-xml-err") {
   $admissible_commit = 1;
