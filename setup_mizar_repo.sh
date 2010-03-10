@@ -73,6 +73,13 @@ git commit -m 'Initial commit.'
 cp $MWIKI/pre-commit .git/hooks
 cp $MWIKI/post-commit .git/hooks
 
+cat >> $MWIKI/.git/config <<EOF
+[instaweb]
+        httpd = apache2 -f
+        port = 1234
+        modulepath = /usr/lib/apache2/modules
+EOF
+
 echo "Making the deps...here we go...";
 MMLLAR=`cat mml.lar`;
 cd mml
@@ -82,7 +89,7 @@ export MIZFILES=$REPO
 export PATH=$PATH:$MIZBIN
 make -j $MAKEJOBS evls
 make -j $MAKEJOBS deps
-echo "That was fun.  Let's make the xml!";
+echo "That was fun.  Let's make the xml!  Grab some tea or coffee.";
 cd ..
 make -j $MAKEJOBS xmlvrfs
 make -j $MAKEJOBS prels
