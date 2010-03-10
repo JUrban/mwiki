@@ -60,7 +60,10 @@ cp $MWIKI/Makefile.repo $REPO/Makefile
 
 cd $REPO
 git init
+
 git config --add description "The mizar wiki"
+
+# gitweb configuration
 git config --add instaweb.httpd apache2
 git config --add instaweb.port 1234
 git config --add instaweb.modulepath /usr/lib/apache2/modules
@@ -71,6 +74,9 @@ mkdir -p .git/hooks # this surely exists, but it depends on the
 
 git add .
 git commit -m 'Initial commit.'
+
+# Start gitweb
+git instaweb --restart 
 
 # We put these in the git repo after the initial commit because
 # calling the hook on the initial commit doesn't make sense (there's
