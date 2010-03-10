@@ -64,6 +64,10 @@ cd $REPO
 git init
 cp $MWIKI/mml-gitignore .gitignore
 mkdir -p .git/hooks
+git config --add description "The mizar wiki"
+git config --add instaweb.httpd apache2
+git config --add instaweb.port 1234
+git config --add instaweb.modulepath /usr/lib/apache2/modules
 git add .
 git commit -m 'Initial commit.'
 
@@ -72,13 +76,6 @@ git commit -m 'Initial commit.'
 # no index, and HEAD points to nothing).
 cp $MWIKI/pre-commit .git/hooks
 cp $MWIKI/post-commit .git/hooks
-
-cat >> $MWIKI/.git/config <<EOF
-[instaweb]
-        httpd = apache2 -f
-        port = 1234
-        modulepath = /usr/lib/apache2/modules
-EOF
 
 echo "Making the deps...here we go...";
 MMLLAR=`cat mml.lar`;
