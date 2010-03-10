@@ -20,6 +20,10 @@ my $sandbox = $cwd . "/" . "../$repo_name-sandbox";
 my $sandbox_mml = $sandbox . "/" . "mml";
 
 chdir ($sandbox);
+if (-z $ENV{"MIZBIN"}) {
+  $ENV{"MIZBIN"} = $sandbox . "/bin";
+}
+$ENV{"PATH"} = $ENV{"PATH"} . ":" . $ENV{"MIZBIN"};
 `MIZFILES=$sandbox make absrefs`;
 `MIZFILES=$sandbox make htmls`;
 chdir ($sandbox_mml);
