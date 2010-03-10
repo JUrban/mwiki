@@ -16,7 +16,7 @@ my %all = ();
 while (my $file = shift)
 {
     open(F,$file);
-    my ($name, $directories, $suffix) = fileparse($file);
+    my ($name, $directories, $suffix) = fileparse($file, qr/\.[^.]*/);
     $all{$name} = [];
     while($_=<F>)
     {
