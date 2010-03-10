@@ -19,6 +19,13 @@ my $compiled = $cwd . "/" . "../$repo_name-compiled";
 my $sandbox = $cwd . "/" . "../$repo_name-sandbox";
 my $sandbox_mml = $sandbox . "/" . "mml";
 
+chdir ($sandbox);
+`MIZFILES=$sandbox make absrefs`;
+`MIZFILES=$sandbox make htmls`;
+chdir ($sandbox_mml);
+`../.perl/mkmmlindex.pl *.hdr > ../html/index.html`
+chdir ($cwd);
+
 # Copy the sandbox: force compiled to be a copy of the known compiled MML.
 # We are hoping that this is fairly fast.
 warn ("rsync-ing...");
