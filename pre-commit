@@ -25,6 +25,11 @@ my @miz_changed
 my @non_miz_changed 
   = `git diff-index --cached HEAD | cut -f 2 | grep --invert-match '\.miz\$'`;
 
+unless (scalar (@non_mml_changed) == 0) {
+  warn ("Only .miz files are permitted to be committed.  Sorry dude.");
+  exit (1)
+}
+
 my @mml_changed = ();
 my @non_mml_changed = ();
 
