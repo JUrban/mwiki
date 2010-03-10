@@ -81,7 +81,7 @@ my $admissible_commit = 0;
 
 # Set up PATH and MIZBIN
 
-if (-z $ENV{"MIZBIN"}) {
+if (!defined ($ENV{"MIZBIN"}) or -z $ENV{"MIZBIN"}) {
   $ENV{"MIZBIN"} = $sandbox . "/bin";
 }
 $ENV{"PATH"} = $ENV{"PATH"} . ":" . $ENV{"MIZBIN"};
