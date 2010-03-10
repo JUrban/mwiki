@@ -16,7 +16,7 @@ my %all = ();
 while (my $file = shift)
 {
     open(F,$file);
-    my $name = basename($file);
+    my ($name, $directories, $suffix) = fileparse($file);
     $all{$name} = [];
     while($_=<F>)
     {
