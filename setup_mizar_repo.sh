@@ -62,20 +62,23 @@ cp $MWIKI/Makefile.repo $REPO/Makefile
 
 cd $REPO
 git init
-cp $MWIKI/mml-gitignore .gitignore
-mkdir -p .git/hooks
 git config --add description "The mizar wiki"
 git config --add instaweb.httpd apache2
 git config --add instaweb.port 1234
 git config --add instaweb.modulepath /usr/lib/apache2/modules
+install -m 644 $MWIKI/mml-gitignore .gitignore
+mkdir -p .git/hooks # this surely exists, but it depends on the
+		    # default template that git uses -- let's be safe
+		    # and make the directory ourselves
+
 git add .
 git commit -m 'Initial commit.'
 
 # We put these in the git repo after the initial commit because
 # calling the hook on the initial commit doesn't make sense (there's
 # no index, and HEAD points to nothing).
-cp $MWIKI/pre-commit .git/hooks
-cp $MWIKI/post-commit .git/hooks
+install -m 755 $MWIKI/pre-commit .git/hooks
+install -m 755 $MWIKI/post-commit .git/hooks
 
 echo "Making the deps...here we go...";
 MMLLAR=`cat mml.lar`;
