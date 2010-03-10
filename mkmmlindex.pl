@@ -102,7 +102,7 @@ foreach my $name (sort keys %all)
     unless ($prevletter eq uc(substr($name, 0, 1)))
     {
 	$prevletter = uc(substr($name, 0, 1));
-	print ('<dt><A NAME="', $prevletter, '"><b>A</B></A><dd><dl>', "\n");
+	print ('</dl>', "\n", '<dt><A NAME="', $prevletter, '"><b>', $prevletter, '</B></A><dd><dl>', "\n");
     }
     print_one_html($name);
 }
