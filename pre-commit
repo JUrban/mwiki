@@ -93,6 +93,14 @@ if (-z "$sandbox_mizfiles/make-xml-err") {
   $admissible_commit = 0;
 }
 
+`MIZFILES=. make prels > make-prel-out 2> make-prel-err`;
+if (-z "$sandbox_mizfiles/make-prel-err") {
+  $admissible_commit = 1;
+} else {
+  warn ("Errors were detected while PRELing!");
+  $admissible_commit = 0;
+}
+
 if ($admissible_commit == 0) {
   print ("Your changes are inadmissible\n");
   exit (1); # i.e., fail
