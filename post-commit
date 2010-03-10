@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Carp;
 use File::Spec;
+use Cwd;
 
 # Move changes from the sandbox, where we just successfully
 # verified/compiled a bunch of changes to the MML.
