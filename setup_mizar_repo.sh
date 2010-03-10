@@ -18,8 +18,6 @@ if [ -z $MAKEJOBS ]; then
     MAKEJOBS=1;
 fi
 
-
-
 if [ -e $REPO ]; then
     echo "Target repository $REPO already exists; overwriting anyway...";
 fi
