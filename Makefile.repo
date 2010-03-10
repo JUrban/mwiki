@@ -49,5 +49,6 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 
 %.html: %-absrefs.xml %.hdr
 	xsltproc --param mk_header 1 --param default_target \'_self\'  --param linking \'l\' --param mizhtml \'\' --param selfext \'html\'  --param titles 1 --param colored 1  --param proof_links 1 --param ajax_proofs 1 --param ajax_proof_dir \'proofs\' --output html/$*.html xsl/miz.xsl mml/$*-absrefs.xml;
+	touch mml/$*.html
 
 include mml/*.dep
