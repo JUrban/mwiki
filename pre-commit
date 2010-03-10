@@ -6,7 +6,7 @@ use File::Temp qw/ tempfile tempdir /;
 use File::Copy;
 use File::Basename;
 use File::Spec;
-use Cwd qw/ getcwd abs_path/;
+use Cwd;
 use Carp;
 
 use lib '.perl';
@@ -36,15 +36,16 @@ my @non_mml_changed = ();
 my $cwd = getcwd ();
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
-my $compiled = abs_path ("../$repo_name-compiled");
-my $sandbox = abs_path ("../$repo_name-sandbox");
-my $sandbox_mizfiles = abs_path ($sandbox . "/" . $repo_name);
-my $sandbox_mml = abs_path ($sandbox_mizfiles . "/" . "mml");
+my $compiled = $cwd . "/" . "../$repo_name-compiled";
+my $sandbox = $cwd . "/" . "../$repo_name-sandbox";
+my $sandbox_mml = $sandbox . "/" . "mml";
 
 # Clean the sandbox: force it to be a copy of the known compiled MML.
 # We are hoping that this is fairly fast.
 warn ("rsync-ing...");
-`rsync --compress -a --del $compiled/ $sandbox/`;
+warn ("compiled: $compiled");
+warn ("sandbox: $sandbox");
+`rsync -a --del $compiled/ $sandbox`;
 warn ("rsync-ing complete.");
 
 sub separate_mml_from_non_mml {
@@ -68,7 +69,7 @@ sub separate_mml_from_non_mml {
 separate_mml_from_non_mml ();
 
 foreach my $article (@mml_changed) {
-  my $real_article_path = "mml/$article.miz";
+  my $real_article_path = "$cwd/mml/$article.miz";
   my $sandbox_article_path = "$sandbox_mml/$article.miz";
   copy ($real_article_path, $sandbox_article_path)
     or croak ("You can't copy $real_article_path to $sandbox_article_path!");
@@ -88,10 +89,10 @@ unless (-z "$sandbox_mml/make-deps-err") {
 
 # Now try to verify the new articles
 
-chdir ($sandbox_mizfiles);
+chdir ($sandbox);
 `MIZFILES=. make xmlvrfs > make-xml-out 2> make-xml-err`;
 
-if (-z "$sandbox_mizfiles/make-xml-err") {
+if (-z "$sandbox/make-xml-err") {
   $admissible_commit = 1;
 } else {
   warn ("Errors were detected while verifying your changes!");
@@ -99,7 +100,7 @@ if (-z "$sandbox_mizfiles/make-xml-err") {
 }
 
 `MIZFILES=. make prels > make-prel-out 2> make-prel-err`;
-if (-z "$sandbox_mizfiles/make-prel-err") {
+if (-z "$sandbox/make-prel-err") {
   $admissible_commit = 1;
 } else {
   warn ("Errors were detected while PRELing!");
