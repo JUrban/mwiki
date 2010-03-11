@@ -3,5 +3,53 @@
   As things stand now, I am testing this code by doing a lot of manual
   changes.  Setting up perl tests would help to make this process more
   intelligent, and quicker, too.
-* TODO Generate a JFM-like front page
+* DONE Generate a JFM-like front page
   The post-commit hook seems like the right place to do that.
+* TODO Create the "stable" branch in the repo
+  Periodically commit there the official releases, possibly
+  import there couple of previos versions. Present it in HTML in
+  another sandbox.
+* TODO Create the "frontend" repo(s), for anonymous pushes
+  As a post-receive hook, changed .miz (different from master) files
+  get copied to our master repo, and commit is attempted there. The
+  result is announced to the pusher by the post-receive
+  hook. Typically, pushers get their own branch, and can decide to
+  work with particular branch. The frontend shouls probably track the
+  master and stable. Take from ikiwiki its protection against evil
+  pushers.
+* TODO Track the master and stable on GitHub.
+  Just by post-commit hooks probably.
+* TODO Think if we really need the frontend repo
+  We might be fine with just one, OTOH, ikiwiki also uses two repos,
+  and we would have to investigate the pre-receive hook for handling
+  bad pushes, and not be able to save incorrect work. This is what
+  frontend might be useful for.
+* TODO Create an "edit" button, and the correspondin cgi
+  like in ikiwiki. This gets directly commited in the master, and on
+  success, the page is updated. Otherwise, errors are shown to the
+  user. We might save his work in some branch or frontend, and let him
+  fix his bugs there. This means that we might want to publish the
+  list of current branches.
+* TODO Create the "clone" button
+  and give people a way how to clone things and push to the frontend
+* TODO Implement proper locking, of the repos and sandboxes
+  Especially wrt to the online editing, because pushes and commits to
+  frontends and master probably can rely on git's locking.
+* TODO Think of handling mutually incompatible, but correct, developments
+  This would be probably multiple branches on the master repo, and
+  multiple sandboxes. This is not what Wikipedia allows, but Linux
+  does.
+* TODO Plug-in the parallelizer
+  for faster verification and htmlization of one or two articles only.
+* TODO Plug-in more mizar utilities
+  can be used as critics of the code
+* TODO Plug-in the ATP and AI stuff, and MML Query, and FM
+  from my recent atp paper, Grzegorz's developments, etc
+* TODO Plug-in the Wikipedia tagging
+  provide some suitable metadata and syntax in .miz, provide
+  presentation alongside Wikipedia
+* TODO Do this for Coq and Isabelle if they give us the tools
+  When things are reasonably polished, working fast, and useful at
+  least for one PA, and others get motivated to actually give us the
+  corresponding tools and work with us on their plugging-in and
+  use. Without good testers and developers, it is not going to work.
