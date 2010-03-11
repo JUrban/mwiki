@@ -30,6 +30,10 @@
   user. We might save his work in some branch or frontend, and let him
   fix his bugs there. This means that we might want to publish the
   list of current branches.
+* TODO Create the edit button for sections
+  initially for theorems. If just the proof gets edited, don't
+  reverify the other articles, just this one. Create dependencies
+  among theorems, and try to have the re-verification finer.
 * TODO Create the "clone" button
   and give people a way how to clone things and push to the frontend
 * TODO Implement proper locking, of the repos and sandboxes
