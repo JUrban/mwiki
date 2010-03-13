@@ -1,5 +1,5 @@
 ; -*- mode: org; -*-
-* TODO Set up some perl tests
+* DONE Set up some perl tests
   As things stand now, I am testing this code by doing a lot of manual
   changes.  Setting up perl tests would help to make this process more
   intelligent, and quicker, too.
@@ -17,7 +17,35 @@
   work with particular branch. The frontend shouls probably track the
   master and stable. Take from ikiwiki its protection against evil
   pushers.
-* TODO Track the master and stable on GitHub.
+
+
+  Here is how I am thinking about doing this.  We have a user, git, on
+  the server that actually does the git commands on the server.  The
+  question then is how to ensure that anonymous users are able to do
+  this.  OK, they use the git protocol on the server.  They suggest
+  that this is sufficient.  Anonymous users can then push.  But that
+  conflicts, I think, with the git book discussion of the git method.
+  OK, maybe this could work.  We've got a git user on the server, and
+  people push to a certain directory.  Seems fine.  We just need to
+  publish the exact file name to which users push their changes, e.g.:
+
+  git@mws.cs.ru.nl:/home/git/mizarwiki
+
+  That should be fine.  I suppose in principle that's already
+  available and we can test it.  We just need an update hook.
+  (ikiwiki uses a pre-receive hook.  I'm not sure I understand the
+  difference between these two approaches.)  The ikiwiki documentation
+  suggests that some more is needed.  In any case, both the ikiwiki
+  documentation and the pro git book say that the server repo to which
+  people are allowed to push needs to be a bare repo.  But we don't
+  have any bare repos yet.  We just have the central repo.
+
+  I need some way to test this on my machine.  We need some sane
+  mechanism for installing this software. I'd like to test it both on
+  my MacBook Pro and my new little eeepc, as well as my Portuguese
+  server.
+
+* TODO Track the master and stable on GitHub.x
   Just by post-commit hooks probably.
 * TODO Think if we really need the frontend repo
   We might be fine with just one, OTOH, ikiwiki also uses two repos,

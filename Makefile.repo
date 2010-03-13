@@ -36,7 +36,8 @@ prels: $(patsubst %, %-prel, $(MMLLAR))
 	touch mml/$*-prel
 	mv mml/$*.xml mml/$*.xmlexp
 
-# HIDDEN is a special case
+# HIDDEN is a special case. It depends on nothing, so we can
+# unconditionally timestamp it.
 hidden-prel:
 	touch mml/hidden-prel;
 
