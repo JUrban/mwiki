@@ -9,6 +9,12 @@
   Periodically commit there the official releases, possibly
   import there couple of previos versions. Present it in HTML in
   another sandbox.
+* TODO Add the check for @proof in pre-commit
+  We should forbid theorems with @proof at the master repo. Check it
+  using the XML created by article - there should be no element "SkippedProof" 
+* TODO Add better error messages
+  When we do not commit, show people a log of the pre-commit check,
+  and improve the pre-commit/make to tell the errors
 * TODO Create the "frontend" repo(s), for anonymous pushes
   As a post-receive hook, changed .miz (different from master) files
   get copied to our master repo, and commit is attempted there. The
