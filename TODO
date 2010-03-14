@@ -40,7 +40,7 @@
   initially for theorems. If just the proof gets edited, don't
   reverify the other articles, just this one. Create dependencies
   among theorems, and try to have the re-verification finer.
-* TODO Investigate using SCons instead of make
+* TODO Investigate using SCons or Waf instead of make
   See http://www.scons.org/doc/0.98.5/HTML/scons-user/c779.html . With
   SCons, we can specify the fucntion for decideing if a file has
   changed or not. It can be MD5, but also our own function, saying
