@@ -40,6 +40,12 @@
   initially for theorems. If just the proof gets edited, don't
   reverify the other articles, just this one. Create dependencies
   among theorems, and try to have the re-verification finer.
+* TODO Investigate using SCons instead of make
+  See http://www.scons.org/doc/0.98.5/HTML/scons-user/c779.html . With
+  SCons, we can specify the fucntion for decideing if a file has
+  changed or not. It can be MD5, but also our own function, saying
+  e.g. that the properly stripped XML has not changed. SCons will not
+  rebuild after this.
 * TODO Create the "clone" button
   and give people a way how to clone things and push to the frontend
 * TODO Implement proper locking, of the repos and sandboxes
