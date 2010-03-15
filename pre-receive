@@ -1,21 +1,32 @@
-#!/usr/bin/perl -w
+
+#!/usr/bin/perl
 
 use strict;
 use warnings;
-use File::Temp qw/ tempfile tempdir /;
-use Cwd;
-use Carp;
 
-use Mizar;
+my $full_repo;
 
-# This is the pre-receive hook. It should check that the commiter is
-# updating files that he is allowed to.
+# Pass the new mizar files to the local full (non-bare) repo and try
+# to commit.  The pre-commit hook there will tell us whether to reject
+# this commit.
 
+while (defined my $git_line = <STDIN>) {
+    chomp $git_line;
+    my @git_line_fields = split (/\ /, $git_line);
+    my ($old_sha1, $new_sha1, $refname) = @git_line_fields;
+    my @miz_files = `git show --pretty="format:" --name-only $new_sha1 | grep ".miz"`;
+    my @non_miz_files = `git show --pretty="format:" --name-only $new_sha1 | grep --invert-match ".miz"`;
+    if (scalar @non_miz_files != 0) {
+	croak ("You are not allowed to submit non-.miz files");
+    }
+}
 
-# Through various tests, we'll try to determine whether the proposed
-# receive is admissible.
-my $admissible_receive = 0;
+while read old_sha1 new_sha1 refname anothervalue ; do
+     list=$(git show --pretty="format:" --name-only $new_sha1 | grep -e ".pp$")
+     for tmpfile in ${list}; do
+         git show ${new_sha1}:${tmpfile} | puppet --color=false --confdir=/tmp --vardir=/tmp --parseonly --ignoreimport
+         if [ "$?" -ne "0" ]; then exit 1; fi
+     done
+ done
 
-
-exit ($admissible_receive);
-
+ exit $?

@@ -1,0 +1,172 @@
+# -*- mode: makefile; -*-
+REPO=$(REPOS_BASE)/mwiki
+BAREREPO=$(REPOS_BASE)/mwiki.git
+REPOBIN=$(REPO)/bin
+MIZBIN=$(MIZFILES)/bin;
+MAKEJOBS=1
+SHEETS=addabsrefs miz evl2dep
+PERLSCRIPTS=mkxmlhead mkmmlindex duplicates
+PERLMODULES=mizar
+
+NUM_ARTICLES=10
+HEAD=/usr/bin/head
+INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
+
+MWIKI_USER=mwiki
+
+.PHONY: all repo sandbox deps xml repo-miz repo-prel repo-perl repo-bin repo-xsl repo-export repo-gitinit repo-makefiles
+
+MIZBINARIES=absedt accom addfmsg checkvoc chklab clearenv.pl constr edtfile envget errflag exporter findvoc inacc irrths irrvoc lisppars listvoc makeenv mglue miz2abs miz2prel mizf msplit prune ratproof relinfer reliters relprem remflags renthlab revf transfer trivdemo verifier
+
+all: repo sandbox deps xml repo-export repo-gitinit repo-makefiles
+	echo "If everything went according to plan, then we just created the following:"
+	echo "* $(REPO): a `fully-compiled' git repository with pre-commit and post-commit hooks;"
+	echo "* $(REPO)-sandbox: $(REPO) minus its git metadata; it will be our clean sandbox;"
+	echo "* $(REPO).git, a bare clone of $(REPO) with a pre-receive hook; this will be publicly accessible"
+
+repo: repo-miz repo-prel repo-data repo-bin repo-xsl repo-perl repo-makefiles repo-gitinit
+
+repo-miz:
+	mkdir -p $(REPO)/mml	
+	for article in $(INITIAL_SEGMENT); do \
+	  install --preserve-timestamps --mode=644 $(MIZFILES)/mml/$$article.miz $(REPO)/mml; \
+	done
+	install --preserve-timestamps --mode=644 $(MIZFILES)/mml/hidden.miz $(REPO)/mml
+	install --preserve-timestamps --mode=644 $(MIZFILES)/mml/tarski.miz $(REPO)/mml
+
+repo-prel: # Special prel files: those for hidden, and all requirements (.dre) files
+	mkdir -p $(REPO)/prel
+	cp -p $(MIZFILES)/prel/h/hidden.* $(REPO)/prel
+	cp -p $(MIZFILES)/prel/*/*.dre $(REPO)/prel
+
+repo-data: # Other mizar data
+	cp -p $(MIZFILES)/mml.ini $(REPO)
+	cp -p $(MIZFILES)/mml.vct $(REPO)
+	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(REPO)/mml.lar
+	cp -p $(MIZFILES)/mizar.dct $(REPO)
+	cp -p $(MIZFILES)/mizar.msg $(REPO)
+
+repo-bin:
+	mkdir -p $(REPO)/bin
+	for binary in $(MIZBINARIES); do \
+	  install --preserve-timestamps --mode 755 $(MIZBIN)/$$binary $(REPO)/bin/$$binary; \
+	done
+
+repo-xsl:
+	mkdir -p $(REPO)/xsl
+	for sheet in $(SHEETS); do \
+	  install --mode 644 --preserve-timestamps $(XSL4MIZ)/$$sheet.xsl $(REPO)/xsl; \
+	done
+
+repo-perl:
+	mkdir -p $(REPO)/.perl
+	for perlfile in $(PERLMODULES); do \
+	  install --preserve-timestamps --mode 644 $$perlfile.pm $(REPO)/.perl; \
+	done
+	for perlfile in $(PERLSCRIPTS); do \
+	  install --preserve-timestamps --mode 755 $$perlfile.pl $(REPO)/.perl; \
+	done
+
+repo-gitinit:
+	GIT_DIR=$(REPO)/.git git init
+	GIT_DIR=$(REPO)/.git git config --add core.description "The mizar wiki"
+
+# I'm not happy with using instaweb; it is designed for one-off
+# browsing of the repo.  We should have a more robust server-based
+# solution, like a bona fide gitweb installation.
+	# git config --add instaweb.httpd apache2 
+	# git config --add instaweb.port 1234
+	# git config --add instaweb.modulepath /usr/lib/apache2/modules
+
+	install --mode 644 mml-gitignore .gitignore
+
+	cd $(REPO) && GIT_DIR=$(REPO)/.git git add .
+	GIT_DIR=$(REPO)/.git git commit -m 'Initial commit.'
+
+# (Re)start gitweb
+	# git instaweb --restart 
+
+# We put these in the git repo after the initial commit because
+# calling the hook on the initial commit doesn't make sense (there's
+# no index, and HEAD points to nothing).
+	install --mode 755 -D pre-commit $(REPO)/.git/hooks
+	install --mode 755 -D post-commit $(REPO)/.git/hooks
+
+repo-makefiles:
+# Our central makefile and helper scripts
+	install --mode 644 Makefile.repo $(REPO)/Makefile
+	install --mode 644 Makefile-depsrepo $(REPO)/mml/Makefile
+
+mwiki-user: repo repo-export
+	-adduser --shell=/usr/bin/git-shell --disabled-password $(MWIKI_USER)
+	mkdir -p /var/cache/mwiki
+	cp -R $(REPO) /var/cache/mwiki
+	cp -R $(BAREREPO) /var/cache/mwiki
+	chown -R $(MWIKI_USER) /var/cache/mwiki
+	chgrp -R $(MWIKI_USER) /var/cache/mwiki
+
+# Let's store the git repo under /var/cache/mwiki.  We'll need to set
+# up gitweb to look in that directory.  We should also set up read and
+# write permissions for mwiki under /var/cache/mwiki.  I suppose mwiki
+# will also need read and write access to the full, checked-out,
+# non-bare repo.  The idea is that the bare repo is the user
+# front-end: the user makes commits to this repo, using a URL like
+#
+#   mwiki@mws.cs.ru.nl:/var/cache/mwiki/mwiki.git
+
+# (Now that I write it, it's not clear to me yet just how the URL will
+# be.  That might be perfectly fine, if the home directory for mwiki
+# is actually /var/cache/mwiki).  We could store the checked out repo as
+# /var/cache/mwiki/mwiki; the bare repo could be at
+# /var/cache/mwiki/mwiki.git, and the sandbox could be at
+# /var/cache/mwiki/mwiki-sandbox.  We should make sure that these two
+# directories are not visible to the outside world.
+# /var/cache/mwiki/mwiki.git should be visible, but only by way of
+# gitweb.  OK, so I have some more work to do with gitweb.  Now that I
+# have a ubuntu machine, this shouldn't be too bad (I hope).
+#
+# Hooks: mwiki.git, the bare repo, the one that's exposed to the
+# outside world, should have a pre-receive hook.  It checks for
+# unusual permissions, large files or non-.miz files.  If it passes
+# these checks, then it tries to add the files to mwiki (the checked
+# out git repo with a working directory).  That repo has pre- and
+# post-receive hooks.  The pre-receive hooks checks that the files can
+# be coherently added to the repo.  If so, it checks them in.  Then it
+# runs the post-commit hook and generates the updated front page.
+# Now, we need to make sure that the bare repo is now in sync with the
+# checked out repo.  I suppose we could do that in the post-commit
+# hook in the checked out repo.  It simply adds the new files and
+# commits them.  Pretty cool.
+
+deps: repo
+	echo "Making the deps...here we go...";
+	cd $(REPO)/mml
+	touch hidden-prel # everything depends on hidden-prel
+	$(MAKE) -C $(REPO)/mml -j $(MAKEJOBS) evls deps MIZFILES=$(REPO) PATH=$(REPO)/bin:$(PATH)
+
+html: deps
+	echo "Let's make the xml!  Grab some tea or coffee.";
+	$(MAKE) -C $(REPO) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(REPO) PATH=$(REPO)/bin:$(PATH)
+	echo "Successfully (???) compiled everything."
+
+sandbox: xml
+	echo "Copying $(REPO) to $(REPO)-sandbox; this will be our sandbox." 
+	rsync -a --del \
+	  --exclude=".gitignore" \
+	  --exclude=".git/" \
+	  --exclude=".perl/" \
+	  $(REPO)/ $(REPO)-sandbox
+#           ===> ^ <===
+# trailing slash -- see the rsync man page to learn why it's there
+
+repo-export: xml # Export our repo, thereby making it accessible to the git daemon
+	git clone --bare $(REPO) $(BAREREPO)
+
+# We need to install our pre-receive hook (or is it an update hook?)
+# at this point in the newly created bare repo.
+	install --mode 755 pre-receive $(BAREREPO)/hooks
+
+# We should be smarter about errors and keeping track of output.
+# Ideally, we should say, at the end of all this, where a log of all
+# of this activity can be found.  This whole setup feels pretty
+# fragile.
