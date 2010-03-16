@@ -1,0 +1,132 @@
+* pre-receive hooks
+  We will use a pre-receive hook in the frontend repo that, given a
+  push, will take the ref to be updated.
+
+  Let us assume that someone has made some changes and wishes to push
+  them to our frontend repo.
+
+  For the moment, the frontend repo will have only one branch, the
+  master one.  Pushes to any other branch will be rejected.
+
+  (Later, we should extend this simple one-track approach and support
+  multiple branches on the frontend repo.  Example use: a user has on
+  his local machine a [possibly fucked-up] branch containing some
+  mizar code, and he wants to share his work on our website.  We could
+  enforce a policy of verifying the content only of the master branch,
+  thereby permitting other branches to contain possibly fucked-up
+  content.  This presents some issues for us, because if some mizar
+  code is fucked up, then we can present only a partial HTML-ization
+  of the content.)
+
+  According to the githooks manp page, the pre-receive hook is given
+  the following input:
+
+  "It [i.e., the pre-receive hook] takes no arguments, but for each
+  ref to be updated it receives on standard input a line of the
+  format:
+
+  =<old-value> SP <new-value> SP <ref-name> LF=
+
+  where <old-value> is the old object name stored in the ref,
+  <new-value> is the new object name to be stored in the ref and
+  <ref-name> is the full name of the ref. When creating a new ref,
+  <old-value> is 40 0."
+
+  The documentation suggests that various kinds of git objects could
+  be pushed, but in fact what is pushed is a commit object.  The usual
+  use case:
+
+  - git clone frontend repo
+  - hack, hack, hack
+  - git push
+    (or: git push origin)
+    (or: git push origin master)
+
+  results commit objects being pushed.  (I have tested this behavior.)
+
+  Thus, in the pre-commit hook, we are given one line
+
+  =<old-value> SP <new-value> SP <ref-name> LF=
+
+  (This follows from our assumption that we are ignoring for the
+  moment the possibility of pushing to branches other than the master
+  branch on the frontend repo.  In the example above, =<ref-name> will
+  always be the string "refs/heads/master".  When we move to consider
+  additional branches, we can no longer assume that the pre-commit
+  script is given a single line of input.)  Both =<old-value>= and
+  =<new-value>= will be SHA1 object names; they are the names of
+  commit objects.  =<old-value>= will be the current ("old") HEAD of
+  the frontend repo, and =<new-value>= is the SHA1 object name of the
+  most recent commit in the remote repo that is supposed to be pushed.
+
+  Note that even if one has made multiple commits in the local repo,
+  it is still true that the pre-receive hook will receive exactly one
+  line of input.  =<new-value>= will be the SHA1 object name of the
+  most recent commit.  The commits that one wishes to push already
+  contain, as metadata, the sequence of parent links that establishes
+  the correct order of commits that, starting from the frontend repo's
+  current HEAD, will yield the most recent state of the tree in the
+  local repo.  In other words, it is not necessary for git to make N
+  updates when it is given N commits; once the commit objects are
+  pushed to the frontend repo, it is sufficient to simply say that the
+  new HEAD of the frontend repo should be whatever the most recent
+  commit object is in the local repo.
+
+  For now, let us concentrate on the case where one does a "simple"
+  push; one has just made a commit to one's local repo, and the parent
+  of the the local HEAD is equal to the HEAD of the frontend repo.
+  That is, let us assume that a single commit object is inserted into
+  the frontend repo, rather than multiple commit objects.
+
+  (The case of multiple commit objects being pushed to the frontend
+  repo leads to an interesting problem.  We need to discover the first
+  commit where the local repo diverged from the frontend repo, and
+  treat that commit according to the "simple" push case to be
+  discussed below.  Then, assuming that this earliest "simple" push
+  was successful, we need to look at the next oldest commit object in
+  the sequence of commits that are being pushed, and again follow the
+  procedure for the simple case; and so forth.  We need to do this if
+  we want to ensure that the frontend repo's history is never
+  corrupted: after every commit, the frontend repo is in a coherent
+  MML.)
+
+  The "simple" case of exactly one new commit to consider proceeds as
+  follows.  Given the commit, we get the list of .miz files it
+  contains using the command
+
+  =git show --pretty --name-only <new-sha1> | grep ".miz"=
+
+  where =<new-sha1>= is the SHA1 object name of the commit that we are
+  investigating.
+
+  By inverting the regular expression with =grep --invert-match=, we
+  can discover whether there are any non-.miz files.  At first, if
+  there are non-.miz files, we will simply reject the proposed push
+  immediately.  Later on we can investigate what other kinds of files
+  could be added to our repo; for now, we assume that it is just a
+  "purely MIZAR" repo containing nothing but .miz files.
+
+  Once we have the name of the .miz files, we can get their content
+  (not just the diff between the current and old version) using =git show=:
+
+  =git show <new-sha1>:<file>=
+
+  (As a sanity check, we can make sure that =<new-sha1>:<file>= is a
+  blob object, is not too big, and has the right mode, using
+
+  =git cat-file --batch <new-sha1>:<file>=
+
+  If we encounter anything that does not meet this sanity check, we
+  abort immediately.
+
+  Assuming that we are dealing with sane input (.miz files with mode
+  644, not too big), we then add these files and try to commit them
+  not to the frontend repo, but to the backend repo.  (The commit
+  message could be something like "Added from a remote clone at
+  YYYY/MM/DD HH:MM:SS coming from IP address abc.def.prq.xyz.") The
+  backend repo is equipped with a pre-commit hook, which does the
+  heavy lifting of verifying, etc.  If the git commit on the backend
+  repo fails, then we abort immediately.  Otherwise, the input is
+  acceptable, it is commited the backend repo, the backend repo's
+  post-commit hook is run, refreshing the JFM-like front page, and the
+  pre-receive hook exits successfully.
