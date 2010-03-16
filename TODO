@@ -6,9 +6,11 @@
 * DONE Generate a JFM-like front page
   The post-commit hook seems like the right place to do that.
 * TODO Create the "stable" branch in the repo
-  Periodically commit there the official releases, possibly
-  import there couple of previos versions. Present it in HTML in
-  another sandbox.
+  Periodically commit there the official releases, possibly import
+  there couple of previos versions. Present it in HTML in another
+  sandbox.  This could be a script (similar to the setup_repo script)
+  that unpacks the mml .tar distro and commits it to "stable". Could
+  be also a cron job, checking the mizar download page periodically.
 * TODO Add the check for @proof in pre-commit
   We should forbid theorems with @proof at the master repo. Check it
   using the XML created by article - there should be no element "SkippedProof" 
