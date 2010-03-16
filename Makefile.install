@@ -28,11 +28,9 @@ repo: repo-miz repo-prel repo-data repo-bin repo-xsl repo-perl repo-makefiles re
 
 repo-miz:
 	mkdir -p $(REPO)/mml	
-	for article in $(INITIAL_SEGMENT); do \
+	for article in hidden tarski $(INITIAL_SEGMENT); do \
 	  install --preserve-timestamps --mode=644 $(MIZFILES)/mml/$$article.miz $(REPO)/mml; \
 	done
-	install --preserve-timestamps --mode=644 $(MIZFILES)/mml/hidden.miz $(REPO)/mml
-	install --preserve-timestamps --mode=644 $(MIZFILES)/mml/tarski.miz $(REPO)/mml
 
 repo-prel: # Special prel files: those for hidden, and all requirements (.dre) files
 	mkdir -p $(REPO)/prel
