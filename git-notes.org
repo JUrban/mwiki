@@ -99,6 +99,10 @@
   where =<new-sha1>= is the SHA1 object name of the commit that we are
   investigating.
 
+  JU: we should rather use: git show --pretty="format:" --name-only ...
+      otherwise if there is .miz in the commit message, it will show too; 
+      see http://stackoverflow.com/questions/424071/how-do-i-list-all-the-files-for-a-commit-in-git
+
   By inverting the regular expression with =grep --invert-match=, we
   can discover whether there are any non-.miz files.  At first, if
   there are non-.miz files, we will simply reject the proposed push
