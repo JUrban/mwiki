@@ -21,6 +21,10 @@ while (defined my $git_line = <STDIN>) {
     }
 }
 
+# NOTE: git cat-file -s REF
+# should show the size of the REF - we can use this for rejecting crazy
+# big commits (together with some quotas or ulimits on the file systems and the git daemon)
+
 while read old_sha1 new_sha1 refname anothervalue ; do
      list=$(git show --pretty="format:" --name-only $new_sha1 | grep -e ".pp$")
      for tmpfile in ${list}; do
