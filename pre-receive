@@ -1,23 +1,19 @@
+#!/bin/sh
 
-#!/usr/bin/perl
+while read old_sha1 new_sha1 refname anothervalue ; do
+    echo "old_sha1 is $old_sha1"
+    echo "new_sha1 is $new_sha1"
+    echo "refname is $refname"
+    echo -n "type of new_sha1 is: "
+    git cat-file -t $new_sha1
+    echo "anothervalue is $anothervalue"
+     list=$(git show --pretty --name-only $new_sha1 | grep ".miz")
+     echo "here are the .miz files:"
+     for tmpfile in ${list}; do
+         git show ${new_sha1}:${tmpfile}
+         if [ "$?" -ne "0" ]; then exit 1; fi
+     done
+     echo "done printing .miz files"
+ done
 
-use strict;
-use warnings;
-
-my $full_repo;
-
-# Pass the new mizar files to the local full (non-bare) repo and try
-# to commit.  The pre-commit hook there will tell us whether to reject
-# this commit.
-
-while (defined my $git_line = <STDIN>) {
-    chomp $git_line;
-    my @git_line_fields = split (/\ /, $git_line);
-    my ($old_sha1, $new_sha1, $refname) = @git_line_fields;
-    my @miz_files = `git show --pretty="format:" --name-only $new_sha1 | grep ".miz"`;
-    my @non_miz_files = `git show --pretty="format:" --name-only $new_sha1 | grep --invert-match ".miz"`;
-    if (scalar @non_miz_files != 0) {
-	croak ("You are not allowed to submit non-.miz files");
-    }
-}
-
+ exit $?
