@@ -1,2 +1,19 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
+use strict;
+use warnings;
+
+my $first_line = <STDIN>;
+my $second_line = <STDIN>;
+
+unless (defined $first_line) {
+  print 'Uh oh: standard input was empty!!';
+  exit 1;
+}
+
+if (defined $second_line) {
+  print 'We currently handle pushes to only one refspec (namely, the master branch)';
+  exit 1;
+}
+
+exit 0;
