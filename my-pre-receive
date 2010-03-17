@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 use strict;
 use warnings;
@@ -9,6 +9,7 @@ my $second_line = <STDIN>;
 
 unless (defined $first_line) {
   print 'Standard input was empty!  How is that possible?';
+  print 'Uh oh: standard input was empty!!';
   exit 1;
 }
 
