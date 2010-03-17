@@ -1,4 +1,7 @@
-# -*- mode: makefile; -*-
+# An install script, as Makefile, to set up the initial installation
+# of the mizar wiki.  We will probably run this only a handful of
+# times.
+
 REPO=$(REPOS_BASE)/mwiki
 BAREREPO=$(REPOS_BASE)/mwiki.git
 REPOBIN=$(REPO)/bin
@@ -14,7 +17,7 @@ INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
 
 MWIKI_USER=mwiki
 
-.PHONY: all repo sandbox deps xml repo-miz repo-prel repo-perl repo-bin repo-xsl repo-export repo-gitinit repo-makefiles
+# .PHONY: all repo sandbox deps xml repo-miz repo-prel repo-perl repo-bin repo-xsl repo-export repo-gitinit repo-makefiles
 
 MIZBINARIES=absedt accom addfmsg checkvoc chklab clearenv.pl constr edtfile envget errflag exporter findvoc inacc irrths irrvoc lisppars listvoc makeenv mglue miz2abs miz2prel mizf msplit prune ratproof relinfer reliters relprem remflags renthlab revf transfer trivdemo verifier
 
@@ -168,3 +171,6 @@ repo-export: xml # Export our repo, thereby making it accessible to the git daem
 # Ideally, we should say, at the end of all this, where a log of all
 # of this activity can be found.  This whole setup feels pretty
 # fragile.
+
+
+# -*- mode: makefile; -*-
