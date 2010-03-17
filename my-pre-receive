@@ -9,7 +9,6 @@ my $second_line = <STDIN>;
 
 unless (defined $first_line) {
   print 'Standard input was empty!  How is that possible?';
-  print 'Uh oh: standard input was empty!!';
   exit 1;
 }
 
@@ -39,16 +38,18 @@ unless ($old_sha1 =~ /[a-z0-9]{40}/ && $new_sha1 =~ /[a-z0-9]{40}/) {
 # objects.
 my $old_sha1_type = `git cat-file -t $old_sha1`;
 my $new_sha1_type = `git cat-file -t $new_sha1`;
+chomp $old_sha1_type;
+chomp $new_sha1_type;
 unless ($old_sha1_type eq 'commit') {
-  print "A non-commit object with the name,\n";
+  print "The old object with the name,\n";
   print "  $old_sha1\n";
-  print "is being pushed; unable to proceed.\n";
+  print "is not a commit; unable to proceed.\n";
   exit 1;
 }
 unless ($new_sha1_type eq 'commit') {
-  print "A non-commit object with the name,\n";
+  print "The new object with the name,\n";
   print "  $new_sha1\n";
-  print "is being pushed; unable to proceed.\n";
+  print "is not a commit; unable to proceed.\n";
   exit 1;
 }
 
@@ -62,38 +63,102 @@ unless ($refspec eq 'refs/heads/master') {
 # commits, find their associated trees
 my $old_commit_tree = `git cat-file commit $old_sha1 | grep ^tree | cut -f 2 -d ' '`;
 my $new_commit_tree = `git cat-file commit $new_sha1 | grep ^tree | cut -f 2 -d ' '`;
+chomp $old_commit_tree;
+chomp $new_commit_tree;
 
 # Ensure that no non-mizar code is being pushed
-my @non_miz_files = `git show --pretty --name-only $new_sha1 | grep --invert-match ".miz"`;
-unless (-z @non_miz_files) {
+my @non_miz_files 
+  = `git show --pretty=oneline --name-only $new_sha1 | tail -n -1 | grep --invert-match ".miz"`;
+unless (scalar @non_miz_files == 0) {
   print 'We do not currently support pushing non-.miz files to our repository';
   exit 1;
 }
 
+warn "here we go\n";
+
 # Ensure that all .miz files satisfy these conditions:
 #
-# - their size is less than, say, one megabyte;
-# - they have mode 644;
-# - they are under the mml subdirectory
-my @miz_files = `git show --pretty --name-only $new_sha1 | grep ".miz"`;
+# 1 they are under the mml subdirectory
+# 2 they are actually files, i.e., blobs in git terminology
+# 3 their size is less than, say, one megabyte;
+# 4 they have mode 644 ("should never happen", given condition #2)
+my @miz_files = `git show --name-only --pretty=oneline $new_sha1 | tail -n -1 | grep "\.miz\$"`;
 for my $miz_file (@miz_files) {
   chomp $miz_file;
+  unless ($miz_file =~ /^mml\/(.*\.miz)$/) { # strip the "mml/" prefix
+    print "Suspcious: .miz file is not under the mml subdirectory\n";
+    print "The path is $miz_file\n";
+    exit 1;
+  }
+  warn "article is int he right directory";
+  my $article_filename = $1; # from previous match, stripping "mml/" prefix
+
   my $miz_file_size = `git cat-file -s $new_sha1:$miz_file`;
+  chomp $miz_file_size;
   unless ($miz_file_size < 1000000) {
     print "Suspicious: the .miz file $miz_file is bigger than one megabyte";
     exit 1;
   }
-  my $mode = `git ls-tree $new_commit_tree | grep $miz_file | cut -f 1 -d ' '`;
-  unless ($mode eq '10644') {
-    print 'Suspicious: a .miz file is being commited without mode 644';
-  }
-  my $path = `git ls-tree $new_commit_tree | grep $miz_file | cut -f 2`;
-  unless ($path eq "mml/$miz_file") {
-    print 'Suspcious: .miz file is not under the mml subdirectory';
+  warn "article has an appropriate size";
+  my $mode = `git ls-tree -r $new_commit_tree $miz_file | cut -f 1 -d ' '`;
+  chomp $mode;
+  unless ($mode eq '100644') {
+    print "Suspicious: a .miz file is being commited with mode $mode; we permit only mode 100644\n";
     exit 1;
+  }
+  warn "article has the right mode";
+  my $miz_file_type = `git ls-tree -r $new_commit_tree $miz_file | cut -f 2 -d ' '`;
+  chomp $miz_file_type;
+  unless ($miz_file_type eq 'blob') {
+    print "The .miz file $miz_file is somehow not a git blob object\n";
+    exit 1;
+  }
+  warn "article is a blob object";
+}
+
+# Now let's try to commit these files to the backend repo.  First, we
+# need to store them somewhere.  They are already on the server as
+# objects.  I suppose we could just directly copy the files, using the
+# SHA1 object names.  But just for the sake of simplicity, let's first
+# use git show to do the job for us.
+#
+# How will we deal with the problem of possibly bad files?  We shall
+# first copy the files in the backend repo that are supposed to be
+# updated; these are known to be safe.  Then, we'll add the new .miz
+# files to the backend repo, and call git add there on them.  Then
+# we'll call git commit in the backend repo.  If this works, then we
+# don't have anything else to do; we can delete the copies of the
+# known safe .miz files that we made earlier.  IF something goes wrong
+# with the pre-commit hook, then we move the known safe mizar files
+# back into their original place.
+
+my $backend_repo_path;
+
+# Separate the old miz files -- the ones that already exist in the
+# backend repo -- from the new miz files -- the genuinely new
+# contributions.  To determine whether something is old/already
+# exists, we'll use the old SHA1 that was given to this script as
+# input.  It should point to a commit object (and hence, indirectly,
+# to a tree object) that already exists on in the frontend repo.
+
+warn "About to calculate the new mizar contributions\n";
+
+my @new_miz_files;
+my @updated_miz_files;
+my @received_mml_miz_files 
+  = `git ls-tree -r $new_commit_tree mml/ | cut -f 2`; # a list of "mml/<something>" items
+
+foreach my $received_miz_file (@received_mml_miz_files) {
+  chomp $received_miz_file; # looks like "mml/<something>"
+  if (`git ls-tree -r $old_commit_tree $received_miz_file` eq '') {
+    push @updated_miz_files, $received_miz_file;
+  } else {
+    push @new_miz_files, $received_miz_file;
   }
 }
 
-warn "Somehow we escaped alive!";
+warn "brand new mizar files: @new_miz_files\n";
+warn "mizar files to be updated: @updated_miz_files\n";
+
 
 exit 0;
