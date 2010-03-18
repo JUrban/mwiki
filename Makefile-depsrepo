@@ -9,6 +9,8 @@ MIZ = $(patsubst %, %.miz, $(MMLLAR))
 #.PHONY: deps
 #.PHONY: $(patsubst %, %-dep, $(MMLLAR))
 
+ECHO=/bin/echo
+
 .SECONDARY: $(patsubst %, %.evl, $(MMLLAR)) # don't auto-delete intermediate .dep files
 
 deps: $(DEP-MAKEFILES)
@@ -18,5 +20,5 @@ evls: $(EVL-FILES)
 	envget $*.miz > /dev/null 2> /dev/null;
 
 %.dep: %.evl
-	xsltproc ../xsl/evl2dep.xsl $*.evl | duplicates.pl > $*.dep;
-	echo "\ttouch $*-dep" >> $*.dep
+	xsltproc ../xsl/evl2dep.xsl $*.evl | ../.perl/duplicates.pl > $*.dep;
+	$(ECHO) -e "\ttouch $*-dep" >> $*.dep

@@ -1,6 +1,42 @@
+# -*- mode: makefile; -*-
+
 # An install script, as Makefile, to set up the initial installation
 # of the mizar wiki.  We will probably run this only a handful of
 # times.
+
+# The following should be present in the environment or as argments to
+# `make':
+#
+# - REPOS_BASE: the root directory where our repos -- the backend and
+#   the bare frontend -- will be stored
+#
+# - MIZFILES: the root directory of a mizar installation.  It should
+#   contain data files mml.lar etc, the prel subdirectory, and the mml
+#   subdirectory.
+#
+# - XSL4MIZ: root directory of Josef Urban's xsl4mizar code.
+#
+# One can optionally specify:
+#
+# - MIZBIN: default: $(MIZFILES)/bin.  The directory where the mizar
+#   binaries are held
+#
+# - MAKEJOBS: default 1.  The degree of parallelization used by make
+#   when computing the initial HTML-ized presentation of the MML
+#
+# - NUM_ARTICLES: default 10.  The length of the initial segment of
+#   mml.lar (taken from MIZFILES).  Set it to a big value to ensure
+#   that the entire current MML is used; set it to a low-value for
+#   debugging purposes.
+#
+# - MWIKI_USER: default "mwiki".  The name of the unix user to add that
+#   will preside over the whole mess.
+#
+# - INSTALL: default /usr/bin/install.  If this is GNU install, then
+#   no need to adjust.  (On Mac OX X, /usr/bin/install is not GNU
+#   install, so I need to set this value to "ginstall".)
+#
+# - HEAD: default /usr/bin/head.  See description of INSTALL variable.
 
 REPO=$(REPOS_BASE)/mwiki
 BAREREPO=$(REPOS_BASE)/mwiki.git
@@ -13,15 +49,16 @@ PERLMODULES=mizar
 
 NUM_ARTICLES=10
 HEAD=/usr/bin/head
+INSTALL=/usr/bin/install
 INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
 
 MWIKI_USER=mwiki
 
 # .PHONY: all repo sandbox deps xml repo-miz repo-prel repo-perl repo-bin repo-xsl repo-export repo-gitinit repo-makefiles
 
-MIZBINARIES=absedt accom addfmsg checkvoc chklab clearenv.pl constr edtfile envget errflag exporter findvoc inacc irrths irrvoc lisppars listvoc makeenv mglue miz2abs miz2prel mizf msplit prune ratproof relinfer reliters relprem remflags renthlab revf transfer trivdemo verifier
+MIZBINARIES=accom envget exporter makeenv transfer verifier
 
-all: repo sandbox deps xml repo-export repo-gitinit repo-makefiles
+all: repo sandbox deps html repo-export repo-gitinit repo-makefiles
 	echo "If everything went according to plan, then we just created the following:"
 	echo "* $(REPO): a `fully-compiled' git repository with pre-commit and post-commit hooks;"
 	echo "* $(REPO)-sandbox: $(REPO) minus its git metadata; it will be our clean sandbox;"
@@ -32,7 +69,7 @@ repo: repo-miz repo-prel repo-data repo-bin repo-xsl repo-perl repo-makefiles re
 repo-miz:
 	mkdir -p $(REPO)/mml	
 	for article in hidden tarski $(INITIAL_SEGMENT); do \
-	  install --preserve-timestamps --mode=644 $(MIZFILES)/mml/$$article.miz $(REPO)/mml; \
+	  $(INSTALL) --preserve-timestamps --mode=644 $(MIZFILES)/mml/$$article.miz $(REPO)/mml; \
 	done
 
 repo-prel: # Special prel files: those for hidden, and all requirements (.dre) files
@@ -50,22 +87,22 @@ repo-data: # Other mizar data
 repo-bin:
 	mkdir -p $(REPO)/bin
 	for binary in $(MIZBINARIES); do \
-	  install --preserve-timestamps --mode 755 $(MIZBIN)/$$binary $(REPO)/bin/$$binary; \
+	  $(INSTALL) --mode 755 $(MIZBIN)/$$binary $(REPO)/bin/$$binary; \
 	done
 
 repo-xsl:
 	mkdir -p $(REPO)/xsl
 	for sheet in $(SHEETS); do \
-	  install --mode 644 --preserve-timestamps $(XSL4MIZ)/$$sheet.xsl $(REPO)/xsl; \
+	  $(INSTALL) --mode 644 $(XSL4MIZ)/$$sheet.xsl $(REPO)/xsl; \
 	done
 
 repo-perl:
 	mkdir -p $(REPO)/.perl
 	for perlfile in $(PERLMODULES); do \
-	  install --preserve-timestamps --mode 644 $$perlfile.pm $(REPO)/.perl; \
+	  $(INSTALL) --mode 644 $$perlfile.pm $(REPO)/.perl; \
 	done
 	for perlfile in $(PERLSCRIPTS); do \
-	  install --preserve-timestamps --mode 755 $$perlfile.pl $(REPO)/.perl; \
+	  $(INSTALL) --mode 755 $$perlfile.pl $(REPO)/.perl; \
 	done
 
 repo-gitinit:
@@ -74,12 +111,12 @@ repo-gitinit:
 
 # I'm not happy with using instaweb; it is designed for one-off
 # browsing of the repo.  We should have a more robust server-based
-# solution, like a bona fide gitweb installation.
+# solution, like a bona fide gitweb $(INSTALL)ation.
 	# git config --add instaweb.httpd apache2 
 	# git config --add instaweb.port 1234
 	# git config --add instaweb.modulepath /usr/lib/apache2/modules
 
-	install --mode 644 mml-gitignore .gitignore
+	$(INSTALL) --mode 644 mml-gitignore .gitignore
 
 	cd $(REPO) && GIT_DIR=$(REPO)/.git git add .
 	GIT_DIR=$(REPO)/.git git commit -m 'Initial commit.'
@@ -90,13 +127,13 @@ repo-gitinit:
 # We put these in the git repo after the initial commit because
 # calling the hook on the initial commit doesn't make sense (there's
 # no index, and HEAD points to nothing).
-	install --mode 755 -D pre-commit $(REPO)/.git/hooks
-	install --mode 755 -D post-commit $(REPO)/.git/hooks
+	$(INSTALL) --mode 755 -D pre-commit $(REPO)/.git/hooks
+	$(INSTALL) --mode 755 -D post-commit $(REPO)/.git/hooks
 
 repo-makefiles:
 # Our central makefile and helper scripts
-	install --mode 644 Makefile.repo $(REPO)/Makefile
-	install --mode 644 Makefile-depsrepo $(REPO)/mml/Makefile
+	$(INSTALL) --mode 644 Makefile.repo $(REPO)/Makefile
+	$(INSTALL) --mode 644 Makefile-depsrepo $(REPO)/mml/Makefile
 
 mwiki-user: repo repo-export
 	-adduser --shell=/usr/bin/git-shell --disabled-password $(MWIKI_USER)
@@ -146,11 +183,11 @@ deps: repo
 	$(MAKE) -C $(REPO)/mml -j $(MAKEJOBS) evls deps MIZFILES=$(REPO) PATH=$(REPO)/bin:$(PATH)
 
 html: deps
-	echo "Let's make the xml!  Grab some tea or coffee.";
+	echo "Let's make the html!  Grab some tea or coffee.";
 	$(MAKE) -C $(REPO) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(REPO) PATH=$(REPO)/bin:$(PATH)
 	echo "Successfully (???) compiled everything."
 
-sandbox: xml
+sandbox: html
 	echo "Copying $(REPO) to $(REPO)-sandbox; this will be our sandbox." 
 	rsync -a --del \
 	  --exclude=".gitignore" \
@@ -160,17 +197,22 @@ sandbox: xml
 #           ===> ^ <===
 # trailing slash -- see the rsync man page to learn why it's there
 
-repo-export: xml # Export our repo, thereby making it accessible to the git daemon
+repo-export: html # Export our repo, making it accessible to the git daemon
 	git clone --bare $(REPO) $(BAREREPO)
 
 # We need to install our pre-receive hook (or is it an update hook?)
 # at this point in the newly created bare repo.
-	install --mode 755 pre-receive $(BAREREPO)/hooks
+	sed -e "s|@@BACKEND@@|$(REPO)|g" < pre-receive.in > pre-receive
+	$(INSTALL) --mode 755 pre-receive $(BAREREPO)/hooks
+
+frontend: repo-export
 
 # We should be smarter about errors and keeping track of output.
 # Ideally, we should say, at the end of all this, where a log of all
 # of this activity can be found.  This whole setup feels pretty
 # fragile.
 
-
-# -*- mode: makefile; -*-
+clean:
+	rm -Rf $(REPO)
+	rm -Rf $(BAREREPO)
+	rm -Rf $(REPO)-sandbox

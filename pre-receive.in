@@ -134,7 +134,7 @@ for my $miz_file (@miz_files) {
 # with the pre-commit hook, then we move the known safe mizar files
 # back into their original place.
 
-my $backend_repo_path = '/Users/alama/tmp/git/backend';
+my $backend_repo_path = '@@BACKEND@@';
 my $backend_repo_mml = $backend_repo_path . "/" . "mml";
 
 # Separate the old miz files -- the ones that already exist in the
