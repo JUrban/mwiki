@@ -1,14 +1,12 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
-use strict;
-use warnings;
-
-%h=(); 
+%h=();
 $_=<>;
-chop; 
+chop;
 m/(.*):(.*)/;
-($k,$l)=($1,$2); 
+($k,$l)=($1,$2);
 @aa=split(/\ +/,$l);
 @h{@aa} = ();
-print "$k: "; 
+print "$k: ";
 print join(" ", keys %h);
+print "\n";
