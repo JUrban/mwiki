@@ -2,6 +2,9 @@
 
 use strict;
 use warnings;
+use File::Temp qw/ tempdir /;
+use Carp;
+use Cwd;
 
 # There should be exactly one line given to this script by git.
 my $first_line = <STDIN>;
@@ -66,6 +69,9 @@ my $new_commit_tree = `git cat-file commit $new_sha1 | grep ^tree | cut -f 2 -d 
 chomp $old_commit_tree;
 chomp $new_commit_tree;
 
+print "old commit tree: $old_commit_tree\n";
+print "new commit tree: $new_commit_tree\n";
+
 # Ensure that no non-mizar code is being pushed
 my @non_miz_files 
   = `git show --pretty=oneline --name-only $new_sha1 | tail -n -1 | grep --invert-match ".miz"`;
@@ -74,7 +80,7 @@ unless (scalar @non_miz_files == 0) {
   exit 1;
 }
 
-warn "here we go\n";
+print "here we go\n";
 
 # Ensure that all .miz files satisfy these conditions:
 #
@@ -90,7 +96,6 @@ for my $miz_file (@miz_files) {
     print "The path is $miz_file\n";
     exit 1;
   }
-  warn "article is int he right directory";
   my $article_filename = $1; # from previous match, stripping "mml/" prefix
 
   my $miz_file_size = `git cat-file -s $new_sha1:$miz_file`;
@@ -99,21 +104,18 @@ for my $miz_file (@miz_files) {
     print "Suspicious: the .miz file $miz_file is bigger than one megabyte";
     exit 1;
   }
-  warn "article has an appropriate size";
   my $mode = `git ls-tree -r $new_commit_tree $miz_file | cut -f 1 -d ' '`;
   chomp $mode;
   unless ($mode eq '100644') {
     print "Suspicious: a .miz file is being commited with mode $mode; we permit only mode 100644\n";
     exit 1;
   }
-  warn "article has the right mode";
   my $miz_file_type = `git ls-tree -r $new_commit_tree $miz_file | cut -f 2 -d ' '`;
   chomp $miz_file_type;
   unless ($miz_file_type eq 'blob') {
     print "The .miz file $miz_file is somehow not a git blob object\n";
     exit 1;
   }
-  warn "article is a blob object";
 }
 
 # Now let's try to commit these files to the backend repo.  First, we
@@ -132,7 +134,8 @@ for my $miz_file (@miz_files) {
 # with the pre-commit hook, then we move the known safe mizar files
 # back into their original place.
 
-my $backend_repo_path;
+my $backend_repo_path = '/Users/alama/tmp/git/backend';
+my $backend_repo_mml = $backend_repo_path . "/" . "mml";
 
 # Separate the old miz files -- the ones that already exist in the
 # backend repo -- from the new miz files -- the genuinely new
@@ -141,24 +144,142 @@ my $backend_repo_path;
 # input.  It should point to a commit object (and hence, indirectly,
 # to a tree object) that already exists on in the frontend repo.
 
-warn "About to calculate the new mizar contributions\n";
+print "About to calculate the new mizar contributions\n";
 
-my @new_miz_files;
-my @updated_miz_files;
+my @new_miz_files = ();
+my @updated_miz_files = ();
 my @received_mml_miz_files 
   = `git ls-tree -r $new_commit_tree mml/ | cut -f 2`; # a list of "mml/<something>" items
 
-foreach my $received_miz_file (@received_mml_miz_files) {
+print "Here is the list of all received mml mizar files: @miz_files\n";
+
+foreach my $received_miz_file (@miz_files) {
   chomp $received_miz_file; # looks like "mml/<something>"
-  if (`git ls-tree -r $old_commit_tree $received_miz_file` eq '') {
+  `git cat-file -e $old_commit_tree:$received_miz_file 2> /dev/null`;
+  my $git_cat_file_exit_code = ($? >> 8);
+  if ($git_cat_file_exit_code == 0) {
     push @updated_miz_files, $received_miz_file;
   } else {
     push @new_miz_files, $received_miz_file;
   }
 }
 
-warn "brand new mizar files: @new_miz_files\n";
-warn "mizar files to be updated: @updated_miz_files\n";
+sub strip_initial_mml {
+  my $path = shift;
+  $path =~ /^mml\/(.+\.miz$)/;
+  my $stripped = $1;
+  unless (defined $stripped) {
+    die "Something went wrong when trying to strip the \"mml/\" from \"$path\"";
+  }
+  return $stripped;
+}
 
+print "brand new mizar files: ";
+if (scalar @new_miz_files == 0) {
+  print "(none)\n";
+} else {
+  print "@new_miz_files\n";
+}
+print "mizar files to be updated: ";
+if (scalar @updated_miz_files == 0) {
+  print "(none)\n";
+} else {
+  print "@updated_miz_files\n";
+}
 
+# Copy the files that already exist in the backend repo to a temporary
+# location.  If things work, these will simply be deleted.  Otherwise,
+# they will be resurrected and put back into the backend repo.
+my $purgatory = tempdir ();
+my $purgatory_mml = $purgatory . "/" . "mml";
+mkdir $purgatory_mml;
+
+# Move the already existing mizar files to the backend repo
+foreach my $updated_miz_file (@updated_miz_files) {
+  chomp $updated_miz_file;
+  my $article_filename = strip_initial_mml ($updated_miz_file);
+  my $purgatory_path = $purgatory_mml . "/" . $article_filename;
+  print "we are in: " . getcwd () . "\n";
+  `git show $old_commit_tree:$updated_miz_file > $purgatory_path`;
+}
+
+# Now that we've moved the mizar files that are updated in this
+# proposed commit to a safe purgatory, copy the contents of the new
+# new files to the backend repo.
+foreach my $received_mml_miz_file (@miz_files) {
+  chomp $received_mml_miz_file;
+  my $article_filename = strip_initial_mml ($received_mml_miz_file);
+  my $received_path = $backend_repo_mml . "/" . $article_filename;
+  print "command: git show $new_commit_tree:$received_mml_miz_file > $received_path\n";
+  `git cat-file blob $new_commit_tree:$received_mml_miz_file > $received_path`;
+  unless (-e $received_path) {
+    die "We didn't output anything to $received_path";
+  }
+}
+
+sub ensure_directory {
+  my $maybe_dir = shift;
+  if (-d $maybe_dir) {
+    return $maybe_dir;
+  } else {
+    croak ("The given directory, $maybe_dir, is not actually a directory");
+  }
+}
+
+sub move_all_files_from_to {
+  my $source_dir = ensure_directory (shift);
+  my $target_dir = ensure_directory (shift);
+  `find $source_dir -type f -depth 0 -exec mv {} $target_dir ";"`;
+  my $find_exit_status = ($? >> 8);
+  if ($find_exit_status == 0) {
+    croak ("Error copying the files from $source_dir to $target_dir!");
+  } else {
+    return 1;
+  }
+}
+
+# All newly received mizar files are now in sitting in the backend
+# repo.  Now we add them.
+$ENV{GIT_DIR} 
+  = $backend_repo_path . "/" . ".git"; # GIT_DIR is set to "." by git
+chdir $backend_repo_path;              # before executing this hook!
+my $git_add_output = `git add @miz_files 2>&1`;
+my $git_add_exit_code = ($? >> 8);
+unless ($git_add_exit_code == 0) {
+  print "Error adding the new mizar files to the backend repository:\n";
+  print "The output of the command was:\n";
+  print "============================================================\n";
+  print "$git_add_output";
+  print "============================================================\n";
+  print "The exit code was $git_add_exit_code\n";
+
+  move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
+
+  exit 1;
+}
+
+# We've successful added new files to the repo -- let's commit!
+$ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
+my $git_commit_output 
+  = `git commit -m "Anon push" 2>&1`;
+my $git_commit_exit_code = ($? >> 8);
+unless ($git_commit_exit_code == 0) {
+  print "Error commiting the new mizar files to the backend repository:\n";
+  print "The output of the command was:\n";
+  print "============================================================\n";
+  print "$git_commit_output\n";
+  print "============================================================\n";
+  print "The exit code was $git_commit_exit_code\n";
+
+  # The commit failed, so we need to resurrect the files in purgatory
+  move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
+
+  exit 1;
+}
+
+print "FYI: the output of the git commit command was:\n";
+print $git_commit_output;
+print "\n";
+
+# If we made it this far, then we deserve to take a break.
 exit 0;
