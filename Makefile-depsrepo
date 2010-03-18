@@ -21,4 +21,4 @@ evls: $(EVL-FILES)
 
 %.dep: %.evl
 	xsltproc ../xsl/evl2dep.xsl $*.evl | ../.perl/duplicates.pl > $*.dep;
-	$(ECHO) -e "\ttouch $*-dep" >> $*.dep
+	$(ECHO) "	touch $*-dep" >> $*.dep

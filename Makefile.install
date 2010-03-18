@@ -58,7 +58,7 @@ MWIKI_USER=mwiki
 
 MIZBINARIES=accom envget exporter makeenv transfer verifier
 
-all: repo sandbox deps html repo-export repo-gitinit repo-makefiles
+all: repo compiled sandbox deps html repo-export repo-gitinit repo-makefiles
 	echo "If everything went according to plan, then we just created the following:"
 	echo "* $(REPO): a `fully-compiled' git repository with pre-commit and post-commit hooks;"
 	echo "* $(REPO)-sandbox: $(REPO) minus its git metadata; it will be our clean sandbox;"
@@ -187,15 +187,17 @@ html: deps
 	$(MAKE) -C $(REPO) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(REPO) PATH=$(REPO)/bin:$(PATH)
 	echo "Successfully (???) compiled everything."
 
-sandbox: html
-	echo "Copying $(REPO) to $(REPO)-sandbox; this will be our sandbox." 
+compiled: html
+	echo "Copying $(REPO) to $(REPO)-compiled; this will be our clean sandbox." 
 	rsync -a --del \
 	  --exclude=".gitignore" \
 	  --exclude=".git/" \
-	  --exclude=".perl/" \
-	  $(REPO)/ $(REPO)-sandbox
+	  $(REPO)/ $(REPO)-compiled
 #           ===> ^ <===
 # trailing slash -- see the rsync man page to learn why it's there
+
+sandbox: compiled # our dirty sandbox
+	cp -R $(REPO)-compiled $(REPO)-sandbox # it starts out clean, of course
 
 repo-export: html # Export our repo, making it accessible to the git daemon
 	git clone --bare $(REPO) $(BAREREPO)
@@ -205,7 +207,7 @@ repo-export: html # Export our repo, making it accessible to the git daemon
 	sed -e "s|@@BACKEND@@|$(REPO)|g" < pre-receive.in > pre-receive
 	$(INSTALL) --mode 755 pre-receive $(BAREREPO)/hooks
 
-frontend: repo-export
+frontend: repo-export sandbox compiled
 
 # We should be smarter about errors and keeping track of output.
 # Ideally, we should say, at the end of all this, where a log of all
@@ -215,4 +217,5 @@ frontend: repo-export
 clean:
 	rm -Rf $(REPO)
 	rm -Rf $(BAREREPO)
+	rm -Rf $(REPO)-compiled
 	rm -Rf $(REPO)-sandbox
