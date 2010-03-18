@@ -7,11 +7,24 @@ use File::Copy;
 use File::Basename;
 use File::Spec;
 use Cwd;
-use Carp;
 
 use lib '.perl';
 
 use mizar;
+
+sub pc_pad {
+  my $str = shift;
+  chomp $str;
+  return ("[pre-commit] $str\n");
+}
+
+# I think there's a slicker way to do this, using output filters, but
+# for now let's just do this as a subroutine.
+sub pc_print {
+  my $str = shift;
+  chomp ($str); # in case it already had some extra whitespace at the end
+  print (pc_pad ($str . "\n"));
+}
 
 # Compute list of mizar files that belong to the index (i.e., the
 # mizar files that are about to be committed). git diff-index will
@@ -26,7 +39,7 @@ my @non_miz_changed
   = `git diff-index --cached HEAD | cut -f 2 | grep --invert-match '\.miz\$'`;
 
 unless (scalar (@non_miz_changed) == 0) {
-  warn ("Only .miz files are permitted to be committed.  Sorry dude.");
+  pc_print ("Only .miz files are permitted to be committed.  Sorry dude.");
   exit (1)
 }
 
@@ -40,13 +53,17 @@ my $compiled = $cwd . "/" . "../$repo_name-compiled";
 my $sandbox = $cwd . "/" . "../$repo_name-sandbox";
 my $sandbox_mml = $sandbox . "/" . "mml";
 
-# Clean the sandbox: force it to be a copy of the known compiled MML.
-# We are hoping that this is fairly fast.
-warn ("rsync-ing...");
-warn ("compiled: $compiled");
-warn ("sandbox: $sandbox");
-`rsync -a --del $compiled/ $sandbox`;
-warn ("rsync-ing complete.");
+sub clean_the_dirty_sandbox {
+  my $rsync_output = `rsync -a --del $compiled/ $sandbox 2>&1`;
+  my $rsync_exit_code = ($? >> 8);
+  unless ($rsync_exit_code == 0) {
+    pc_print ("rsync did not exit cleanly when cleaning the dirty sandbox: $!");
+    pc_print ("It's output was:");
+    pc_print ("$rsync_output\n");
+    pc_print ("We cannot continue.");
+    exit 1;
+  }
+}
 
 sub separate_mml_from_non_mml {
   foreach my $edited (@miz_changed) {
@@ -54,33 +71,31 @@ sub separate_mml_from_non_mml {
     my ($name, $path, $extension) = fileparse ($edited, qr/\.[^.]+/);
     if ($path eq "mml/") {
       if (mizar::belongs_to_mml ($name)) {
-	warn ("Article $name belongs to the MML");
 	push (@mml_changed, $name);
       } else {
-	warn ("Article $name does not belong to the MML");
 	push (@non_mml_changed, $name);
       }
     } else {
-      carp ("You're committing a mizar file ($edited) outside the MML subdirectory; we don'handle this case yet");
+      pc_print ("You're committing a mizar file ($edited) outside the MML subdirectory; we don'handle this case yet");
+      exit 1;
     }
   }
 }
 
-separate_mml_from_non_mml ();
-
-foreach my $article (@mml_changed) {
-  my $real_article_path = "$cwd/mml/$article.miz";
-  my $sandbox_article_path = "$sandbox_mml/$article.miz";
-  copy ($real_article_path, $sandbox_article_path)
-    or croak ("You can't copy $real_article_path to $sandbox_article_path!");
+sub copy_new_articles_to_sandbox {
+  foreach my $article (@mml_changed) {
+    my $real_article_path = "$cwd/mml/$article.miz";
+    my $sandbox_article_path = "$sandbox_mml/$article.miz";
+    copy ($real_article_path, $sandbox_article_path)
+      or die ("You can't copy $real_article_path to $sandbox_article_path!");
+  }
 }
 
-my $admissible_commit = 0;
-
-# Call the dependency makefile on the new targets
+separate_mml_from_non_mml ();
+clean_the_dirty_sandbox ();
+copy_new_articles_to_sandbox ();
 
 # Set up PATH and MIZBIN
-
 if (!defined ($ENV{"MIZBIN"}) or -z $ENV{"MIZBIN"}) {
   $ENV{"MIZBIN"} = $sandbox . "/bin";
 }
@@ -92,38 +107,132 @@ if (defined ($ENV{"MAKEJOBS"})) {
   $makejobs = $ENV{"MAKEJOBS"};
 }
 
+sub ensure_existence {
+  my $path = shift;
+  if (-e $path) {
+    return $path;
+  } else {
+    die "There's nothing at $path, I'm afraid";
+  }
+}
+
+sub ensure_directory {
+  my $path = shift;
+  if (-d $path) {
+    return $path;
+  } else {
+    die "$path isn't a directory, I'm afraid";
+  }
+}
+
+sub explain_mizar_err_file {
+  my $err_file_path = ensure_existence (shift);
+  my $err_file_basename = `basename $err_file_path`;
+  chomp $err_file_basename;
+  my $explanation = '';
+  my $err_file_fh;
+  my @errors = ();
+  open $err_file_fh, q{<}, $err_file_path
+    or die ("Unable to open input filehandle for $err_file_path: $!");
+  while (defined (my $error_file_line = <$err_file_fh>)) {
+    chomp $error_file_line;
+    push @errors, $error_file_line;
+  }
+  close $err_file_fh;
+  foreach my $error (@errors) {
+    my ($line, $column, $code) = split (/\ /, $error);
+    unless (defined $line && defined $column && defined $code) {
+      die ("The error file line \"$error\" has an unexpected format");
+    }
+    $explanation .= pc_pad ("[$err_file_basename]: line $line, column $column: "
+			    . mizar::lookup_error_code ($code));
+  }
+  return $explanation;
+}
+
+sub explain_err_files_in_directory {
+  my $dir = ensure_directory (shift);
+  my $explanation = '';
+  my @non_trivial_err_files
+    = `find $dir -type f -name "*\.err" -not -size 0 | xargs basename`;
+  if (scalar @non_trivial_err_files == 0) {
+    $explanation .= pc_pad ("No error files were generated by the mizar tools.");
+  } else {
+    $explanation .= pc_pad ("Summary of the errors in the mizar code:");
+    $explanation 
+      .= pc_pad ("************************************************************\n");
+    foreach my $non_trivial_err_file (@non_trivial_err_files) {
+      chomp $non_trivial_err_file;
+      my $err_file_path = $dir . "/" . $non_trivial_err_file;
+      $explanation .= pc_pad (explain_mizar_err_file ($err_file_path));
+    $explanation
+      .= pc_pad ("************************************************************\n");
+    }
+  }
+  return $explanation;
+}
+
+sub explain_make_errors {
+  my $dir = ensure_directory (shift);
+  my $error_file_to_test = ensure_existence (shift);
+  my $error_msg = shift;
+  my $explanation = '';
+  $explanation .= pc_pad ("$error_msg");
+  $explanation .= pc_pad ("The output of the build procedure was:");
+  $explanation .= pc_pad ("============================================================");
+  open my $err_fh, q{<}, $error_file_to_test;
+  while (defined (my $err_line = <$err_fh>)) {
+    $explanation .= pc_pad ($err_line);
+  }
+  close $err_fh
+    or die "Unable to close the input filehandle for $error_file_to_test! $!";
+  $explanation .= pc_pad ("============================================================");
+  $explanation .= explain_err_files_in_directory ($dir);
+  return $explanation;
+}
+
+sub maybe_die_if_make_errors_in_dir {
+  my $dir = ensure_directory (shift);
+  my $error_file = ensure_existence (shift);
+  my $error_message = shift;
+  unless (-z $error_file) {
+    pc_print (explain_make_errors ($dir, $error_file, $error_message));
+    pc_print ('Your changes are inadmissible.');
+    exit 1;
+  }
+  return;
+}
+
+sub die_if_make_died {
+  my $exit_code = shift;
+  unless ($exit_code == 0) {
+    pc_print ("The build procedure did not exit cleanly! (exit code exit_code)\n");
+    exit 1;
+  }
+  return;
+}
+
+# Compute the new dependencies
 chdir ($sandbox_mml);
-`MIZFILES=$sandbox make --jobs $makejobs evls deps > make-deps-out 2> make-deps-err`;
+`MIZFILES=$sandbox make --keep-going --jobs $makejobs evls deps > make-deps-out 2> make-deps-err`;
+# die_if_make_died ($? >> 8);
+maybe_die_if_make_errors_in_dir ($sandbox_mml, 'make-deps-err',
+				'Failure generating dependencies');
 
-unless (-z "$sandbox_mml/make-deps-err") {
-  warn ("Something went wrong in compiling the dependencies");
-  exit (1);
-}
-
-# Now try to verify the new articles
-
+# Now try to verify the new articles (i.e., generate the article XML).
 chdir ($sandbox);
-`MIZFILES=$sandbox make --jobs $makejobs xmlvrfs > make-xml-out 2> make-xml-err`;
+`MIZFILES=$sandbox make --keep-going --jobs $makejobs xmlvrfs > make-xml-out 2> make-xml-err`;
+# die_if_make_died ($? >> 8);
+maybe_die_if_make_errors_in_dir ($sandbox_mml, "$sandbox/make-xml-err",
+				 'Failure verifying and generating XML');
 
-if (-z "$sandbox/make-xml-err") {
-  $admissible_commit = 1;
-} else {
-  warn ("Errors were detected while verifying your changes!");
-  $admissible_commit = 0;
-}
+# Export the computed prel data
+chdir ($sandbox); # just to be clear
+`MIZFILES=. make --keep-going --jobs $makejobs prels > make-prel-out 2> make-prel-err`;
+# die_if_make_died ($? >> 8);
+maybe_die_if_make_errors_in_dir ($sandbox_mml, "$sandbox/make-prel-err",
+				 'Failure exporting prel information');
 
-`MIZFILES=. make --jobs $makejobs prels > make-prel-out 2> make-prel-err`;
-if (-z "$sandbox/make-prel-err") {
-  $admissible_commit = 1;
-} else {
-  warn ("Errors were detected while PRELing!");
-  $admissible_commit = 0;
-}
+pc_print ("Your changes are admissible\n");
 
-if ($admissible_commit == 0) {
-  print ("Your changes are inadmissible\n");
-  exit (1); # i.e., fail
-} else {
-  print ("Your changes are admissible\n");
-  exit (0); # i.e., ok
-}
+exit 0; # i.e., we made it -- phew!

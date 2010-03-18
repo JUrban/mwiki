@@ -10,13 +10,26 @@ use Cwd;
 my $first_line = <STDIN>;
 my $second_line = <STDIN>;
 
+sub pr_pad {
+  my $str = shift;
+  return ("[pre-receive] $str");
+}
+
+# I think there's a slicker way to do this, using output filters, but
+# for now let's just do this as a subroutine.
+sub pr_print {
+  my $str = shift;
+  chomp ($str); # in case it already had some extra whitespace at the end
+  print (pr_pad ($str . "\n"));
+}
+
 unless (defined $first_line) {
-  print 'Standard input was empty!  How is that possible?';
+  pr_print ('Standard input was empty!  How is that possible?');
   exit 1;
 }
 
 if (defined $second_line) {
-  print 'We currently handle pushes to only one refspec (namely, the master branch)';
+  pr_print ('We currently handle pushes to only one refspec (namely, the master branch)');
   exit 1;
 }
 
@@ -27,13 +40,13 @@ if (defined $second_line) {
 chomp $first_line;
 my ($old_sha1, $new_sha1, $refspec) = split (/\ /, $first_line);
 unless (defined $old_sha1 && defined $new_sha1 && defined $refspec) {
-  print 'The given line does not match the format specified in the githooks(5) man page';
+  pr_print ('The given line does not match the format specified in the githooks(5) man page');
   exit 1;
 }
 
 # Check for sane SHA1 values
 unless ($old_sha1 =~ /[a-z0-9]{40}/ && $new_sha1 =~ /[a-z0-9]{40}/) {
-  print 'Suspicious SHA1 values given';
+  pr_print ('Suspicious SHA1 values given');
   exit 1;
 }
 
@@ -44,21 +57,21 @@ my $new_sha1_type = `git cat-file -t $new_sha1`;
 chomp $old_sha1_type;
 chomp $new_sha1_type;
 unless ($old_sha1_type eq 'commit') {
-  print "The old object with the name,\n";
-  print "  $old_sha1\n";
-  print "is not a commit; unable to proceed.\n";
+  pr_print ("The old object with the name,");
+  pr_print ("  $old_sha1");
+  pr_print ("is not a commit; unable to proceed.");
   exit 1;
 }
 unless ($new_sha1_type eq 'commit') {
-  print "The new object with the name,\n";
-  print "  $new_sha1\n";
-  print "is not a commit; unable to proceed.\n";
+  pr_print ("The new object with the name,");
+  pr_print ("  $new_sha1");
+  pr_print ("is not a commit; unable to proceed.");
   exit 1;
 }
 
 # We permit pushes only to the refpsec "refs/heads/master".
 unless ($refspec eq 'refs/heads/master') {
-  print 'We permit pushes only to the master branch';
+  pr_print ('We permit pushes only to the master branch');
   exit 1;
 }
 
@@ -69,18 +82,16 @@ my $new_commit_tree = `git cat-file commit $new_sha1 | grep ^tree | cut -f 2 -d 
 chomp $old_commit_tree;
 chomp $new_commit_tree;
 
-print "old commit tree: $old_commit_tree\n";
-print "new commit tree: $new_commit_tree\n";
+pr_print ("old commit tree: $old_commit_tree");
+pr_print ("new commit tree: $new_commit_tree");
 
 # Ensure that no non-mizar code is being pushed
 my @non_miz_files 
   = `git show --pretty=oneline --name-only $new_sha1 | tail -n -1 | grep --invert-match ".miz"`;
 unless (scalar @non_miz_files == 0) {
-  print 'We do not currently support pushing non-.miz files to our repository';
+  pr_print ('We do not currently support pushing non-.miz files to our repository');
   exit 1;
 }
-
-print "here we go\n";
 
 # Ensure that all .miz files satisfy these conditions:
 #
@@ -92,8 +103,8 @@ my @miz_files = `git show --name-only --pretty=oneline $new_sha1 | tail -n -1 | 
 for my $miz_file (@miz_files) {
   chomp $miz_file;
   unless ($miz_file =~ /^mml\/(.*\.miz)$/) { # strip the "mml/" prefix
-    print "Suspcious: .miz file is not under the mml subdirectory\n";
-    print "The path is $miz_file\n";
+    pr_print ("Suspcious: .miz file is not under the mml subdirectory");
+    pr_print ("The path is $miz_file");
     exit 1;
   }
   my $article_filename = $1; # from previous match, stripping "mml/" prefix
@@ -101,19 +112,19 @@ for my $miz_file (@miz_files) {
   my $miz_file_size = `git cat-file -s $new_sha1:$miz_file`;
   chomp $miz_file_size;
   unless ($miz_file_size < 1000000) {
-    print "Suspicious: the .miz file $miz_file is bigger than one megabyte";
+    pr_print ("Suspicious: the .miz file $miz_file is bigger than one megabyte");
     exit 1;
   }
   my $mode = `git ls-tree -r $new_commit_tree $miz_file | cut -f 1 -d ' '`;
   chomp $mode;
   unless ($mode eq '100644') {
-    print "Suspicious: a .miz file is being commited with mode $mode; we permit only mode 100644\n";
+    pr_print ("Suspicious: a .miz file is being commited with mode $mode; we permit only mode 100644");
     exit 1;
   }
   my $miz_file_type = `git ls-tree -r $new_commit_tree $miz_file | cut -f 2 -d ' '`;
   chomp $miz_file_type;
   unless ($miz_file_type eq 'blob') {
-    print "The .miz file $miz_file is somehow not a git blob object\n";
+    pr_print ("The .miz file $miz_file is somehow not a git blob object");
     exit 1;
   }
 }
@@ -144,14 +155,12 @@ my $backend_repo_mml = $backend_repo_path . "/" . "mml";
 # input.  It should point to a commit object (and hence, indirectly,
 # to a tree object) that already exists on in the frontend repo.
 
-print "About to calculate the new mizar contributions\n";
-
 my @new_miz_files = ();
 my @updated_miz_files = ();
 my @received_mml_miz_files 
   = `git ls-tree -r $new_commit_tree mml/ | cut -f 2`; # a list of "mml/<something>" items
 
-print "Here is the list of all received mml mizar files: @miz_files\n";
+pr_print ("Here is the list of all received mml mizar files: @miz_files");
 
 foreach my $received_miz_file (@miz_files) {
   chomp $received_miz_file; # looks like "mml/<something>"
@@ -174,17 +183,17 @@ sub strip_initial_mml {
   return $stripped;
 }
 
-print "brand new mizar files: ";
+pr_print ("brand new mizar files: ");
 if (scalar @new_miz_files == 0) {
-  print "(none)\n";
+  pr_print ("(none)");
 } else {
-  print "@new_miz_files\n";
+  pr_print ("@new_miz_files");
 }
-print "mizar files to be updated: ";
+pr_print ("mizar files to be updated: ");
 if (scalar @updated_miz_files == 0) {
-  print "(none)\n";
+  pr_print ("(none)");
 } else {
-  print "@updated_miz_files\n";
+  pr_print ("@updated_miz_files");
 }
 
 # Copy the files that already exist in the backend repo to a temporary
@@ -199,7 +208,6 @@ foreach my $updated_miz_file (@updated_miz_files) {
   chomp $updated_miz_file;
   my $article_filename = strip_initial_mml ($updated_miz_file);
   my $purgatory_path = $purgatory_mml . "/" . $article_filename;
-  print "we are in: " . getcwd () . "\n";
   `git show $old_commit_tree:$updated_miz_file > $purgatory_path`;
 }
 
@@ -210,7 +218,6 @@ foreach my $received_mml_miz_file (@miz_files) {
   chomp $received_mml_miz_file;
   my $article_filename = strip_initial_mml ($received_mml_miz_file);
   my $received_path = $backend_repo_mml . "/" . $article_filename;
-  print "command: git show $new_commit_tree:$received_mml_miz_file > $received_path\n";
   `git cat-file blob $new_commit_tree:$received_mml_miz_file > $received_path`;
   unless (-e $received_path) {
     die "We didn't output anything to $received_path";
@@ -232,9 +239,9 @@ sub move_all_files_from_to {
   `find $source_dir -type f -depth 0 -exec mv {} $target_dir ";"`;
   my $find_exit_status = ($? >> 8);
   if ($find_exit_status == 0) {
-    croak ("Error copying the files from $source_dir to $target_dir!");
+    return;
   } else {
-    return 1;
+    croak ("Error copying the files from $source_dir to $target_dir!");
   }
 }
 
@@ -246,12 +253,12 @@ chdir $backend_repo_path;              # before executing this hook!
 my $git_add_output = `git add @miz_files 2>&1`;
 my $git_add_exit_code = ($? >> 8);
 unless ($git_add_exit_code == 0) {
-  print "Error adding the new mizar files to the backend repository:\n";
-  print "The output of the command was:\n";
-  print "============================================================\n";
-  print "$git_add_output";
-  print "============================================================\n";
-  print "The exit code was $git_add_exit_code\n";
+  pr_print ("Error adding the new mizar files to the backend repository:");
+  pr_print ("The output of the command was:");
+  pr_print ("============================================================");
+  pr_print ("$git_add_output");
+  pr_print ("============================================================");
+  pr_print ("The exit code was $git_add_exit_code");
 
   move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
 
@@ -264,12 +271,12 @@ my $git_commit_output
   = `git commit -m "Anon push" 2>&1`;
 my $git_commit_exit_code = ($? >> 8);
 unless ($git_commit_exit_code == 0) {
-  print "Error commiting the new mizar files to the backend repository:\n";
-  print "The output of the command was:\n";
-  print "============================================================\n";
-  print "$git_commit_output\n";
-  print "============================================================\n";
-  print "The exit code was $git_commit_exit_code\n";
+  pr_print ("Error commiting the new mizar files to the backend repository:");
+  pr_print ("The output of the command was:");
+  pr_print ("============================================================");
+  pr_print ("$git_commit_output");
+  pr_print ("============================================================");
+  pr_print ("The exit code was $git_commit_exit_code");
 
   # The commit failed, so we need to resurrect the files in purgatory
   move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
@@ -277,9 +284,9 @@ unless ($git_commit_exit_code == 0) {
   exit 1;
 }
 
-print "FYI: the output of the git commit command was:\n";
-print $git_commit_output;
-print "\n";
+pr_print ("FYI: the output of the git commit command was:");
+pr_print ($git_commit_output);
+pr_print ("\n");
 
 # If we made it this far, then we deserve to take a break.
 exit 0;
