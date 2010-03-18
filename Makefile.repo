@@ -16,18 +16,18 @@ hdrs: $(patsubst %, %.hdr, $(MMLLAR))
 
 xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 %.xmlvrf: %.miz %-dep
-	makeenv mml/$*.miz;
+	makeenv mml/$*.miz > /dev/null 2> /dev/null;
 	if [ "$*" == "tarski" ]; then \
-		verifier -a -q -l mml/$*.miz; \
+		verifier -a -q -l mml/$*.miz > /dev/null 2>/dev/null; \
 	else \
-		verifier -q -l mml/$*.miz; \
+		verifier -q -l mml/$*.miz > /dev/null 2>/dev/null; \
 	fi;
 	mv mml/$*.xml mml/$*.xmlvrf
 
 prels: $(patsubst %, %-prel, $(MMLLAR))
 %-prel: %.xmlvrf
-	exporter -q -l mml/$*.miz
-	transfer mml/$*.miz
+	exporter -q -l mml/$*.miz > /dev/null 2>/dev/null
+	transfer mml/$*.miz > /dev/null 2>/dev/null
 	for ext in dno dcl dco def the sch; do \
 		if test -f "mml/$*.$$ext"; then \
 			rm -f "mml/$*.$$ext"; \
@@ -44,12 +44,27 @@ hidden-prel:
 absrefs: $(patsubst %, %-absrefs.xml, $(MMLLAR))
 
 %-absrefs.xml: %.xmlvrf
-	xsltproc --param explainbyfrom  0 --output mml/$*-absrefs.xml xsl/addabsrefs.xsl mml/$*.xmlvrf;
+	xsltproc \
+	  --param explainbyfrom 0 \
+	  --output mml/$*-absrefs.xml \
+	  xsl/addabsrefs.xsl mml/$*.xmlvrf;
 
 htmls: $(patsubst %, %.html, $(MMLLAR))
 
 %.html: %-absrefs.xml %.hdr
-	xsltproc --param mk_header 1 --param default_target \'_self\'  --param linking \'l\' --param mizhtml \'\' --param selfext \'html\'  --param titles 1 --param colored 1  --param proof_links 1 --param ajax_proofs 1 --param ajax_proof_dir \'proofs\' --output html/$*.html xsl/miz.xsl mml/$*-absrefs.xml;
+	xsltproc \
+	  --param mk_header 1 \
+	  --param default_target \'_self\'  \
+	  --param linking \'l\' \
+	  --param mizhtml \'\' \
+	  --param selfext \'html\' \
+	  --param titles 1 \
+	  --param colored 1 \
+	  --param proof_links 1 \
+	  --param ajax_proofs 1 \
+	  --param ajax_proof_dir \'proofs\' \
+	  --output html/$*.html \
+	  xsl/miz.xsl mml/$*-absrefs.xml;
 	touch mml/$*.html
 
 include mml/*.dep
