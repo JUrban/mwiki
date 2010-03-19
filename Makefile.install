@@ -116,7 +116,7 @@ repo-gitinit:
 	# git config --add instaweb.port 1234
 	# git config --add instaweb.modulepath /usr/lib/apache2/modules
 
-	$(INSTALL) --mode 644 mml-gitignore .gitignore
+	$(INSTALL) --mode 644 mml-gitignore $(REPO)/.gitignore
 
 	cd $(REPO) && GIT_DIR=$(REPO)/.git git add .
 	GIT_DIR=$(REPO)/.git git commit -m 'Initial commit.'
