@@ -1,6 +1,7 @@
 Server dependencies:
 
 libfile-copy-recursive-perl
+liblist-moreutils-perl
 git-core
 gitweb
 
