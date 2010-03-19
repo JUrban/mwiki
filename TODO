@@ -18,6 +18,14 @@
   CLOSED: [2010-03-19 Fri 10:53]
   When we do not commit, show people a log of the pre-commit check,
   and improve the pre-commit/make to tell the errors
+* TODO Show some kind of "live" output/progress indicator
+  It can take a non-trivial amount of time for verification and
+  HTMLization to run.  It would be good if we provided some progress
+  indicator output, especially for those users who will be doing anony
+  ous pushes.
+* TODO Log the results of anonymous pushes to the system log.
+  We should keep track of what's going on, both for web edits and
+  anonymous git pushes.
 * TODO Create the "frontend" repo(s), for anonymous pushes
   As a post-receive hook, changed .miz (different from master) files
   get copied to our master repo, and commit is attempted there. The
