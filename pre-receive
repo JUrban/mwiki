@@ -234,7 +234,7 @@ sub ensure_directory {
 sub move_all_files_from_to {
   my $source_dir = ensure_directory (shift);
   my $target_dir = ensure_directory (shift);
-  `find $source_dir -type f -depth 0 -exec mv {} $target_dir ";"`;
+  `find $source_dir -type f -maxdepth 1 -exec mv {} $target_dir ";"`;
   my $find_exit_status = ($? >> 8);
   if ($find_exit_status == 0) {
     return;
