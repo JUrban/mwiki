@@ -204,8 +204,9 @@ repo-export: html # Export our repo, making it accessible to the git daemon
 
 # We need to install our pre-receive hook (or is it an update hook?)
 # at this point in the newly created bare repo.
-	sed -e "s|@@BACKEND@@|$(REPO)|g" < pre-receive.in > pre-receive
-	$(INSTALL) --mode 755 pre-receive $(BAREREPO)/hooks
+	sed -e "s|@@BACKEND@@|$(REPO)|g" < pre-receive.in \
+	  > $(BAREREPO)/hooks/pre-receive
+	chmod 755 $(BAREREPO)/hooks/pre-receive
 
 frontend: repo-export sandbox compiled
 
