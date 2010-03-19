@@ -6,6 +6,20 @@ use Carp;
 use File::Spec;
 use Cwd;
 
+sub pc_pad {
+  my $str = shift;
+  chomp $str;
+  return ("[post-commit] $str\n");
+}
+
+# I think there's a slicker way to do this, using output filters, but
+# for now let's just do this as a subroutine.
+sub pc_print {
+  my $str = shift;
+  chomp ($str); # in case it already had some extra whitespace at the end
+  print (pc_pad ($str . "\n"));
+}
+
 # Move changes from the sandbox, where we just successfully
 # verified/compiled a bunch of changes to the MML.
 
