@@ -35,16 +35,7 @@ chdir ($cwd);
 
 # Copy the sandbox: force compiled to be a copy of the known compiled MML.
 # We are hoping that this is fairly fast.
-warn ("rsync-ing...");
 `rsync -a --del $sandbox/ $compiled`;
-warn ("rsync-ing complete.");
-
-# Refresh the JFM-like "portal", in light of the new changes.
-
-# JU: also two options for htmlization (the xsl command)
-#   - do the xsl processing here (post-commit) - once all is verified, we should not fail
-#   - do them as part of pre-commit - to ensure it is ok before commiting, and to ensure commited=shown quickly
-#   - we should investigate if there are any internal locks used by git during pre/post commits, and
-#     how to possibly handle heavy load on one clone by fast rerouting to another one, etc
+# note the slash   ===> ^ <===  see the rsync man page to learn why
 
 exit 0;
