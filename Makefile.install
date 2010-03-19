@@ -59,10 +59,10 @@ MWIKI_USER=mwiki
 MIZBINARIES=accom envget exporter makeenv transfer verifier
 
 all: repo compiled sandbox deps html repo-export repo-gitinit repo-makefiles
-	echo "If everything went according to plan, then we just created the following:"
-	echo "* $(REPO): a `fully-compiled' git repository with pre-commit and post-commit hooks;"
-	echo "* $(REPO)-sandbox: $(REPO) minus its git metadata; it will be our clean sandbox;"
-	echo "* $(REPO).git, a bare clone of $(REPO) with a pre-receive hook; this will be publicly accessible"
+	@echo "If everything went according to plan, then we just created the following:"
+	@echo "* $(REPO): a `fully-compiled' git repository with pre-commit and post-commit hooks;"
+	@echo "* $(REPO)-sandbox: $(REPO) minus its git metadata; it will be our clean sandbox;"
+	@echo "* $(REPO).git, a bare clone of $(REPO) with a pre-receive hook; this will be publicly accessible"
 
 repo: repo-miz repo-prel repo-data repo-bin repo-xsl repo-perl repo-makefiles repo-gitinit
 
@@ -116,7 +116,7 @@ repo-gitinit:
 	# git config --add instaweb.port 1234
 	# git config --add instaweb.modulepath /usr/lib/apache2/modules
 
-	$(INSTALL) --mode 644 mml-gitignore .gitignore
+	$(INSTALL) --mode 644 mml-gitignore $(REPO)/.gitignore
 
 	cd $(REPO) && GIT_DIR=$(REPO)/.git git add .
 	GIT_DIR=$(REPO)/.git git commit -m 'Initial commit.'
@@ -177,18 +177,18 @@ mwiki-user: repo repo-export
 # commits them.  Pretty cool.
 
 deps: repo
-	echo "Making the deps...here we go...";
+	@echo "Making the deps...here we go...";
 	cd $(REPO)/mml
 	touch hidden-prel # everything depends on hidden-prel
 	$(MAKE) -C $(REPO)/mml -j $(MAKEJOBS) evls deps MIZFILES=$(REPO) PATH=$(REPO)/bin:$(PATH)
 
 html: deps
-	echo "Let's make the html!  Grab some tea or coffee.";
-	$(MAKE) -C $(REPO) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(REPO) PATH=$(REPO)/bin:$(PATH)
-	echo "Successfully (???) compiled everything."
+	@echo "Let's make the html!  Grab some tea or coffee.";
+	@$(MAKE) -C $(REPO) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(REPO) PATH=$(REPO)/bin:$(PATH)
+	@echo "Successfully (???) compiled everything."
 
 compiled: html
-	echo "Copying $(REPO) to $(REPO)-compiled; this will be our clean sandbox." 
+	@echo "Copying $(REPO) to $(REPO)-compiled; this will be our clean sandbox." 
 	rsync -a --del \
 	  --exclude=".gitignore" \
 	  --exclude=".git/" \
@@ -204,8 +204,9 @@ repo-export: html # Export our repo, making it accessible to the git daemon
 
 # We need to install our pre-receive hook (or is it an update hook?)
 # at this point in the newly created bare repo.
-	sed -e "s|@@BACKEND@@|$(REPO)|g" < pre-receive.in > pre-receive
-	$(INSTALL) --mode 755 pre-receive $(BAREREPO)/hooks
+	sed -e "s|@@BACKEND@@|$(REPO)|g" < pre-receive.in \
+	  > $(BAREREPO)/hooks/pre-receive
+	chmod 755 $(BAREREPO)/hooks/pre-receive
 
 frontend: repo-export sandbox compiled
 
