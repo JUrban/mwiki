@@ -1,0 +1,9 @@
+Server dependencies:
+
+libfile-copy-recursive-perl
+git-core
+gitweb
+
+Client dependencies:
+
+git-core
