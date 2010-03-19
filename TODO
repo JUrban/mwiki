@@ -26,6 +26,22 @@
 * TODO Log the results of anonymous pushes to the system log.
   We should keep track of what's going on, both for web edits and
   anonymous git pushes.
+* TODO Make HTML valid
+  If we want this to be web scrapable, etc., then it should at least
+  be valid.  The frontend index.html, for example, is really bad
+  (specifies HTML 2.0 -- from 1995), and in any case is invalid:
+
+  http://validator.w3.org/check?uri=http%3A%2F%2Fmws.cs.ru.nl%2F%7Emizarw%2Fmw%2Findex.html&charset=%28detect+automatically%29&doctype=Inline&group=0
+
+  The HTML generated from the verifier XML is likewise invalid.  For
+  example:
+  
+  http://validator.w3.org/check?uri=http%3A%2F%2Fmws.cs.ru.nl%2F%7Emizarw%2Fmw%2Fabcmiz_0.html&charset=%28detect+automatically%29&doctype=Inline&group=0&user-agent=W3C_Validator%2F1.767
+
+  And it uses the HTML 4.01 Transitional spec.  We can do better than
+  this.  We should aim for XHTML.  (More ambitiously, there are also
+  some features of HTML 5 tht we might want to investigate using, such
+  as offline caching.)
 * TODO Create the "frontend" repo(s), for anonymous pushes
   As a post-receive hook, changed .miz (different from master) files
   get copied to our master repo, and commit is attempted there. The
