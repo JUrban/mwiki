@@ -10,3 +10,4 @@ m/(.*):(.*)/;
 print "$k: ";
 print join(" ", keys %h);
 print "\n";
+print "\t\@touch $k\n";

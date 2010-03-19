@@ -10,14 +10,18 @@ MIZ = $(patsubst %, %.miz, $(MMLLAR))
 
 ECHO=/bin/echo
 
+dep-tag = "DEP   "
+evl-tag = "EVL   "
+
 .SECONDARY: $(patsubst %, %.evl, $(MMLLAR)) # don't auto-delete intermediate .dep files
 
 deps: $(DEP-MAKEFILES)
 evls: $(EVL-FILES)
 
 %.evl: %.miz
-	envget $*.miz > /dev/null 2> /dev/null;
+	@$(ECHO) $(evl-tag) $*;
+	@envget $*.miz > /dev/null 2> /dev/null;
 
 %.dep: %.evl
-	xsltproc ../xsl/evl2dep.xsl $*.evl | ../.perl/duplicates.pl > $*.dep;
-	$(ECHO) "	touch $*-dep" >> $*.dep
+	@$(ECHO) $(dep-tag) $*;
+	@xsltproc ../xsl/evl2dep.xsl $*.evl | ../.perl/duplicates.pl > $*.dep;

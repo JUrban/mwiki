@@ -219,22 +219,24 @@ sub die_if_make_died {
 }
 
 # Compute the new dependencies
+$ENV{"MIZFILES"} = $sandbox;
+
 chdir ($sandbox_mml);
-`MIZFILES=$sandbox make --keep-going --jobs $makejobs evls deps > make-deps-out 2> make-deps-err`;
+system ("make --keep-going --jobs $makejobs evls deps 2> make-deps-err | tee make-deps-output");
 # die_if_make_died ($? >> 8);
 maybe_die_if_make_errors_in_dir ($sandbox_mml, 'make-deps-err',
 				'Failure generating dependencies');
 
 # Now try to verify the new articles (i.e., generate the article XML).
 chdir ($sandbox);
-`MIZFILES=$sandbox make --keep-going --jobs $makejobs xmlvrfs > make-xml-out 2> make-xml-err`;
+system ("make --keep-going --jobs $makejobs xmlvrfs 2> make-xml-err | tee make-xml-out");
 # die_if_make_died ($? >> 8);
 maybe_die_if_make_errors_in_dir ($sandbox_mml, "$sandbox/make-xml-err",
 				 'Failure verifying and generating XML');
 
 # Export the computed prel data
 chdir ($sandbox); # just to be clear
-`MIZFILES=. make --keep-going --jobs $makejobs prels > make-prel-out 2> make-prel-err`;
+system ("make --keep-going --jobs $makejobs prels > make-prel-out 2> make-prel-err | tee make-prel-out");
 # die_if_make_died ($? >> 8);
 maybe_die_if_make_errors_in_dir ($sandbox_mml, "$sandbox/make-prel-err",
 				 'Failure exporting prel information');

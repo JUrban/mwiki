@@ -250,14 +250,10 @@ sub move_all_files_from_to {
 $ENV{GIT_DIR} 
   = $backend_repo_path . "/" . ".git"; # GIT_DIR is set to "." by git
 chdir $backend_repo_path;              # before executing this hook!
-my $git_add_output = `git add @miz_files 2>&1`;
+system ("git add @miz_files 2>&1");
 my $git_add_exit_code = ($? >> 8);
 unless ($git_add_exit_code == 0) {
   pr_print ("Error adding the new mizar files to the backend repository:");
-  pr_print ("The output of the command was:");
-  pr_print ("============================================================");
-  pr_print ("$git_add_output");
-  pr_print ("============================================================");
   pr_print ("The exit code was $git_add_exit_code");
 
   move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
@@ -268,14 +264,10 @@ unless ($git_add_exit_code == 0) {
 # We've successful added new files to the repo -- let's commit!
 $ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
 my $git_commit_output 
-  = `git commit -m "Anon push" 2>&1`;
+  = system ("git commit -m 'Anon push' 2>&1");
 my $git_commit_exit_code = ($? >> 8);
 unless ($git_commit_exit_code == 0) {
-  pr_print ("Error commiting the new mizar files to the backend repository:");
-  pr_print ("The output of the command was:");
-  pr_print ("============================================================");
-  pr_print ("$git_commit_output");
-  pr_print ("============================================================");
+  pr_print ("Error commiting to the backend repository:");
   pr_print ("The exit code was $git_commit_exit_code");
 
   # The commit failed, so we need to resurrect the files in purgatory
@@ -284,9 +276,5 @@ unless ($git_commit_exit_code == 0) {
   exit 1;
 }
 
-pr_print ("FYI: the output of the git commit command was:");
-pr_print ($git_commit_output);
-pr_print ("\n");
-
-# If we made it this far, then we deserve to take a break.
+# If we made it this far, then we deserve a break.
 exit 0;

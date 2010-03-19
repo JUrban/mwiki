@@ -4,54 +4,77 @@ DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
 VPATH = mml
 export SHELL=/bin/bash
+ECHO = /bin/echo
 
 # .PHONY is a bad bad thing, it remakes the target all over; don't use this
 #.PHONY: deps
 #.PHONY: $(patsubst %, %-dep, $(MMLLAR))
 
+# At some point we should be smarter about padding the "make tags",
+#i.e., the string like "VERIFY", "PREL", "ABSREFS", etc., rather than
+#simply hard-coding
+#
+#pad := $(1)
+#
+#verify-tag := $(call pad,"VERIFY")
+#
+# But it's a very small number of constant strings to maintain.
+
+verify-tag = "VERIFY"
+hdr-tag    = "HDR   "
+prel-tag   = "PREL  "
+absref-tag = "ABSREF"
+html-tag   = "HTML  "
+
 hdrs: $(patsubst %, %.hdr, $(MMLLAR))
 %.hdr: %.miz
-	.perl/mkxmlhead.pl mml/$*.miz > mml/$*.hdr
+	@$(ECHO) $(hdr-tag) $*
+	@.perl/mkxmlhead.pl mml/$*.miz > mml/$*.hdr
 
 xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 %.xmlvrf: %.miz %-dep
-	makeenv mml/$*.miz > /dev/null 2> /dev/null;
-	if [ "$*" == "tarski" ]; then \
+	@$(ECHO) $(verify-tag) $*
+	@makeenv mml/$*.miz > /dev/null 2> /dev/null;
+	@if [ "$*" == "tarski" ]; then \
 		verifier -a -q -l mml/$*.miz > /dev/null 2>/dev/null; \
 	else \
 		verifier -q -l mml/$*.miz > /dev/null 2>/dev/null; \
 	fi;
-	mv mml/$*.xml mml/$*.xmlvrf
+	@mv mml/$*.xml mml/$*.xmlvrf
 
 prels: $(patsubst %, %-prel, $(MMLLAR))
 %-prel: %.xmlvrf
-	exporter -q -l mml/$*.miz > /dev/null 2>/dev/null
-	transfer mml/$*.miz > /dev/null 2>/dev/null
-	for ext in dno dcl dco def the sch; do \
+	@$(ECHO) $(prel-tag) $*
+	@exporter -q -l mml/$*.miz > /dev/null 2>/dev/null
+	@transfer mml/$*.miz > /dev/null 2>/dev/null
+	@for ext in dno dcl dco def the sch; do \
 		if test -f "mml/$*.$$ext"; then \
 			rm -f "mml/$*.$$ext"; \
-		fi; \
+		fi \
 	done
-	touch mml/$*-prel
-	mv mml/$*.xml mml/$*.xmlexp
+	@touch mml/$*-prel
+	@mv mml/$*.xml mml/$*.xmlexp
 
 # HIDDEN is a special case. It depends on nothing, so we can
 # unconditionally timestamp it.
 hidden-prel:
-	touch mml/hidden-prel;
+	@$(ECHO) $(prel-tag) "hidden"
+	@touch mml/hidden-prel
 
 absrefs: $(patsubst %, %-absrefs.xml, $(MMLLAR))
 
 %-absrefs.xml: %.xmlvrf
-	xsltproc \
+	@$(ECHO) $(absref-tag) $*
+	@xsltproc \
 	  --param explainbyfrom 0 \
 	  --output mml/$*-absrefs.xml \
-	  xsl/addabsrefs.xsl mml/$*.xmlvrf;
+	  xsl/addabsrefs.xsl mml/$*.xmlvrf
 
 htmls: $(patsubst %, %.html, $(MMLLAR))
 
 %.html: %-absrefs.xml %.hdr
-	xsltproc \
+	@$(ECHO) $(html-tag) $*
+	@xsltproc \
 	  --param mk_header 1 \
 	  --param default_target \'_self\'  \
 	  --param linking \'l\' \
@@ -63,7 +86,7 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 	  --param ajax_proofs 1 \
 	  --param ajax_proof_dir \'proofs\' \
 	  --output html/$*.html \
-	  xsl/miz.xsl mml/$*-absrefs.xml;
-	touch mml/$*.html
+	  xsl/miz.xsl mml/$*-absrefs.xml
+	@touch mml/$*.html
 
 include mml/*.dep

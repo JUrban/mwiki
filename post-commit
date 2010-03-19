@@ -41,8 +41,10 @@ if (defined ($ENV{"MAKEJOBS"})) {
   $makejobs = $ENV{"MAKEJOBS"};
 }
 
-`MIZFILES=$sandbox make --jobs $makejobs absrefs > make-absrefs-out 2> make-absrefs-err`;
-`MIZFILES=$sandbox make --jobs $makejobs htmls > make-htmls-out 2> make-htmls-err`;
+$ENV{"MIZFILES"} = $sandbox;
+system ("make --jobs $makejobs absrefs 2> make-absrefs-err | tee make-absrefs-out");
+system ("make --jobs $makejobs htmls 2> make-htmls-err | tee make-htmls-out");
+
 chdir ($sandbox_mml);
 `../.perl/mkmmlindex.pl *.hdr > ../html/index.html`;
 chdir ($cwd);
