@@ -49,9 +49,13 @@ my @non_mml_changed = ();
 my $cwd = getcwd ();
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
+my $main_repo = $cwd;
 my $compiled = $cwd . "/" . "../$repo_name-compiled";
 my $sandbox = $cwd . "/" . "../$repo_name-sandbox";
 my $sandbox_mml = $sandbox . "/" . "mml";
+
+# Set MIZFILES appropriately
+mizar::set_MIZFILES ($main_repo);
 
 sub clean_the_dirty_sandbox {
   my $rsync_output = `rsync -a --del $compiled/ $sandbox 2>&1`;
@@ -91,10 +95,6 @@ sub copy_new_articles_to_sandbox {
   }
 }
 
-separate_mml_from_non_mml ();
-clean_the_dirty_sandbox ();
-copy_new_articles_to_sandbox ();
-
 # Set up PATH and MIZBIN
 if (!defined ($ENV{"MIZBIN"}) or -z $ENV{"MIZBIN"}) {
   $ENV{"MIZBIN"} = $sandbox . "/bin";
@@ -106,6 +106,12 @@ my $makejobs = 1;
 if (defined ($ENV{"MAKEJOBS"})) {
   $makejobs = $ENV{"MAKEJOBS"};
 }
+
+separate_mml_from_non_mml ();
+clean_the_dirty_sandbox ();
+copy_new_articles_to_sandbox ();
+
+
 
 sub ensure_existence {
   my $path = shift;
