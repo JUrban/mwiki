@@ -10,8 +10,8 @@ MIZ = $(patsubst %, %.miz, $(MMLLAR))
 
 ECHO=/bin/echo
 
-dep-tag = "    DEP   "
-evl-tag = "    EVL   "
+dep-tag = "    DEP "
+evl-tag = "    EVL "
 
 .SECONDARY: $(patsubst %, %.evl, $(MMLLAR)) # don't auto-delete intermediate .dep files
 
