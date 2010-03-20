@@ -20,11 +20,11 @@ ECHO = /bin/echo
 #
 # But it's a very small number of constant strings to maintain.
 
-verify-tag = "VERIFY"
-hdr-tag    = "HDR   "
-prel-tag   = "PREL  "
-absref-tag = "ABSREF"
-html-tag   = "HTML  "
+verify-tag = "    VERIFY"
+hdr-tag    = "    HDR   "
+prel-tag   = "    PREL  "
+absref-tag = "    ABSREF"
+html-tag   = "    HTML  "
 
 hdrs: $(patsubst %, %.hdr, $(MMLLAR))
 %.hdr: %.miz
