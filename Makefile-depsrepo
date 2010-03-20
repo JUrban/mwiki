@@ -19,9 +19,9 @@ deps: $(DEP-MAKEFILES)
 evls: $(EVL-FILES)
 
 %.evl: %.miz
-	@$(ECHO) $(evl-tag) $*;
+	@$(ECHO) '   ' $(evl-tag) $*;
 	@envget $*.miz > /dev/null 2> /dev/null;
 
 %.dep: %.evl
-	@$(ECHO) $(dep-tag) $*;
+	@$(ECHO) '   ' $(dep-tag) $*;
 	@xsltproc ../xsl/evl2dep.xsl $*.evl | ../.perl/duplicates.pl > $*.dep;
