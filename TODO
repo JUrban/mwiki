@@ -18,6 +18,21 @@
   CLOSED: [2010-03-19 Fri 10:53]
   When we do not commit, show people a log of the pre-commit check,
   and improve the pre-commit/make to tell the errors
+* TODO Better stage/unstage logic in pre-receive 
+  (and possibly st similar for pre-commit)
+  The current way of doing this is bad when the commit/add fails:
+  When we modify a file, and call git add, its current content is staged.
+  When the commit fails, and we copy over it the old version, the
+  modified version is still staged - this is bad. We need to undo
+  the staging too. Perhaps there is a pre-staging hook? Or it is
+  easy to undo the last staging?
+
+  Here is the answer: http://learn.github.com/p/undoing.html
+  we can use:
+  git reset HEAD
+  and
+  git checkout --
+  to unstage and unmodify
 * TODO Show some kind of "live" output/progress indicator
   It can take a non-trivial amount of time for verification and
   HTMLization to run.  It would be good if we provided some progress
