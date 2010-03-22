@@ -245,6 +245,13 @@ sub move_all_files_from_to {
   }
 }
 
+## TODO: The current way of doing this is bad when the commit/add fails:
+##    When we modify a file, and call git add, its current content is staged.
+##    When the commit fails, and we copy over it the old version, the
+##    modified version is still staged - this is bad. We need to undo
+##    the staging too. Perhaps there is a pre-staging hook? Or it is
+##    easy to undo the last staging?
+
 # All newly received mizar files are now in sitting in the backend
 # repo.  Now we add them.
 $ENV{GIT_DIR} 
