@@ -251,6 +251,14 @@ sub move_all_files_from_to {
 ##    modified version is still staged - this is bad. We need to undo
 ##    the staging too. Perhaps there is a pre-staging hook? Or it is
 ##    easy to undo the last staging?
+##
+##    Here is the answer: http://learn.github.com/p/undoing.html
+##    we can use:
+##    git reset HEAD
+##    and
+##    git checkout --
+##    to unstage and unmodify
+
 
 # All newly received mizar files are now in sitting in the backend
 # repo.  Now we add them.
