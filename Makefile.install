@@ -46,7 +46,7 @@ MAKEJOBS=1
 SHEETS=addabsrefs miz evl2dep
 PERLSCRIPTS=mkxmlhead mkmmlindex duplicates
 PERLMODULES=mizar
-
+GITWEB_ROOT=/var/cache/git
 NUM_ARTICLES=10
 HEAD=/usr/bin/head
 INSTALL=/usr/bin/install
@@ -136,12 +136,13 @@ repo-makefiles:
 	$(INSTALL) --mode 644 Makefile-depsrepo $(REPO)/mml/Makefile
 
 mwiki-user: repo repo-export
-	-adduser --shell=/usr/bin/git-shell --disabled-password $(MWIKI_USER)
-	mkdir -p /var/cache/mwiki
-	cp -R $(REPO) /var/cache/mwiki
-	cp -R $(BAREREPO) /var/cache/mwiki
-	chown -R $(MWIKI_USER) /var/cache/mwiki
-	chgrp -R $(MWIKI_USER) /var/cache/mwiki
+	@adduser --shell=/usr/bin/git-shell --home=$(REPOS_BASE) $(MWIKI_USER) \
+	    || echo "$(MWIKI_USER) already exists"
+	mkdir -p /var/cache/$(MWIKI_USER)
+#	cp -R $(REPO) /var/cache/$(MWIKI_USER)/mwiki
+#	cp -R $(BAREREPO) /var/cache/$(MWIKI_USER)/mwiki.git
+	chown -R $(MWIKI_USER) /var/cache/$(MWIKI_USER)
+	chgrp -R $(MWIKI_USER) /var/cache/$(MWIKI_USER)
 
 # Let's store the git repo under /var/cache/mwiki.  We'll need to set
 # up gitweb to look in that directory.  We should also set up read and
@@ -202,6 +203,9 @@ sandbox: compiled # our dirty sandbox
 repo-export: html # Export our repo, making it accessible to the git daemon
 	git clone --bare $(REPO) $(BAREREPO)
 
+gitweb: repo-export
+	ln -s $(BAREREPO) $(GITWEB_ROOT)/mwiki.git
+
 # We need to install our pre-receive hook (or is it an update hook?)
 # at this point in the newly created bare repo.
 	sed -e "s|@@BACKEND@@|$(REPO)|g" < pre-receive.in \
@@ -220,3 +224,5 @@ clean:
 	rm -Rf $(BAREREPO)
 	rm -Rf $(REPO)-compiled
 	rm -Rf $(REPO)-sandbox
+	rm -f $(GITWEB_ROOT)/mwiki
+	deluser mwiki
