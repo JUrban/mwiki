@@ -4,6 +4,7 @@ libfile-copy-recursive-perl
 liblist-moreutils-perl
 git-core
 gitweb
+apache2
 
 Client dependencies:
 

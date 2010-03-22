@@ -26,8 +26,8 @@ sub pc_print {
 my $cwd = getcwd ();
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
-my $compiled = $cwd . "/" . "../$repo_name-compiled";
-my $sandbox = $cwd . "/" . "../$repo_name-sandbox";
+my $compiled = $cwd . "/" . "../compiled";
+my $sandbox = $cwd . "/" . "../sandbox";
 my $sandbox_mml = $sandbox . "/" . "mml";
 
 chdir ($sandbox);
