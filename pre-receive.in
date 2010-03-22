@@ -258,6 +258,11 @@ sub move_all_files_from_to {
 ##    and
 ##    git checkout --
 ##    to unstage and unmodify
+##
+## NOTE: if we do things this way, we should not need the copying of
+## the old files to tempdir.
+##
+## NOTE: we should also think of this in pre-commit
 
 
 # All newly received mizar files are now in sitting in the backend
