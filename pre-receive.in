@@ -196,20 +196,22 @@ if (scalar @updated_miz_files == 0) {
   pr_print ("@updated_miz_files");
 }
 
+# NOTE: this should be killed completely after testing the git reset HEAD and git checkout -- technique
+
 # Copy the files that already exist in the backend repo to a temporary
 # location.  If things work, these will simply be deleted.  Otherwise,
 # they will be resurrected and put back into the backend repo.
-my $purgatory = tempdir ();
-my $purgatory_mml = $purgatory . "/" . "mml";
-mkdir $purgatory_mml;
+# my $purgatory = tempdir ();
+# my $purgatory_mml = $purgatory . "/" . "mml";
+# mkdir $purgatory_mml;
 
 # Move the already existing mizar files to the backend repo
-foreach my $updated_miz_file (@updated_miz_files) {
-  chomp $updated_miz_file;
-  my $article_filename = strip_initial_mml ($updated_miz_file);
-  my $purgatory_path = $purgatory_mml . "/" . $article_filename;
-  `git show $old_commit_tree:$updated_miz_file > $purgatory_path`;
-}
+# foreach my $updated_miz_file (@updated_miz_files) {
+#   chomp $updated_miz_file;
+#   my $article_filename = strip_initial_mml ($updated_miz_file);
+#   my $purgatory_path = $purgatory_mml . "/" . $article_filename;
+#   `git show $old_commit_tree:$updated_miz_file > $purgatory_path`;
+# }
 
 # Now that we've moved the mizar files that are updated in this
 # proposed commit to a safe purgatory, copy the contents of the new
@@ -276,7 +278,9 @@ unless ($git_add_exit_code == 0) {
   pr_print ("Error adding the new mizar files to the backend repository:");
   pr_print ("The exit code was $git_add_exit_code");
 
-  move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
+  system ("git reset HEAD 2>&1");
+  system ("git checkout -- 2>&1");
+#  move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
 
   exit 1;
 }
@@ -290,8 +294,11 @@ unless ($git_commit_exit_code == 0) {
   pr_print ("Error commiting to the backend repository:");
   pr_print ("The exit code was $git_commit_exit_code");
 
+  system ("git reset HEAD 2>&1");
+  system ("git checkout -- 2>&1");
+
   # The commit failed, so we need to resurrect the files in purgatory
-  move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
+#  move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
 
   exit 1;
 }
