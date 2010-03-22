@@ -58,6 +58,8 @@ MWIKI_USER=mwiki
 
 MIZBINARIES=accom envget exporter makeenv transfer verifier
 
+MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
+
 all: repo compiled sandbox deps html repo-export repo-gitinit repo-makefiles
 	@echo "If everything went according to plan, then we just created the following:"
 	@echo "* $(REPO): a `fully-compiled' git repository with pre-commit and post-commit hooks;"
@@ -78,11 +80,10 @@ repo-prel: # Special prel files: those for hidden, and all requirements (.dre) f
 	cp -p $(MIZFILES)/prel/*/*.dre $(REPO)/prel
 
 repo-data: # Other mizar data
-	cp -p $(MIZFILES)/mml.ini $(REPO)
-	cp -p $(MIZFILES)/mml.vct $(REPO)
+	for rootfile in $(MIZROOTFILES); do \
+	  cp -p $(MIZFILES)/$$rootfile $(REPO); \
+	done
 	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(REPO)/mml.lar
-	cp -p $(MIZFILES)/mizar.dct $(REPO)
-	cp -p $(MIZFILES)/mizar.msg $(REPO)
 
 repo-bin:
 	mkdir -p $(REPO)/bin
