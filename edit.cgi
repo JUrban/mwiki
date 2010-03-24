@@ -10,7 +10,7 @@ use LWP::Simple;
 
 my $frontend_dir  = "/var/cache/git/";
 
-my $lgitwebcgi    = "../gitweb.cgi";
+my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
 
 my $query	  = new CGI;
 my $git_project	  = $query->param('p');
@@ -83,10 +83,10 @@ print<<END;
          <br>
           <table>
             <tr>
-	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="Formula" ID="ProblemSourceRadioButton" CHECKED>Mizar article<br/>
+	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="Formula" ID="ProblemSourceRadioButton" CHECKED>Edit article<br/>
 		<textarea name="Formula" tabindex="3"  rows="40" cols="80" id="FORMULAEProblemTextBox">$old_content</textarea><TR VALIGN=TOP>
 	      </td>
-	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="UPLOAD">Local article file to upload<BR>
+	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="UPLOAD">Article file to upload<BR>
 		<input type="file" name="UPLOADProblem"  size="20" /><TR VALIGN=TOP></TD>
 <!--	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="URL" >URL to fetch article from<BR> -->
 <!--		<input type="text" name="FormulaURL" tabindex="4"  size="80" /><TR VALIGN=TOP></TD> -->
