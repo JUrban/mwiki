@@ -8,6 +8,10 @@
 use strict;
 use File::Basename;
 
+## TODO: this two should be options
+my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
+my $git_project = "mw1.git";
+
 my ($title, $authors, $date, $copyright);
 $title = "";
 
@@ -40,9 +44,19 @@ my $header=<<END;
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>Mizar Mathematical Library (current wiki state), Index of Identifiers</title>
+<style type="text/css">
+	body {font-family: monospace; margin: 0px;}
+	.wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
+	.wikiactions li { display: inline; padding: .2em .4em; }
+</style>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>
+ <div  class="wikiactions">
+    <ul>
+         <li> <a href="$lgitwebcgi?p=$git_project">Gitweb</a> </li>
+    </ul>
+</div>
 <h1>
 <a href="index.html"> Mizar Mathematical Library (current wiki state)</a>,
 Index of MML Identifiers
