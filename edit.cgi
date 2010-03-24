@@ -84,7 +84,7 @@ print<<END;
           <table>
             <tr>
 	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="Formula" ID="ProblemSourceRadioButton" CHECKED>Edit article<br/>
-		<textarea name="Formula" tabindex="3"  rows="40" cols="80" id="FORMULAEProblemTextBox">$old_content</textarea><TR VALIGN=TOP>
+		<textarea name="Formula" tabindex="3"  rows="40" cols="90" id="FORMULAEProblemTextBox">$old_content</textarea><TR VALIGN=TOP>
 	      </td>
 	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="UPLOAD">Article file to upload<BR>
 		<input type="file" name="UPLOADProblem"  size="20" /><TR VALIGN=TOP></TD>
