@@ -2,6 +2,7 @@
 
 use strict;
 use CGI;
+use CGI::Pretty ":standard";
 use IO::Socket;
 use File::Temp qw/ :mktemp  /;
 use HTTP::Request::Common;
@@ -9,6 +10,7 @@ use LWP::Simple;
 
 my $frontend_dir  = "/var/cache/git/";
 
+my $lgitwebcgi    = "../gitweb.cgi";
 
 my $query	  = new CGI;
 my $git_project	  = $query->param('p');
@@ -22,7 +24,14 @@ my $backend_repo_path = "";
 
 print $query->header();
 
-print $query->start_html(-title=>"Editing $input_file");
+print $query->start_html(-title=>"Editing $input_file",
+			-head  => style(
+{-type => 'text/css'},
+'body {font-family: monospace; margin: 0px;}
+.wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
+.wikiactions li { display: inline; padding: .2em .4em; }'
+                         )
+);
 
 if (defined($git_project) && defined($input_file) && (-d $frontend_repo))
 {
@@ -60,11 +69,18 @@ else
 }
 
 print<<END;
+ <div  class="wikiactions">
+    <ul>
+         <li> <a href="javascript:javascript:history.go(-1)">Cancel</a> </li>
+         <li> <a href="$lgitwebcgi?p=$git_project;a=history;f=$input_file">History</a> </li>
+         <li> <a href="$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
+         <li> <a href="$lgitwebcgi?p=$git_project">Gitweb</a> </li>
+    </ul>
+</div>
     <dl>
       <dd>
         <FORM METHOD="POST"  ACTION="commit.cgi?p=$git_project;f=$input_file" enctype="multipart/form-data">
          <br>
-          <center>
           <table>
             <tr>
 	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="Formula" ID="ProblemSourceRadioButton" CHECKED>Mizar article<br/>
@@ -85,7 +101,6 @@ print<<END;
               </td>
             </tr>
           </table>
-          </center>
         </FORM>
       </dd>
     </dl>
