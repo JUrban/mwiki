@@ -4,7 +4,7 @@ repos_base=/var/cache/mwiki
 mizfiles=/home/alama/share/mizar
 mizbin=/home/alama/src/mizar/mizar-source-git
 xsl4miz=/home/alama/src/mizar/xsl4mizar
-num_articles=1
+num_articles=2
 
 if [ "$1" = "clean" ]; then
     targets='clean'
