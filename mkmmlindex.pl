@@ -32,78 +32,80 @@ sub print_one_html
 {
     my ($name) = @_;
     my $name_uc = uc($name);
-    print "<dt><A HREF=\"$name.html\">$name_uc</A>,<dd>
-$all{$name}->[1].<dd>
-<I>$all{$name}->[0]</I>
-"
+    print "<dt><a href=\"$name.html\">$name_uc</a>,</dt><dd>$all{$name}->[1]. <i>$all{$name}->[0]</i></dd>\n"
 }
 
 my $header=<<END;
-<!DOCTYPE HTML PUBLIC  "-//IETF//DTD HTML 2.0//EN">
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>
-Mizar Mathematical Library (current wiki state), Index of Identifiers
-</title>
+<title>Mizar Mathematical Library (current wiki state), Index of Identifiers</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>
 <h1>
 <a href="index.html"> Mizar Mathematical Library (current wiki state)</a>,
 Index of MML Identifiers
 </h1>
-<hr>
-[<A HREF="#A">A</A>,
-<A HREF="#B">B</A>,
-<A HREF="#C">C</A>,
-<A HREF="#D">D</A>,
-<A HREF="#E">E</A>,
-<A HREF="#F">F</A>,
-<A HREF="#G">G</A>,
-<A HREF="#H">H</A>,
-<A HREF="#I">I</A>,
-<A HREF="#J">J</A>,
-<A HREF="#K">K</A>,
-<A HREF="#L">L</A>,
-<A HREF="#M">M</A>,
-<A HREF="#N">N</A>,
-<A HREF="#O">O</A>,
-<A HREF="#P">P</A>,
-<A HREF="#Q">Q</A>,
-<A HREF="#R">R</A>,
-<A HREF="#S">S</A>,
-<A HREF="#T">T</A>,
-<A HREF="#U">U</A>,
-<A HREF="#V">V</A>,
-<A HREF="#W">W</A>,
-<A HREF="#X">X</A>,
-<A HREF="#Y">Y</A>,
-<A HREF="#Z">Z</A>]
+<hr/>
 <p>
-<hr>
+[<a href="#A">A</a>,
+<a href="#B">B</a>,
+<a href="#C">C</a>,
+<a href="#D">D</a>,
+<a href="#E">E</a>,
+<a href="#F">F</a>,
+<a href="#G">G</a>,
+<a href="#H">H</a>,
+<a href="#I">I</a>,
+<a href="#J">J</a>,
+<a href="#K">K</a>,
+<a href="#L">L</a>,
+<a href="#M">M</a>,
+<a href="#N">N</a>,
+<a href="#O">O</a>,
+<a href="#P">P</a>,
+<a href="#Q">Q</a>,
+<a href="#R">R</a>,
+<a href="#S">S</a>,
+<a href="#T">T</a>,
+<a href="#U">U</a>,
+<a href="#V">V</a>,
+<a href="#W">W</a>,
+<a href="#X">X</a>,
+<a href="#Y">Y</a>,
+<a href="#Z">Z</a>]</p>
+<hr/>
 <dl>
 END
 
 my $footer=<<END;
 </dl>
+</dd>
 </dl>
-<p>
-<hr>
-<hr>
+<hr/>
 </body>
 </html>
 END
 
 
 print $header;
-print ('<dt><A NAME="A"><b>A</B></A><dd><dl>', "\n");
-my $prevletter = "A";
+my $prevletter;
 foreach my $name (sort keys %all)
-{
-    unless ($prevletter eq uc(substr($name, 0, 1)))
-    {
-	$prevletter = uc(substr($name, 0, 1));
-	print ('</dl>', "\n", '<dt><A NAME="', $prevletter, '"><b>', $prevletter, '</B></A><dd><dl>', "\n");
+  {
+    my $firstletter = uc (substr ($name, 0, 1));
+    unless (defined $prevletter) {
+      $prevletter = $firstletter;
+      print "<dt>$firstletter</dt>";
+      print '<dd>';
+      print '<dl>';
     }
+
+    unless ($prevletter eq $firstletter)
+      {
+	print ('</dl></dd>', "\n", '<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a></dt><dd><dl>', "\n");
+      }
+
     print_one_html($name);
-}
+  }
 print $footer;
