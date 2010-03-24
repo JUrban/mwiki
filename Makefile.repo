@@ -71,6 +71,7 @@ absrefs: $(patsubst %, %-absrefs.xml, $(MMLLAR))
 	  xsl/addabsrefs.xsl mml/$*.xmlvrf
 
 htmls: $(patsubst %, %.html, $(MMLLAR))
+	.perl/mkmmlindex.pl mml/*.hdr > html/index.html
 
 %.html: %-absrefs.xml %.hdr
 	@$(ECHO) $(html-tag) $*
