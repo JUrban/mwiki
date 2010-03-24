@@ -82,9 +82,6 @@ my $new_commit_tree = `git cat-file commit $new_sha1 | grep ^tree | cut -f 2 -d 
 chomp $old_commit_tree;
 chomp $new_commit_tree;
 
-pr_print ("old commit tree: $old_commit_tree");
-pr_print ("new commit tree: $new_commit_tree");
-
 # Ensure that no non-mizar code is being pushed
 my @non_miz_files 
   = `git show --pretty=oneline --name-only $new_sha1 | tail -n -1 | grep --invert-match ".miz"`;
@@ -288,7 +285,7 @@ unless ($git_add_exit_code == 0) {
 # We've successful added new files to the repo -- let's commit!
 $ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
 my $git_commit_output 
-  = system ("git commit -m 'Anon push' 2>&1");
+  = system ("git commit -m 'Anonymous push' 2>&1");
 my $git_commit_exit_code = ($? >> 8);
 unless ($git_commit_exit_code == 0) {
   pr_print ("Error commiting to the backend repository:");

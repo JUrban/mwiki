@@ -1,0 +1,23 @@
+# Taken from the example discussed in the documentation for the
+# git-core package under /usr/share/doc/git-core/README.Debian.  (I
+# found out about this example by reading the documentation for the
+# gitweb package itself, under /usr/share/doc/gitweb/README.Debian.)
+
+NameVirtualHost *:1234
+Listen 1234
+
+<VirtualHost *:1234>
+    ServerAdmin root
+    HeaderName HEADER
+    # bogus but safe DocumentRoot
+    DocumentRoot /var/cache/git
+    ErrorLog /var/log/apache2/gitweb.error.log
+    CustomLog /var/log/apache2/gitweb.access.log combined
+    # Alias /robots.txt /var/www/cvs.robots.txt
+    Alias /gitweb.css /usr/share/gitweb/gitweb.css
+    Alias /git-favicon.png /usr/share/gitweb/git-favicon.png
+    Alias /git-logo.png /usr/share/gitweb/git-logo.png
+    # Alias /git /var/cache/git
+    ScriptAlias / /usr/lib/cgi-bin/gitweb.cgi
+    # RedirectMatch permanent "^/~(.*)$" "http://example.org/~$1"
+</VirtualHost>

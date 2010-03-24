@@ -134,3 +134,35 @@
   acceptable, it is commited the backend repo, the backend repo's
   post-commit hook is run, refreshing the JFM-like front page, and the
   pre-receive hook exits successfully.
+* gitweb
+  From the debian git-core docs on how to set up gitweb:
+
+  <VirtualHost *:80>
+    ServerName git.example.org
+    ServerAdmin webmaster@example.org
+    HeaderName HEADER
+    # bogus but safe DocumentRoot
+    DocumentRoot /var/cache/git
+    ErrorLog /var/log/apache-ssl/git.example.org-error.log
+    CustomLog /var/log/apache-ssl/git.example.org-access.log combined
+    Alias /robots.txt /var/www/cvs.robots.txt
+    Alias /gitweb.css /usr/share/gitweb/gitweb.css
+    Alias /git-favicon.png /usr/share/gitweb/git-favicon.png
+    Alias /git-logo.png /usr/share/gitweb/git-logo.png
+    Alias /git /var/cache/git
+    ScriptAlias / /usr/lib/cgi-bin/gitweb.cgi
+    RedirectMatch permanent "^/~(.*)$" "http://example.org/~$1"
+  </VirtualHost>
+
+  We probably don't need the ServerName field, unless we do virtual
+  hosting or otherwise set up a custom domain name that points to mws.
+** Links into gitweb
+
+   They look like this:
+
+   http://192.168.0.12:1234/?p=mwiki.git;a=blob_plain;f=mml/xboole_0.miz;hb=HEAD
+** Displayed repos
+   We currently display only the "frontend"/wild repo to the users.
+   Perhaps we should also have a view of the "stable"/developer-only
+   repo, too.  That would be easy to add -- just make a symlink in
+   /var/cache/git to the developer repo.
