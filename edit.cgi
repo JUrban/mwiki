@@ -28,6 +28,7 @@ if (defined($git_project) && defined($input_file) && (-d $frontend_repo))
 {
     chdir $frontend_repo;
     $backend_repo_path = `git config mwiki.backend`;
+    chomp($backend_repo_path);
 }
 else
 {
@@ -52,6 +53,10 @@ if(-e $backend_repo_path)
     open(FILEHANDLE, $backend_repo_file) or die "$backend_repo_file not readable!";
     $old_content = do { local $/; <FILEHANDLE> };
     close(FILEHANDLE);
+}
+else
+{
+    $old_content = "New article comes here";
 }
 
 print<<END;
