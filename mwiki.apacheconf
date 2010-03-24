@@ -1,0 +1,7 @@
+Alias /mwiki "/var/cache/mwiki/public/mwiki/html"
+<Directory /mwiki>
+  Options Indexes FollowSymLinks MultiViews
+  AllowOverride None
+  Order allow,deny
+  allow from all
+</Directory>
