@@ -128,7 +128,6 @@ repo-data: # Other mizar data
 
 repo-bin:
 	mkdir -p $(REPO)/bin
->>>>>>> refs/remotes/urban/master
 	for binary in $(MIZBINARIES); do \
 	  $(INSTALL) --mode 755 $(MIZBIN)/$$binary $(SCRATCH_BASE)/bin/$$binary; \
 	done
