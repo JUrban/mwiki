@@ -96,7 +96,7 @@ print<<END;
             </tr>
             <tr>
               <td align=right>
-                <INPUT TYPE="submit" VALUE="Send">
+                <INPUT TYPE="submit" VALUE="Submit">
                 <INPUT TYPE="reset" VALUE="Reset">
               </td>
             </tr>
