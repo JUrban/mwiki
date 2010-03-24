@@ -86,6 +86,7 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 	  --param proof_links 1 \
 	  --param ajax_proofs 1 \
 	  --param ajax_proof_dir \'proofs\' \
+	  --param wiki_links 1 \
 	  --output html/$*.html \
 	  xsl/miz.xsl mml/$*-absrefs.xml
 	@touch mml/$*.html
