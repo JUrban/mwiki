@@ -97,7 +97,7 @@ print<<END;
             <tr>
               <td align=right>
                 <INPUT TYPE="submit" VALUE="Send">
-                <INPUT TYPE="reset" VALUE="Clear">
+                <INPUT TYPE="reset" VALUE="Reset">
               </td>
             </tr>
           </table>
