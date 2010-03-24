@@ -72,17 +72,10 @@ DEVEL_MWIKI_USER=mizdev
 MIZBINARIES=accom envget exporter makeenv transfer verifier
 
 
-repos: public-repos devel-repos gitweb
+repos: public-repos devel-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
 
 MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
-
-all: repo compiled sandbox deps html repo-export repo-gitinit repo-makefiles
-	@echo "If everything went according to plan, then we just created the following:"
-	@echo "* $(REPO): a `fully-compiled' git repository with pre-commit and post-commit hooks;"
-	@echo "* $(REPO)-sandbox: $(REPO) minus its git metadata; it will be our clean sandbox;"
-	@echo "* $(REPO).git, a bare clone of $(REPO) with a pre-receive hook; this will be publicly accessible"
-
 
 public-repos: public-repo-init public-sandbox public-compiled public-repo-export
 	chown -R $(PUBLIC_MWIKI_USER) $(PUBLIC_REPOS_BASE)
@@ -98,7 +91,6 @@ scratch-mizfiles:
 	for article in hidden tarski $(INITIAL_SEGMENT); do \
 	  $(INSTALL) --preserve-timestamps --mode=644 $(MIZFILES)/mml/$$article.miz $(SCRATCH_BASE)/mml; \
 	done
-
 	# prel
 	mkdir -p $(SCRATCH_BASE)/prel
 	cp -p $(MIZFILES)/prel/h/hidden.* $(SCRATCH_BASE)/prel
@@ -112,25 +104,14 @@ scratch-mizfiles:
 	cp -p $(MIZFILES)/mizar.msg $(SCRATCH_BASE)
 	# bin
 	mkdir -p $(SCRATCH_BASE)/bin
-
-
-
-repo-prel: # Special prel files: those for hidden, and all requirements (.dre) files
-	mkdir -p $(REPO)/prel
-	cp -p $(MIZFILES)/prel/h/hidden.* $(REPO)/prel
-	cp -p $(MIZFILES)/prel/*/*.dre $(REPO)/prel
-
-repo-data: # Other mizar data
-	for rootfile in $(MIZROOTFILES); do \
-	  cp -p $(MIZFILES)/$$rootfile $(REPO); \
-	done
-	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(REPO)/mml.lar
-
-repo-bin:
-	mkdir -p $(REPO)/bin
 	for binary in $(MIZBINARIES); do \
 	  $(INSTALL) --mode 755 $(MIZBIN)/$$binary $(SCRATCH_BASE)/bin/$$binary; \
 	done
+	# data
+	for rootfile in $(MIZROOTFILES); do \
+	  cp -p $(MIZFILES)/$$rootfile $(SCRATCH_BASE); \
+	done
+	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(SCRATCH_BASE)/mml.lar
 	# xsl
 	mkdir -p $(SCRATCH_BASE)/xsl
 	for sheet in $(SHEETS); do \
@@ -274,6 +255,11 @@ gitweb: public-repo-export devel-repo-export
 	cd /etc/apache2/sites-enabled && ln -s ../sites-available/gitweb gitweb
 	apache2ctl restart
 
+mwiki: public-repos
+	install -m 644 mwiki.apacheconf /etc/apache2/sites-available/mwiki
+	cd /etc/apache2/sites-enabled && ln -s ../sites-available/mwiki mwiki
+	apache2ctl restart
+
 clean:
 	rm -Rf $(REPOS_BASE)
 	rm -f $(GITWEB_ROOT)/mwiki-public.git
@@ -281,6 +267,8 @@ clean:
 	deluser $(PUBLIC_MWIKI_USER) || echo "user $(PUBLIC_MWIKI_USER) doesn't exist"
 	deluser $(DEVEL_MWIKI_USER) || echo "user $(DEVEL_MWIKI_USER) doesn't exist"
 	rm -f /etc/apache2/sites-available/gitweb
+	rm -f /etc/apache2/sites-enabled/mwiki
+	rm -f /etc/apache2/sites-available/mwiki
 	rm -f /etc/apache2/sites-enabled/gitweb
 	rm -f /var/log/apache2/gitweb.error.log
 	rm -f /var/log/apache2/gitweb.access.log
