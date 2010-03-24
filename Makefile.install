@@ -71,7 +71,9 @@ DEVEL_MWIKI_USER=mizdev
 
 MIZBINARIES=accom envget exporter makeenv transfer verifier
 
-repos: public-repos devel-repos gitweb
+MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
+
+repos: public-repos devel-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
 
 public-repos: public-repo-init public-sandbox public-compiled public-repo-export
@@ -94,16 +96,20 @@ scratch-mizfiles:
 	cp -p $(MIZFILES)/prel/*/*.dre $(SCRATCH_BASE)/prel
 	chown -R $(PUBLIC_MWIKI_USER) $(SCRATCH_BASE)/prel
 	# data
-	cp -p $(MIZFILES)/mml.ini $(SCRATCH_BASE)
-	cp -p $(MIZFILES)/mml.vct $(SCRATCH_BASE)
+	for rootfile in $(MIZROOTFILES); do \
+	  cp -p $(MIZFILES)/$$rootfile $(SCRATCH_BASE); \
+	done
 	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(SCRATCH_BASE)/mml.lar
-	cp -p $(MIZFILES)/mizar.dct $(SCRATCH_BASE)
-	cp -p $(MIZFILES)/mizar.msg $(SCRATCH_BASE)
 	# bin
 	mkdir -p $(SCRATCH_BASE)/bin
 	for binary in $(MIZBINARIES); do \
 	  $(INSTALL) --mode 755 $(MIZBIN)/$$binary $(SCRATCH_BASE)/bin/$$binary; \
 	done
+	# data
+	for rootfile in $(MIZROOTFILES); do \
+	  cp -p $(MIZFILES)/$$rootfile $(SCRATCH_BASE); \
+	done
+	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(SCRATCH_BASE)/mml.lar
 	# xsl
 	mkdir -p $(SCRATCH_BASE)/xsl
 	for sheet in $(SHEETS); do \
@@ -247,6 +253,11 @@ gitweb: public-repo-export devel-repo-export
 	cd /etc/apache2/sites-enabled && ln -s ../sites-available/gitweb gitweb
 	apache2ctl restart
 
+mwiki: public-repos
+	install -m 644 mwiki.apacheconf /etc/apache2/sites-available/mwiki
+	cd /etc/apache2/sites-enabled && ln -s ../sites-available/mwiki mwiki
+	apache2ctl restart
+
 clean:
 	rm -Rf $(REPOS_BASE)
 	rm -f $(GITWEB_ROOT)/mwiki-public.git
@@ -254,6 +265,8 @@ clean:
 	deluser $(PUBLIC_MWIKI_USER) || echo "user $(PUBLIC_MWIKI_USER) doesn't exist"
 	deluser $(DEVEL_MWIKI_USER) || echo "user $(DEVEL_MWIKI_USER) doesn't exist"
 	rm -f /etc/apache2/sites-available/gitweb
+	rm -f /etc/apache2/sites-enabled/mwiki
+	rm -f /etc/apache2/sites-available/mwiki
 	rm -f /etc/apache2/sites-enabled/gitweb
 	rm -f /var/log/apache2/gitweb.error.log
 	rm -f /var/log/apache2/gitweb.access.log
