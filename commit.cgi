@@ -39,8 +39,6 @@ my $frontend_repo = $frontend_dir . $git_project;
 
 my $backend_repo_path = "";
 
-my $article_filename = "";
-my $aname = "";
 
 sub pr_pad {
   my $str = shift;
@@ -59,6 +57,7 @@ sub pr_die
 {
     pr_print(@_);
     print "</pre>";
+    print $query->end_html;
     exit;
 }
 
@@ -74,16 +73,22 @@ print $query->start_html(-title=>"Submitting $input_file",
 );
 
 
+my $article_filename = "";
+my $aname = "";
 
 if($input_file =~ /^mml\/(([a-z0-9_]+)\.miz)$/) { ($article_filename, $aname) = ($1, $2); }
 
-my $viewlinks = "";
+# forbid weird project names - no messing with our filesystem
+pr_die("The repository name \"$git_project\" is not allowed") unless($git_project =~ /^[a-zA-Z0-9_\-\.]+$/);
+
 
 ## only print the file links if the file is ok
 ## WARNING: This sub is using global vars $aname,$input_file,$git_project; don't move it!
 ##          It is a sub only because without it the scoping breaks.
 sub printheader
 {
+    my $viewlinks = "";
+
     if(length($aname) > 0)
     {
 	$viewlinks=<<VEND
