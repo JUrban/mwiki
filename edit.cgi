@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -T -w
 
 use strict;
 use CGI;
@@ -6,7 +6,6 @@ use CGI::Pretty ":standard";
 use IO::Socket;
 use File::Temp qw/ :mktemp  /;
 use HTTP::Request::Common;
-use LWP::Simple;
 
 my $frontend_dir  = "/var/cache/git/";
 
@@ -17,10 +16,6 @@ my $git_project	  = $query->param('p');
 
 # the file comes with relative path: mml/card_1.miz
 my $input_file	  = $query->param('f');
-
-my $frontend_repo = $frontend_dir . $git_project;
-
-my $backend_repo_path = "";
 
 print $query->header();
 
@@ -33,14 +28,44 @@ print $query->start_html(-title=>"Editing $input_file",
                          )
 );
 
-sub mizfile_ok
-{
-    my $miz_file = shift;
-    if ($miz_file =~ /^mml\/([a-z0-9_]+\.miz)$/) { return 1; } else { return 0; }
+sub pr_pad {
+  my $str = shift;
+  return ("[Editing] $str");
 }
 
+# I think there's a slicker way to do this, using output filters, but
+# for now let's just do this as a subroutine.
+sub pr_print {
+  my $str = shift;
+  chomp ($str); # in case it already had some extra whitespace at the end
+  print (pr_pad ($str . "\n"));
+}
 
-if (defined($git_project) && defined($input_file) && (-d $frontend_repo) && (mizfile_ok($input_file)==1))
+sub pr_die
+{
+    pr_print(@_);
+    print $query->end_html;
+    exit;
+}
+
+# untaint the cgi params:
+if(defined($git_project) && ($git_project =~ /^([a-zA-Z0-9_\-\.]+)$/))
+{
+    $git_project = $1;
+}
+else { pr_die("The repository name \"$git_project\" is not allowed"); }
+
+if ($input_file =~ /^(mml\/[a-z0-9_]+\.miz)$/)
+{
+    $input_file = $1;
+}
+else { pr_die("The file name \"$input_file\" is not allowed"); }
+
+
+my $frontend_repo = $frontend_dir . $git_project;
+my $backend_repo_path = "";
+
+if (-d $frontend_repo)
 {
     chdir $frontend_repo;
     $backend_repo_path = `git config mwiki.backend`;
@@ -48,16 +73,12 @@ if (defined($git_project) && defined($input_file) && (-d $frontend_repo) && (miz
 }
 else
 {
-    print "The repository \"$git_project\" does not exist or input file \"$input_file\" has bad name";
-    print $query->end_html;
-    exit;
+    pr_die "The repository \"$git_project\" does not exist";
 }
 
 if(!(defined $backend_repo_path) || (length($backend_repo_path) == 0))
 {
-    print "No backend repository for the project $git_project";
-    print $query->end_html;
-    exit 1;
+    pr_die "No backend repository for the project $git_project";
 }
 
 my $backend_repo_file = $backend_repo_path . "/" . $input_file;
@@ -66,7 +87,7 @@ my $old_content = "";
 
 if(-e $backend_repo_path)
 {
-    open(FILEHANDLE, $backend_repo_file) or die "$backend_repo_file not readable!";
+    open(FILEHANDLE, $backend_repo_file) or pr_die "$backend_repo_file not readable!";
     $old_content = do { local $/; <FILEHANDLE> };
     close(FILEHANDLE);
 }
