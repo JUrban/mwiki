@@ -44,7 +44,12 @@ sub pr_print {
   print (pr_pad ($str . "\n"));
 }
 
-
+sub pr_die
+{
+    pr_print(@_);
+    print "</pre>";
+    exit;
+}
 
 print $query->header();
 
@@ -156,7 +161,7 @@ unless ($miz_file_size < 1000000) {
 # with the pre-commit hook, then we move the known safe mizar files
 # back into their original place.
 
-my $backend_repo_mml = $backend_repo_path . "/" . "mml";
+my $backend_repo_mml = $backend_repo_path . "mml";
 
 # Separate the old miz files -- the ones that already exist in the
 # backend repo -- from the new miz files -- the genuinely new
@@ -170,7 +175,7 @@ sub strip_initial_mml {
   $path =~ /^mml\/(.+\.miz$)/;
   my $stripped = $1;
   unless (defined $stripped) {
-    die "Something went wrong when trying to strip the \"mml/\" from \"$path\"";
+    pr_die "Something went wrong when trying to strip the \"mml/\" from \"$path\"";
   }
   return $stripped;
 }
@@ -181,11 +186,11 @@ foreach my $received_mml_miz_file (@miz_files) {
   chomp $received_mml_miz_file;
   my $article_filename = strip_initial_mml ($received_mml_miz_file);
   my $received_path = $backend_repo_mml . "/" . $article_filename;
-  open(PFH, ">$received_path") or die "$received_path not writable";
+  open(PFH, ">$received_path") or pr_die "$received_path not writable"; 
   printf(PFH "%s",$input_article);
   close(PFH);
   unless (-e $received_path) {
-    die "We didn't output anything to $received_path";
+    pr_die "We didn't output anything to $received_path";
   }
 }
 
