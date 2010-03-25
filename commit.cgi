@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -T -w
 
 use strict;
 use CGI;
@@ -35,11 +35,6 @@ my $git_project	  = $query->param('p');
 # the file comes with relative path: mml/card_1.miz
 my $input_file	  = $query->param('f');
 
-my $frontend_repo = $frontend_dir . $git_project;
-
-my $backend_repo_path = "";
-
-
 sub pr_pad {
   my $str = shift;
   return ("[Submitting] $str");
@@ -72,14 +67,27 @@ print $query->start_html(-title=>"Submitting $input_file",
                          )
 );
 
+# untaint the cgi params:
+if(defined($git_project) && ($git_project =~ /^([a-zA-Z0-9_\-\.]+)$/))
+{
+    $git_project = $1;
+}
+else { pr_die("The repository name \"$git_project\" is not allowed"); }
+
+if ($input_file =~ /^(mml\/[a-z0-9_]+\.miz)$/)
+{
+    $input_file = $1;
+}
+else { pr_die("The file name \"$input_file\" is not allowed"); }
+
+my $frontend_repo = $frontend_dir . $git_project;
+
+my $backend_repo_path = "";
 
 my $article_filename = "";
 my $aname = "";
 
 if($input_file =~ /^mml\/(([a-z0-9_]+)\.miz)$/) { ($article_filename, $aname) = ($1, $2); }
-
-# forbid weird project names - no messing with our filesystem
-pr_die("The repository name \"$git_project\" is not allowed") unless($git_project =~ /^[a-zA-Z0-9_\-\.]+$/);
 
 
 ## only print the file links if the file is ok
@@ -113,7 +121,7 @@ END
 
 printheader();
 
-if (defined($git_project) && defined($input_file) && (-d $frontend_repo) && defined($aname) && (length($aname) > 0))
+if ((-d $frontend_repo) && defined($aname) && (length($aname) > 0))
 {
     chdir $frontend_repo;
     $backend_repo_path = `git config mwiki.backend`;
@@ -121,18 +129,12 @@ if (defined($git_project) && defined($input_file) && (-d $frontend_repo) && defi
 }
 else
 {
-    pr_print "The repository \"$git_project\" does not exist or input file \"$input_file\" has bad name";
-    print "</pre>";
-    print $query->end_html;
-    exit;
+    pr_die "The repository \"$git_project\" does not exist or input file \"$input_file\" has bad name";
 }
 
 if(!(defined $backend_repo_path) || (length($backend_repo_path) == 0))
 {
-    pr_print "No backend repository for the project $git_project";
-    print "</pre>";
-    print $query->end_html;
-    exit;
+    pr_die "No backend repository for the project $git_project";
 }
 
 ## TODO: stolen from pre-receive.in, this should be re-factored
@@ -144,12 +146,8 @@ if(!(defined $backend_repo_path) || (length($backend_repo_path) == 0))
 # 3 their size is less than, say, one megabyte;
 # 4 they have mode 644 ("should never happen", given condition #2)
 
-my $miz_file_size = length($input_article);
-unless ($miz_file_size < 1000000) {
-    pr_print ("Suspicious: the .miz file $input_file is bigger than one megabyte");
-    print "</pre>";
-    print $query->end_html;
-    exit;
+unless (length($input_article) < 1000000) {
+    pr_die ("Suspicious: the .miz file $input_file is bigger than one megabyte");
 }
 
 my $backend_repo_mml = $backend_repo_path . "mml";
@@ -197,9 +195,7 @@ unless ($git_add_exit_code == 0) {
   system ("git reset HEAD 2>&1");
   system ("git checkout -- 2>&1");
 
-  print "</pre>";
-  print $query->end_html;
-  exit;
+  pr_die "";
 }
 
 # We've successful added new files to the repo -- let's commit!
@@ -214,9 +210,7 @@ unless ($git_commit_exit_code == 0) {
   system ("git reset HEAD 2>&1");
   system ("git checkout -- 2>&1");
 
-  print "</pre>";
-  print $query->end_html;
-  exit;
+  pr_die "";
 }
 
 # If we made it this far, then we deserve a break.
