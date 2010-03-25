@@ -79,7 +79,7 @@ print<<END;
 </div>
     <dl>
       <dd>
-        <FORM METHOD="POST"  ACTION="commit.cgi?p=$git_project;f=$input_file" enctype="multipart/form-data">
+        <FORM METHOD="POST"  ACTION="commit.cgi" enctype="multipart/form-data">
          <br>
           <table>
             <tr>
@@ -88,6 +88,8 @@ print<<END;
 	      </td>
 	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="UPLOAD">Article file to upload (not supported yet)<BR>
 		<input type="file" name="UPLOADProblem"  size="20" /><TR VALIGN=TOP></TD>
+                <input type="hidden" name="p" value="$git_project">
+                <input type="hidden" name="f" value="$input_file">
 <!--	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="URL" >URL to fetch article from<BR> -->
 <!--		<input type="text" name="FormulaURL" tabindex="4"  size="80" /><TR VALIGN=TOP></TD> -->
 <!--	      <TD> <INPUT TYPE="CHECKBOX" NAME="VocSource" VALUE="UPLOAD"> -->
