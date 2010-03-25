@@ -21,6 +21,9 @@ my $frontend_dir  = "/var/cache/git/";
 # path to the git cgi
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
 
+# the git binary
+my $git           = "/usr/bin/git";
+
 my $query	  = new CGI;
 
 # the file comes with relative path: mml/card_1.miz
@@ -93,9 +96,9 @@ my $htmldir       = "";
 if (-d $frontend_repo)
 {
     chdir $frontend_repo;
-    $backend_repo_path = `git config mwiki.backend`;
+    $backend_repo_path = `$git config mwiki.backend`;
     chomp($backend_repo_path);
-    $htmldir = `git config mwiki.htmldir`;
+    $htmldir = `$git config mwiki.htmldir`;
     chomp($htmldir);
 }
 else
@@ -191,15 +194,15 @@ if($action eq "commit")
     $ENV{GIT_DIR}
 	= $backend_repo_path . "/" . ".git"; # GIT_DIR is set to "." by git
     chdir $backend_repo_path;              # before executing this hook!
-    system ("git add $input_file 2>&1");
+    system ("$git add $input_file 2>&1");
     my $git_add_exit_code = ($? >> 8);
     unless ($git_add_exit_code == 0) 
     {
 	pr_print ("Error adding the new mizar files to the backend repository:");
 	pr_print ("The exit code was $git_add_exit_code");
 
-	system ("git reset HEAD 2>&1");
-	system ("git checkout -- 2>&1");
+	system ("$git reset HEAD 2>&1");
+	system ("$git checkout -- 2>&1");
 
 	pr_die "";
     }
@@ -207,15 +210,15 @@ if($action eq "commit")
 # We've successful added new files to the repo -- let's commit!
     $ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
     my $git_commit_output 
-	= system ("git commit -m 'Web commit' 2>&1");
+	= system ("$git commit -m 'Web commit' 2>&1");
     my $git_commit_exit_code = ($? >> 8);
     unless ($git_commit_exit_code == 0) 
     {
 	pr_print ("Error commiting to the backend repository:");
 	pr_print ("The exit code was $git_commit_exit_code");
 
-	system ("git reset HEAD 2>&1");
-	system ("git checkout -- 2>&1");
+	system ("$git reset HEAD 2>&1");
+	system ("$git checkout -- 2>&1");
 
 	pr_die "";
     }
