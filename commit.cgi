@@ -64,7 +64,7 @@ print $query->start_html(-title=>"Submitting $input_file",
 
 
 
-if($input_file =~ /^mml\/((.*)\.miz)$/) { ($article_filename, $aname) = ($1, $2); }
+if($input_file =~ /^mml\/(([a-z0-9_]+)\.miz)$/) { ($article_filename, $aname) = ($1, $2); }
 
 my $viewlinks = "";
 
@@ -126,7 +126,7 @@ if(!(defined $backend_repo_path) || (length($backend_repo_path) == 0))
 # 3 their size is less than, say, one megabyte;
 # 4 they have mode 644 ("should never happen", given condition #2)
 my $miz_file = $input_file;
-unless ($miz_file =~ /^mml\/(.*\.miz)$/) { # strip the "mml/" prefix
+unless ($miz_file =~ /^mml\/([a-z0-9_]+\.miz)$/) { # strip the "mml/" prefix
     pr_print ("Suspicious: .miz file is not under the mml subdirectory");
     pr_print ("The path is $miz_file");
     print "</pre>";
@@ -172,7 +172,7 @@ my $backend_repo_mml = $backend_repo_path . "mml";
 
 sub strip_initial_mml {
   my $path = shift;
-  $path =~ /^mml\/(.+\.miz$)/;
+  $path =~ /^mml\/([a-z0-9_]+\.miz$)/;
   my $stripped = $1;
   unless (defined $stripped) {
     pr_die "Something went wrong when trying to strip the \"mml/\" from \"$path\"";
