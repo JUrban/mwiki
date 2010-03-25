@@ -21,7 +21,7 @@ my $frontend_dir  = "/var/cache/git/";
 # path to the git cgi
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
 
-# the git binary
+# the git binary - need absolute path - we run in taint mode
 my $git           = "/usr/bin/git";
 
 my $query	  = new CGI;
@@ -34,6 +34,9 @@ my $git_project	  = $query->param('p');
 # these exist only when commiting
 my $ProblemSource = $query->param('ProblemSource');
 my $input_article = $query->param('Formula');
+
+# this is required to untaint backticks
+$ENV{"PATH"} = "";
 
 
 print $query->header();
@@ -110,6 +113,11 @@ if(!(defined $backend_repo_path) || (length($backend_repo_path) == 0))
 {
     pr_die "No backend repository for the project $git_project";
 }
+
+# untaint $backend_repo_path - we trust it, it is in our repo
+
+if($backend_repo_path =~ /^(.*)$/) { $backend_repo_path = $1; }
+
 
 if(!(defined $htmldir) || (length($htmldir) == 0))
 {
