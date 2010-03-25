@@ -2,16 +2,27 @@
 
 use strict;
 use CGI;
-use CGI::Pretty ":standard";
+use CGI::Pretty ":standard";  # needed for the -style info
 use IO::Socket;
 use File::Temp qw/ :mktemp  /;
 
+## TODO: we should think about how to allow customization
+##       of the following variables.
+##       If this lives in /lib/cgi-bin/mwiki, we might want to
+##       pass at least the $htmldir as another cgi argument.
+##       Others can stay fixed probably.
 
+
+# directory where frontends are stored
 my $frontend_dir  = "/var/cache/git/";
 
+# path to the git cgi
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
+
+# path to the editing cgi
 my $leditcgi    = "http://mws.cs.ru.nl/cgi-bin/mwiki/edit.cgi";
 
+# the directory with the htmlized wiki files (needed for index and other links)
 my $htmldir       = "http://mws.cs.ru.nl/~mizarw/mw";
 
 my $query	  = new CGI;
@@ -67,6 +78,8 @@ if($input_file =~ /^mml\/(([a-z0-9_]+)\.miz)$/) { ($article_filename, $aname) = 
 my $viewlinks = "";
 
 ## only print the file links if the file is ok
+## WARNING: This sub is using global vars $aname,$input_file,$git_project; don't move it!
+##          It is a sub only because without it the scoping breaks.
 sub printheader
 {
     if(length($aname) > 0)
