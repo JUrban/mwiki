@@ -5,9 +5,6 @@ use CGI;
 use CGI::Pretty ":standard";
 use IO::Socket;
 use File::Temp qw/ :mktemp  /;
-use HTTP::Request::Common;
-use LWP::Simple;
-
 
 
 my $frontend_dir  = "/var/cache/git/";
