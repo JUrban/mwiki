@@ -11,6 +11,8 @@ use File::Temp qw/ :mktemp  /;
 ##       If this lives in /lib/cgi-bin/mwiki, we might want to
 ##       pass at least the $htmldir as another cgi argument.
 ##       Others can stay fixed probably.
+##       Other option: we can remember the htmldir as a git config
+##       variable of the backend and frontend
 
 
 # directory where frontends are stored
@@ -19,8 +21,8 @@ my $frontend_dir  = "/var/cache/git/";
 # path to the git cgi
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
 
-# path to the editing cgi
-my $leditcgi    = "http://mws.cs.ru.nl/cgi-bin/mwiki/edit.cgi";
+# path to the editing cgi - should be in the same dir
+my $leditcgi    = "edit.cgi";
 
 # the directory with the htmlized wiki files (needed for index and other links)
 my $htmldir       = "http://mws.cs.ru.nl/~mizarw/mw";
