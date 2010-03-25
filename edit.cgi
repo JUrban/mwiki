@@ -33,7 +33,14 @@ print $query->start_html(-title=>"Editing $input_file",
                          )
 );
 
-if (defined($git_project) && defined($input_file) && (-d $frontend_repo))
+sub mizfile_ok
+{
+    my $miz_file = shift;
+    if ($miz_file =~ /^mml\/([a-z0-9_]+\.miz)$/) { return 1; } else { return 0; }
+}
+
+
+if (defined($git_project) && defined($input_file) && (-d $frontend_repo) && (mizfile_ok($input_file)==1))
 {
     chdir $frontend_repo;
     $backend_repo_path = `git config mwiki.backend`;
@@ -41,7 +48,7 @@ if (defined($git_project) && defined($input_file) && (-d $frontend_repo))
 }
 else
 {
-    print "The repository $git_project does not exist or input file not specified";
+    print "The repository \"$git_project\" does not exist or input file \"$input_file\" has bad name";
     print $query->end_html;
     exit;
 }
