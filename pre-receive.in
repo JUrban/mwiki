@@ -99,7 +99,7 @@ unless (scalar @non_miz_files == 0) {
 my @miz_files = `git show --name-only --pretty=oneline $new_sha1 | tail -n -1 | grep "\.miz\$"`;
 for my $miz_file (@miz_files) {
   chomp $miz_file;
-  unless ($miz_file =~ /^mml\/(.*\.miz)$/) { # strip the "mml/" prefix
+  unless ($miz_file =~ /^mml\/([a-z0-9_]+\.miz)$/) { # strip the "mml/" prefix
     pr_print ("Suspcious: .miz file is not under the mml subdirectory");
     pr_print ("The path is $miz_file");
     exit 1;
@@ -172,7 +172,7 @@ foreach my $received_miz_file (@miz_files) {
 
 sub strip_initial_mml {
   my $path = shift;
-  $path =~ /^mml\/(.+\.miz$)/;
+  $path =~ /^mml\/([a-z0-9_]+\.miz$)/;
   my $stripped = $1;
   unless (defined $stripped) {
     die "Something went wrong when trying to strip the \"mml/\" from \"$path\"";
