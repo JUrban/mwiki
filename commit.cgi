@@ -11,8 +11,9 @@ use File::Temp qw/ :mktemp  /;
 ##       If this lives in /lib/cgi-bin/mwiki, we might want to
 ##       pass at least the $htmldir as another cgi argument.
 ##       Others can stay fixed probably.
-##       Other option: we can remember the htmldir as a git config
-##       variable of the backend and frontend
+
+## NOTE: The htmldir is now a git config
+##       variable of the backend and frontend.
 
 
 # directory where frontends are stored
@@ -23,9 +24,6 @@ my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
 
 # path to the editing cgi - should be in the same dir
 my $leditcgi    = "edit.cgi";
-
-# the directory with the htmlized wiki files (needed for index and other links)
-my $htmldir       = "http://mws.cs.ru.nl/~mizarw/mw";
 
 my $query	  = new CGI;
 my $ProblemSource = $query->param('ProblemSource');
@@ -67,6 +65,10 @@ print $query->start_html(-title=>"Submitting $input_file",
                          )
 );
 
+my $article_filename = "";
+my $aname = "";
+
+
 # untaint the cgi params:
 if(defined($git_project) && ($git_project =~ /^([a-zA-Z0-9_\-\.]+)$/))
 {
@@ -74,9 +76,9 @@ if(defined($git_project) && ($git_project =~ /^([a-zA-Z0-9_\-\.]+)$/))
 }
 else { pr_die("The repository name \"$git_project\" is not allowed"); }
 
-if ($input_file =~ /^(mml\/[a-z0-9_]+\.miz)$/)
+if ($input_file =~ /^(mml\/(([a-z0-9_]+)\.miz))$/)
 {
-    $input_file = $1;
+    ($input_file, $article_filename, $aname) = ($1, $2, $3);
 }
 else { pr_die("The file name \"$input_file\" is not allowed"); }
 
@@ -84,10 +86,22 @@ my $frontend_repo = $frontend_dir . $git_project;
 
 my $backend_repo_path = "";
 
-my $article_filename = "";
-my $aname = "";
+# the directory with the htmlized wiki files (needed for index and other links)
+my $htmldir       = "";
 
-if($input_file =~ /^mml\/(([a-z0-9_]+)\.miz)$/) { ($article_filename, $aname) = ($1, $2); }
+if (-d $frontend_repo)
+{
+    chdir $frontend_repo;
+    $backend_repo_path = `git config mwiki.backend`;
+    chomp($backend_repo_path);
+    $htmldir = `git config mwiki.htmldir`;
+    chomp($htmldir);
+}
+else
+{
+    pr_die "The repository \"$git_project\" does not exist.";
+}
+
 
 
 ## only print the file links if the file is ok
@@ -121,20 +135,14 @@ END
 
 printheader();
 
-if ((-d $frontend_repo) && defined($aname) && (length($aname) > 0))
-{
-    chdir $frontend_repo;
-    $backend_repo_path = `git config mwiki.backend`;
-    chomp($backend_repo_path);
-}
-else
-{
-    pr_die "The repository \"$git_project\" does not exist or input file \"$input_file\" has bad name";
-}
-
 if(!(defined $backend_repo_path) || (length($backend_repo_path) == 0))
 {
     pr_die "No backend repository for the project $git_project";
+}
+
+if(!(defined $htmldir) || (length($htmldir) == 0))
+{
+    pr_die "No html directory for the project $git_project";
 }
 
 ## TODO: stolen from pre-receive.in, this should be re-factored
