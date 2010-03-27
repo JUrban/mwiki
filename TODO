@@ -139,3 +139,4 @@
   least for one PA, and others get motivated to actually give us the
   corresponding tools and work with us on their plugging-in and
   use. Without good testers and developers, it is not going to work.
+* TODO Factor out the CSS from the generated article HTML to a separate file
