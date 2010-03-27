@@ -63,7 +63,8 @@ HEAD=/usr/bin/head
 INSTALL=/usr/bin/install
 INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
 
-HTTPD_CONF_DIR=/etc/apache2/sites-enabled
+APACHE_ROOT=
+HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
 PUBLIC_MWIKI_USER=mwiki
 DEVEL_MWIKI_USER=mizdev
 
@@ -137,7 +138,7 @@ scratch-html: scratch-deps
 scratch: scratch-html
 
 public-repo-init: public-mwiki-user scratch
-	mkdir $(PUBLIC_REPO)
+	mkdir -p $(PUBLIC_REPO)
 	cp -R $(SCRATCH_BASE)/* $(PUBLIC_REPO)
 	cp -R $(SCRATCH_BASE)/.perl $(PUBLIC_REPO)
 	chown $(PUBLIC_MWIKI_USER) $(PUBLIC_REPO)
@@ -161,7 +162,7 @@ public-repo-init: public-mwiki-user scratch
 	  pre-commit post-commit $(PUBLIC_REPO)/.git/hooks
 
 devel-repo-init: devel-mwiki-user scratch
-	mkdir $(DEVEL_REPO)
+	mkdir -p $(DEVEL_REPO)
 	cp -R $(SCRATCH_BASE)/* $(DEVEL_REPO)
 	cp -R $(SCRATCH_BASE)/.perl $(DEVEL_REPO)
 	chown $(DEVEL_MWIKI_USER) $(DEVEL_REPO)
@@ -186,21 +187,22 @@ devel-repo-init: devel-mwiki-user scratch
 
 
 public-mwiki-user:
-	@adduser --shell=/usr/bin/git-shell \
+	-adduser --shell=/usr/bin/git-shell \
 	  --home=$(PUBLIC_REPOS_BASE) \
 	  $(PUBLIC_MWIKI_USER) \
 	    || echo "$(PUBLIC_MWIKI_USER) already exists"
-	chown -R $(PUBLIC_MWIKI_USER) $(REPOS_BASE)/public
-	chgrp -R $(PUBLIC_MWIKI_USER) $(REPOS_BASE)/public
+	-git daemon \
+	  --syslog \
+	  --base-path=$(PUBLIC_REPOS_BASE) \
+	  --user=$(PUBLIC_MWIKI_USER) \
+	  --detach
 
 devel-mwiki-user:
-	adduser --shell=/usr/bin/git-shell \
+	-adduser --shell=/usr/bin/git-shell \
 	  --disabled-password \
 	  --home=$(DEVEL_REPOS_BASE) \
 	  $(DEVEL_MWIKI_USER) \
 	    || echo "$(DEVEL_MWIKI_USER) already exists"
-	chown -R $(DEVEL_MWIKI_USER) $(REPOS_BASE)/devel
-	chgrp -R $(DEVEL_MWIKI_USER) $(REPOS_BASE)/devel
 
 public-compiled: scratch
 	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_COMPILED_REPO)
@@ -224,7 +226,7 @@ devel-sandbox: scratch # our dirty sandbox
 
 public-repo-export: public-repo-init
 	git clone --bare $(PUBLIC_REPO) $(BARE_PUBLIC_REPO)
-	install \
+	$(INSTALL) \
 	  --mode=644 \
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
 	  public-repo-description $(BARE_PUBLIC_REPO)/description
@@ -233,10 +235,11 @@ public-repo-export: public-repo-init
 	chmod 755 $(BARE_PUBLIC_REPO)/hooks/pre-receive
 	chown $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
 	chgrp $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
+	touch $(BARE_PUBLIC_REPO)/git-daemon-export-ok
 
 devel-repo-export: devel-repo-init
 	git clone --bare $(DEVEL_REPO) $(BARE_DEVEL_REPO)
-	install \
+	$(INSTALL) \
 	  --mode=644 \
 	  --owner=$(DEVEL_MWIKI_USER) --group=$(DEVEL_MWIKI_USER) \
 	  devel-repo-description $(BARE_DEVEL_REPO)/description
@@ -249,25 +252,30 @@ devel-repo-export: devel-repo-init
 gitweb: public-repo-export devel-repo-export
 	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/mwiki-public.git
 	ln -s $(BARE_DEVEL_REPO) $(GITWEB_ROOT)/mwiki-devel.git
-	install -m 644 gitweb /etc/apache2/sites-available/gitweb
-	cd /etc/apache2/sites-enabled && ln -s ../sites-available/gitweb gitweb
+	$(INSTALL) -m 644 gitweb $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
+	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
+	  && ln -s ../sites-available/gitweb gitweb
 	apache2ctl restart
 
 mwiki: public-repos
-	install -m 644 mwiki.apacheconf /etc/apache2/sites-available/mwiki
-	cd /etc/apache2/sites-enabled && ln -s ../sites-available/mwiki mwiki
+	$(INSTALL) -m 644 mwiki.apacheconf \
+	  $(APACHE_ROOT)/etc/apache2/sites-available/mwiki
+	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
+	  && ln -s ../sites-available/mwiki mwiki
 	apache2ctl restart
 
 clean:
 	rm -Rf $(REPOS_BASE)
 	rm -f $(GITWEB_ROOT)/mwiki-public.git
 	rm -f $(GITWEB_ROOT)/mwiki-devel.git
-	deluser $(PUBLIC_MWIKI_USER) || echo "user $(PUBLIC_MWIKI_USER) doesn't exist"
-	deluser $(DEVEL_MWIKI_USER) || echo "user $(DEVEL_MWIKI_USER) doesn't exist"
-	rm -f /etc/apache2/sites-available/gitweb
-	rm -f /etc/apache2/sites-enabled/mwiki
-	rm -f /etc/apache2/sites-available/mwiki
-	rm -f /etc/apache2/sites-enabled/gitweb
-	rm -f /var/log/apache2/gitweb.error.log
-	rm -f /var/log/apache2/gitweb.access.log
+	deluser $(PUBLIC_MWIKI_USER) \
+	  || echo "user $(PUBLIC_MWIKI_USER) doesn't exist"
+	deluser $(DEVEL_MWIKI_USER) \
+	  || echo "user $(DEVEL_MWIKI_USER) doesn't exist"
+	rm -f $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
+	rm -f $(APACHE_ROOT)/etc/apache2/sites-enabled/mwiki
+	rm -f $(APACHE_ROOT)/etc/apache2/sites-available/mwiki
+	rm -f $(APACHE_ROOT)/etc/apache2/sites-enabled/gitweb
+	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.error.log
+	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.access.log
 	apache2ctl restart
