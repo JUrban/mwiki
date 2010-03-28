@@ -30,6 +30,10 @@ my $compiled = $cwd . "/" . "../compiled";
 my $sandbox = $cwd . "/" . "../sandbox";
 my $sandbox_mml = $sandbox . "/" . "mml";
 
+my $wikihost=`git config mwiki.wikihost`;
+chomp($wikihost);
+
+
 chdir ($sandbox);
 if (!defined ($ENV{"MIZBIN"}) or -z $ENV{"MIZBIN"}) {
   $ENV{"MIZBIN"} = $sandbox . "/bin";
@@ -43,10 +47,10 @@ if (defined ($ENV{"MAKEJOBS"})) {
 
 $ENV{"MIZFILES"} = $sandbox;
 system ("make --jobs $makejobs absrefs 2> make-absrefs-err | tee make-absrefs-out");
-system ("make --jobs $makejobs htmls 2> make-htmls-err | tee make-htmls-out");
+system ("make --jobs $makejobs htmls WIKIHOST=$wikihost GITPROJECT=$repo_name.git 2> make-htmls-err | tee make-htmls-out");
 
 chdir ($sandbox_mml);
-`../.perl/mkmmlindex.pl *.hdr > ../html/index.html`;
+`../.perl/mkmmlindex.pl -ghttp://$wikihost:1234/ -p$repo_name.git *.hdr > ../html/index.html`;
 chdir ($cwd);
 
 # Copy the sandbox: force compiled to be a copy of the known compiled MML.
