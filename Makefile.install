@@ -52,7 +52,7 @@ DEVEL_COMPILED_REPO=$(DEVEL_REPOS_BASE)/compiled
 BARE_PUBLIC_REPO=$(PUBLIC_REPOS_BASE)/mwiki.git
 BARE_DEVEL_REPO=$(DEVEL_REPOS_BASE)/mwiki.git
 REPOBIN=$(PUBLIC_REPO)/bin
-MIZBIN=$(MIZFILES)/bin;
+MIZBIN=$(MIZFILES)/bin
 MAKEJOBS=1
 SHEETS=addabsrefs miz evl2dep
 PERLSCRIPTS=mkxmlhead mkmmlindex duplicates
@@ -268,6 +268,7 @@ clean:
 	rm -Rf $(REPOS_BASE)
 	rm -f $(GITWEB_ROOT)/mwiki-public.git
 	rm -f $(GITWEB_ROOT)/mwiki-devel.git
+	-killall git-daemon
 	deluser $(PUBLIC_MWIKI_USER) \
 	  || echo "user $(PUBLIC_MWIKI_USER) doesn't exist"
 	deluser $(DEVEL_MWIKI_USER) \
