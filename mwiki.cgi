@@ -251,44 +251,50 @@ if($action eq "edit")
     }
 
     print<<END;
- <div  class="wikiactions">
-    <ul>
-         <li> <a href="javascript:javascript:history.go(-1)">Cancel</a> </li>
-         <li> <a href="$lgitwebcgi?p=$git_project;a=history;f=$input_file">History</a> </li>
-         <li> <a href="$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
-         <li> <a href="$lgitwebcgi?p=$git_project">Gitweb</a> </li>
-    </ul>
+ <div class="wikiactions">
+  <ul>
+     <li><a href="javascript:javascript:history.go(-1)">Cancel</a></li>
+     <li><a href="$lgitwebcgi?p=$git_project;a=history;f=$input_file">History</a> </li>
+     <li><a href="$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
+     <li><a href="$lgitwebcgi?p=$git_project">Gitweb</a> </li>
+  </ul>
 </div>
-    <dl>
-      <dd>
-        <FORM METHOD="POST"  ACTION="mwiki.cgi" enctype="multipart/form-data">
-         <br>
-          <table>
-            <tr>
-	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="Formula" ID="ProblemSourceRadioButton" CHECKED>Edit article<br/>
-		<textarea name="Formula" tabindex="3"  rows="40" cols="90" id="FORMULAEProblemTextBox">$old_content</textarea><TR VALIGN=TOP>
-	      </td>
-	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="UPLOAD">Article file to upload (not supported yet)<BR>
-		<input type="file" name="UPLOADProblem"  size="20" /><TR VALIGN=TOP></TD>
-                <input type="hidden" name="p" value="$git_project">
-                <input type="hidden" name="a" value="commit">
-                <input type="hidden" name="f" value="$input_file">
-<!--	      <TD> <INPUT TYPE="RADIO" NAME="ProblemSource" VALUE="URL" >URL to fetch article from<BR> -->
-<!--		<input type="text" name="FormulaURL" tabindex="4"  size="80" /><TR VALIGN=TOP></TD> -->
-<!--	      <TD> <INPUT TYPE="CHECKBOX" NAME="VocSource" VALUE="UPLOAD"> -->
-<!--		Optional vocabulary file to upload (its name will be kept)<BR> -->
-<!--		<input type="file" name="VocFile"  size="20" /></TD> -->
-            </tr>
-            <tr>
-              <td align=right>
-                <INPUT TYPE="submit" VALUE="Submit">
-                <INPUT TYPE="reset" VALUE="Reset">
-              </td>
-            </tr>
-          </table>
-        </FORM>
-      </dd>
-    </dl>
+<dl>
+  <dd>
+    <form method="post" action="mwiki.cgi" enctype="multipart/form-data">
+    <br>
+    <table>
+      <tr>
+        <td>
+          <input type="radio" name="ProblemSource" value="Formula" id="ProblemSourceRadioButton" checked>Edit article<br/>
+          <textarea name="Formula" tabindex="3"  rows="40" cols="90" id="FORMULAEProblemTextBox">$old_content</textarea>
+        <tr valign="top">
+        </td>
+        <td>
+          <input type="radio" name="ProblemSource" value="UPLOAD">Article file to upload (not supported yet)
+          <br/>
+          <input type="file" name="UPLOADProblem"  size="20" />
+        <tr valign="top">
+        </td>
+          <input type="hidden" name="p" value="$git_project">
+          <input type="hidden" name="a" value="commit">
+          <input type="hidden" name="f" value="$input_file">
+        <!--	<td> <input type="radio" name="ProblemSource" value="URL" >URL to fetch article from<br> -->
+        <!--	<input type="text" name="FormulaURL" tabindex="4"  size="80" /><TR VALIGN=TOP></TD> -->
+        <!-- <td> <input type="checkbox" name="VocSource" value="UPLOAD"> -->
+        <!--	Optional vocabulary file to upload (its name will be kept)<BR> -->
+        <!--	<input type="file" name="VocFile"  size="20" /></TD> -->
+      </tr>
+      <tr>
+        <td align=right>
+          <input type="submit" value="Submit">
+          <input type="reset" value="Reset">
+         </td>
+       </tr>
+     </table>
+   </form>
+ </dd>
+ </dl>
 END
 
 }
