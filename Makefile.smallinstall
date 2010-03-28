@@ -57,6 +57,9 @@ HEAD=/usr/bin/head
 INSTALL=/usr/bin/install
 INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
 
+# this should be passed as arg - e.g. mws.cs.ru.nl
+SERVERNAME=localhost
+
 APACHE_ROOT=
 HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
 PUBLIC_MWIKI_USER=mwiki
@@ -189,6 +192,10 @@ public-repo-export: public-repo-init
 	chown $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
 	chgrp $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
 	touch $(BARE_PUBLIC_REPO)/git-daemon-export-ok
+	cd $(BARE_PUBLIC_REPO) && git config core.sharedRepository true \
+           && git config daemon.receivepack true \
+           && git config mwiki.backend $(PUBLIC_REPO) \
+           && git config mwiki.htmldir http://$(SERVERNAME)/mwiki 
 
 
 gitweb: public-repo-export 
