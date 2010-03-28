@@ -96,6 +96,9 @@ my $backend_repo_path = "";
 # the directory with the htmlized wiki files (needed for index and other links)
 my $htmldir       = "";
 
+# the wikihost, and the true cgi path
+my $wikihost= "";
+
 if (-d $frontend_repo)
 {
     chdir $frontend_repo;
@@ -103,6 +106,9 @@ if (-d $frontend_repo)
     chomp($backend_repo_path);
     $htmldir = `$git config mwiki.htmldir`;
     chomp($htmldir);
+    $wikihost=`$git config mwiki.wikihost`;
+    chomp($wikihost);
+    $lgitwebcgi="http://$wikihost:1234/";
 }
 else
 {
