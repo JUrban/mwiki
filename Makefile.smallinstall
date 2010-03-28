@@ -202,6 +202,7 @@ public-repo-export: public-repo-init
            && git config mwiki.backend $(PUBLIC_REPO)/ \
            && git config mwiki.wikihost $(WIKIHOST) \
            && git config mwiki.htmldir http://$(WIKIHOST)/mwiki 
+	cd $(PUBLIC_REPO) && git remote add frontend $(BARE_PUBLIC_REPO)
 
 
 gitweb: public-repo-export 
