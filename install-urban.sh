@@ -18,4 +18,5 @@ make -f Makefile.smallinstall $targets \
     XSL4MIZ=$xsl4miz \
     NUM_ARTICLES=$num_articles \
     PUBLIC_MWIKI_USER=mwuser \
-    MAKEJOBS=2
+    MAKEJOBS=2 \
+    WIKIHOST=localhost
