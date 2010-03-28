@@ -58,7 +58,10 @@ INSTALL=/usr/bin/install
 INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
 
 # this should be passed as arg - e.g. mws.cs.ru.nl
-SERVERNAME=localhost
+WIKIHOST=localhost
+
+# path to you cgi-bin directory, where mwiki goes
+CGILIB=/usr/lib/cgi-bin
 
 APACHE_ROOT=
 HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
@@ -126,7 +129,7 @@ scratch-deps: scratch-mizfiles
 	@$(MAKE) -C $(SCRATCH_BASE)/mml -j $(MAKEJOBS) evls deps MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH)
 
 scratch-html: scratch-deps
-	@$(MAKE) -C $(SCRATCH_BASE) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH)
+	@$(MAKE) -C $(SCRATCH_BASE) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH) WIKIHOST=$(WIKIHOST) GITPROJECT=mwiki.git
 
 scratch: scratch-html
 
@@ -146,7 +149,9 @@ public-repo-init: public-mwiki-user scratch
 	  --mode 644 \
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
 	  public-repo-description $(PUBLIC_REPO)/.git/description
-	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.'
+	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.' \
+           && git config mwiki.wikihost $(WIKIHOST) \
+           && git config mwiki.htmldir http://$(WIKIHOST)/mwiki 
 
 	$(INSTALL) \
 	  --mode 755 \
@@ -194,18 +199,22 @@ public-repo-export: public-repo-init
 	touch $(BARE_PUBLIC_REPO)/git-daemon-export-ok
 	cd $(BARE_PUBLIC_REPO) && git config core.sharedRepository true \
            && git config daemon.receivepack true \
-           && git config mwiki.backend $(PUBLIC_REPO) \
-           && git config mwiki.htmldir http://$(SERVERNAME)/mwiki 
+           && git config mwiki.backend $(PUBLIC_REPO)/ \
+           && git config mwiki.wikihost $(WIKIHOST) \
+           && git config mwiki.htmldir http://$(WIKIHOST)/mwiki 
 
 
 gitweb: public-repo-export 
-	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/mwiki-public.git
+	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/mwiki.git
 	$(INSTALL) -m 644 gitweb $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -s ../sites-available/gitweb gitweb
 	apache2ctl restart
 
 mwiki: public-repos
+	mkdir -p $(CGILIB)/mwiki
+	$(INSTALL) -m 755 mwiki.cgi \
+	  $(CGILIB)/mwiki/mwiki.cgi
 	$(INSTALL) -m 644 mwiki.apacheconf \
 	  $(APACHE_ROOT)/etc/apache2/sites-available/mwiki
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
@@ -214,7 +223,7 @@ mwiki: public-repos
 
 clean:
 	rm -Rf $(REPOS_BASE)
-	rm -f $(GITWEB_ROOT)/mwiki-public.git
+	rm -f $(GITWEB_ROOT)/mwiki.git
 	-killall git-daemon
 	deluser $(PUBLIC_MWIKI_USER) \
 	  || echo "user $(PUBLIC_MWIKI_USER) doesn't exist"
