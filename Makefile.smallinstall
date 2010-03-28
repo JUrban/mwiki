@@ -1,0 +1,220 @@
+# -*- mode: makefile; -*-
+
+# An install script, as Makefile, to set up the initial installation
+# of the mizar wiki.  We will probably run this only a handful of
+# times.
+
+# The following should be present in the environment or as argments to
+# `make':
+#
+# - REPOS_BASE: the root directory where our repos -- the backend and
+#   the bare frontend -- will be stored
+#
+# - MIZFILES: the root directory of a mizar installation.  It should
+#   contain data files mml.lar etc, the prel subdirectory, and the mml
+#   subdirectory.
+#
+# - XSL4MIZ: root directory of Josef Urban's xsl4mizar code.
+#
+# One can optionally specify:
+#
+# - MIZBIN: default: $(MIZFILES)/bin.  The directory where the mizar
+#   binaries are held
+#
+# - MAKEJOBS: default 1.  The degree of parallelization used by make
+#   when computing the initial HTML-ized presentation of the MML
+#
+# - NUM_ARTICLES: default 10.  The length of the initial segment of
+#   mml.lar (taken from MIZFILES).  Set it to a big value to ensure
+#   that the entire current MML is used; set it to a low-value for
+#   debugging purposes.
+#
+# - MWIKI_USER: default "mwiki".  The name of the unix user to add that
+#   will preside over the whole mess.
+#
+# - INSTALL: default /usr/bin/install.  If this is GNU install, then
+#   no need to adjust.  (On Mac OX X, /usr/bin/install is not GNU
+#   install, so I need to set this value to "ginstall".)
+#
+# - HEAD: default /usr/bin/head.  See description of INSTALL variable.
+
+PUBLIC_REPO_NAME=mwiki-public
+SCRATCH_BASE=$(REPOS_BASE)/scratch
+PUBLIC_REPOS_BASE=$(REPOS_BASE)/public
+PUBLIC_REPO=$(REPOS_BASE)/public/mwiki
+PUBLIC_SANDBOX=$(PUBLIC_REPOS_BASE)/sandbox
+PUBLIC_COMPILED_REPO=$(PUBLIC_REPOS_BASE)/compiled
+BARE_PUBLIC_REPO=$(PUBLIC_REPOS_BASE)/mwiki.git
+REPOBIN=$(PUBLIC_REPO)/bin
+MIZBIN=$(MIZFILES)/bin
+MAKEJOBS=1
+SHEETS=addabsrefs miz evl2dep
+PERLSCRIPTS=mkxmlhead mkmmlindex duplicates
+PERLMODULES=mizar
+GITWEB_ROOT=/var/cache/git
+NUM_ARTICLES=10
+HEAD=/usr/bin/head
+INSTALL=/usr/bin/install
+INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
+
+APACHE_ROOT=
+HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
+PUBLIC_MWIKI_USER=mwiki
+
+# .PHONY: all repo sandbox deps xml repo-miz repo-prel repo-perl repo-bin repo-xsl repo-export repo-gitinit repo-makefiles
+
+MIZBINARIES=accom envget exporter makeenv transfer verifier
+
+MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
+
+repos: public-repos gitweb mwiki
+	rm -Rf $(SCRATCH_BASE) # no need for this anymore
+
+public-repos: public-repo-init public-sandbox public-compiled public-repo-export
+	chown -R $(PUBLIC_MWIKI_USER) $(PUBLIC_REPOS_BASE)
+	chgrp -R $(PUBLIC_MWIKI_USER) $(PUBLIC_REPOS_BASE)
+
+
+scratch-mizfiles:
+	# .miz
+	mkdir -p $(SCRATCH_BASE)/mml
+	for article in hidden tarski $(INITIAL_SEGMENT); do \
+	  $(INSTALL) --preserve-timestamps --mode=644 $(MIZFILES)/mml/$$article.miz $(SCRATCH_BASE)/mml; \
+	done
+	# prel
+	mkdir -p $(SCRATCH_BASE)/prel
+	cp -p $(MIZFILES)/prel/h/hidden.* $(SCRATCH_BASE)/prel
+	cp -p $(MIZFILES)/prel/*/*.dre $(SCRATCH_BASE)/prel
+	chown -R $(PUBLIC_MWIKI_USER) $(SCRATCH_BASE)/prel
+	# data
+	for rootfile in $(MIZROOTFILES); do \
+	  cp -p $(MIZFILES)/$$rootfile $(SCRATCH_BASE); \
+	done
+	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(SCRATCH_BASE)/mml.lar
+	# bin
+	mkdir -p $(SCRATCH_BASE)/bin
+	for binary in $(MIZBINARIES); do \
+	  $(INSTALL) --mode 755 $(MIZBIN)/$$binary $(SCRATCH_BASE)/bin/$$binary; \
+	done
+	# data
+	for rootfile in $(MIZROOTFILES); do \
+	  cp -p $(MIZFILES)/$$rootfile $(SCRATCH_BASE); \
+	done
+	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(SCRATCH_BASE)/mml.lar
+	# xsl
+	mkdir -p $(SCRATCH_BASE)/xsl
+	for sheet in $(SHEETS); do \
+	  $(INSTALL) --mode 644 $(XSL4MIZ)/$$sheet.xsl $(SCRATCH_BASE)/xsl; \
+	done
+	# perl
+	mkdir -p $(SCRATCH_BASE)/.perl
+	for perlfile in $(PERLMODULES); do \
+	  $(INSTALL) --mode 644 $$perlfile.pm $(SCRATCH_BASE)/.perl; \
+	done
+	for perlfile in $(PERLSCRIPTS); do \
+	  $(INSTALL) --mode 755 $$perlfile.pl $(SCRATCH_BASE)/.perl; \
+	done
+	# makefiles
+	$(INSTALL) --mode 644 Makefile.repo $(SCRATCH_BASE)/Makefile
+	$(INSTALL) --mode 644 Makefile-depsrepo $(SCRATCH_BASE)/mml/Makefile
+
+scratch-deps: scratch-mizfiles
+	touch $(SCRATCH_BASE)/mml/hidden-prel # everything depends on hidden-prel
+	@$(MAKE) -C $(SCRATCH_BASE)/mml -j $(MAKEJOBS) evls deps MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH)
+
+scratch-html: scratch-deps
+	@$(MAKE) -C $(SCRATCH_BASE) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH)
+
+scratch: scratch-html
+
+public-repo-init: public-mwiki-user scratch
+	mkdir -p $(PUBLIC_REPO)
+	cp -R $(SCRATCH_BASE)/* $(PUBLIC_REPO)
+	cp -R $(SCRATCH_BASE)/.perl $(PUBLIC_REPO)
+	chown $(PUBLIC_MWIKI_USER) $(PUBLIC_REPO)
+	chgrp $(PUBLIC_MWIKI_USER) $(PUBLIC_REPO)
+
+	cd $(PUBLIC_REPO) && git init
+	$(INSTALL) \
+	  --mode 644 \
+	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
+	  mml-gitignore $(PUBLIC_REPO)/.gitignore
+	$(INSTALL) \
+	  --mode 644 \
+	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
+	  public-repo-description $(PUBLIC_REPO)/.git/description
+	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.'
+
+	$(INSTALL) \
+	  --mode 755 \
+	  --owner=$(PUBLIC_MWIKI_USER) \
+	  --group=$(PUBLIC_MWIKI_USER) \
+	  pre-commit post-commit $(PUBLIC_REPO)/.git/hooks
+
+
+
+public-mwiki-user:
+	-adduser --shell=/usr/bin/git-shell \
+	  --home=$(PUBLIC_REPOS_BASE) \
+	  $(PUBLIC_MWIKI_USER) \
+	    || echo "$(PUBLIC_MWIKI_USER) already exists"
+	-git daemon \
+	  --syslog \
+	  --base-path=$(PUBLIC_REPOS_BASE) \
+	  --user=$(PUBLIC_MWIKI_USER) \
+	  --detach
+
+
+public-compiled: scratch
+	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_COMPILED_REPO)
+#                                ===> ^ <===
+# trailing slash -- see the rsync man page to learn why it's there
+
+
+public-sandbox: scratch # our dirty sandbox
+	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_SANDBOX)
+#                                ===> ^ <===
+# trailing slash -- see the rsync man page to learn why it's there
+
+
+public-repo-export: public-repo-init
+	git clone --bare $(PUBLIC_REPO) $(BARE_PUBLIC_REPO)
+	$(INSTALL) \
+	  --mode=644 \
+	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
+	  public-repo-description $(BARE_PUBLIC_REPO)/description
+	sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g" < pre-receive.in \
+	  > $(BARE_PUBLIC_REPO)/hooks/pre-receive
+	chmod 755 $(BARE_PUBLIC_REPO)/hooks/pre-receive
+	chown $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
+	chgrp $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
+	touch $(BARE_PUBLIC_REPO)/git-daemon-export-ok
+
+
+gitweb: public-repo-export 
+	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/mwiki-public.git
+	$(INSTALL) -m 644 gitweb $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
+	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
+	  && ln -s ../sites-available/gitweb gitweb
+	apache2ctl restart
+
+mwiki: public-repos
+	$(INSTALL) -m 644 mwiki.apacheconf \
+	  $(APACHE_ROOT)/etc/apache2/sites-available/mwiki
+	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
+	  && ln -s ../sites-available/mwiki mwiki
+	apache2ctl restart
+
+clean:
+	rm -Rf $(REPOS_BASE)
+	rm -f $(GITWEB_ROOT)/mwiki-public.git
+	-killall git-daemon
+	deluser $(PUBLIC_MWIKI_USER) \
+	  || echo "user $(PUBLIC_MWIKI_USER) doesn't exist"
+	rm -f $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
+	rm -f $(APACHE_ROOT)/etc/apache2/sites-enabled/mwiki
+	rm -f $(APACHE_ROOT)/etc/apache2/sites-available/mwiki
+	rm -f $(APACHE_ROOT)/etc/apache2/sites-enabled/gitweb
+	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.error.log
+	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.access.log
+	apache2ctl restart
