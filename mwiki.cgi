@@ -208,6 +208,7 @@ if($action eq "commit")
     $ENV{GIT_DIR}
 	= $backend_repo_path . "/" . ".git"; # GIT_DIR is set to "." by git
     chdir $backend_repo_path;              # before executing this hook!
+    pr_print ("Adding $input_file to $backend_repo_path");
     system ("$git add $input_file 2>&1");
     my $git_add_exit_code = ($? >> 8);
     unless ($git_add_exit_code == 0) 
@@ -215,14 +216,14 @@ if($action eq "commit")
 	pr_print ("Error adding the new mizar files to the backend repository:");
 	pr_print ("The exit code was $git_add_exit_code");
 
-	system ("$git reset HEAD 2>&1");
-	system ("$git checkout -- 2>&1");
+	system ("$git reset --hard 2>&1");
 
 	pr_die "";
     }
 
 # We've successful added new files to the repo -- let's commit!
-    $ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
+#    $ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
+    chdir $backend_repo_path;              # before executing this hook!
     my $git_commit_output 
 	= system ("$git commit -m 'Web commit' 2>&1");
     my $git_commit_exit_code = ($? >> 8);
@@ -231,8 +232,7 @@ if($action eq "commit")
 	pr_print ("Error commiting to the backend repository:");
 	pr_print ("The exit code was $git_commit_exit_code");
 
-	system ("$git reset HEAD 2>&1");
-	system ("$git checkout -- 2>&1");
+	system ("$git reset --hard 2>&1");
 
 	pr_die "";
     }
