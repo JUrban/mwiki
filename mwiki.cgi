@@ -246,6 +246,7 @@ if($action eq "commit")
     }
 
 # now push to frontend, disabling pre-receive
+    pr_print ("Pushing the commit to frontend");
     my $mv_out = system("/bin/mv -f $frontend_repo/hooks/pre-receive $frontend_repo/hooks/pre-receive.old 2>&1");
     my $git_push_output 
 	= system("$git push frontend HEAD 2>&1");
@@ -256,6 +257,7 @@ if($action eq "commit")
 	pr_print ("The exit code was $git_push_exit_code");
     }
     system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
+    pr_print ("All OK!");
 }
 
 ## the action for editing
