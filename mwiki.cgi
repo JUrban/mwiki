@@ -317,7 +317,7 @@ if($action eq "edit")
       <tr>
               <td align=top>
 	      Commit message (mandatory):<br>
-                <textarea name="Message" tabindex="3"  rows="2" cols="40" id="MessageTextBox">
+                <textarea name="Message" tabindex="3"  rows="2" cols="40" id="MessageTextBox"/>
               </td>
             </tr>
       <tr>
