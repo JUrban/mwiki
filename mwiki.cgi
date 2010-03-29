@@ -34,6 +34,7 @@ my $git_project	  = $query->param('p');
 # these exist only when commiting
 my $ProblemSource = $query->param('ProblemSource');
 my $input_article = $query->param('Formula');
+my $message       = $query->param('Message');
 
 # this is required to untaint backticks
 $ENV{"PATH"} = "";
@@ -88,7 +89,6 @@ if ((defined $action) && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/)))
     $action = $1;
 }
 else { pr_die("Unknown action \"$action\"."); }
-
 
 my $frontend_repo = $frontend_dir . $git_project;
 my $backend_repo_path = "";
@@ -167,6 +167,12 @@ if($action eq "commit")
 {
     printcommitheader();
 
+    if(defined($message) && ($message =~ /^[^']+$/) && ($message =~ /^\s*(\S+)\s*$/))
+    {
+	$message = $1;
+    }
+    else { pr_die("Bad commit message: \"$message\" "); }
+
     unless (length($input_article) < 1000000) 
     {
 	pr_die ("Suspicious: the .miz file $input_file is bigger than one megabyte");
@@ -227,7 +233,7 @@ if($action eq "commit")
 #    $ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
     chdir $backend_repo_path;              # before executing this hook!
     my $git_commit_output 
-	= system ("$git commit -m 'Web commit' 2>&1");
+	= system ("$git commit -m '$message' 2>&1");
     my $git_commit_exit_code = ($? >> 8);
     unless ($git_commit_exit_code == 0) 
     {
@@ -240,6 +246,7 @@ if($action eq "commit")
     }
 
 # now push to frontend, disabling pre-receive
+    pr_print ("Pushing the commit to frontend");
     my $mv_out = system("/bin/mv -f $frontend_repo/hooks/pre-receive $frontend_repo/hooks/pre-receive.old 2>&1");
     my $git_push_output 
 	= system("$git push --verbose frontend HEAD 2>&1");
@@ -247,9 +254,12 @@ if($action eq "commit")
     unless ($git_push_exit_code == 0) 
     {
 	pr_print ("Error pushing to the frontend repository: $git_push_output :: $mv_out");
-	pr_print ("The exit code was $git_push_exit_code");
+	system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
+	pr_die ("The exit code was $git_push_exit_code");
+
     }
     system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
+    pr_print ("All OK!");
 }
 
 ## the action for editing
@@ -292,7 +302,7 @@ if($action eq "edit")
         <td>
           <input type="radio" name="ProblemSource" value="UPLOAD">Article file to upload (not supported yet)
           <br/>
-          <input type="file" name="UPLOADProblem"  size="20" />
+          <input type="file" name="UPLOADProblem"  size="30" />
         <tr valign="top">
         </td>
           <input type="hidden" name="p" value="$git_project">
@@ -304,6 +314,12 @@ if($action eq "edit")
         <!--	Optional vocabulary file to upload (its name will be kept)<BR> -->
         <!--	<input type="file" name="VocFile"  size="20" /></TD> -->
       </tr>
+      <tr>
+              <td align=top>
+	      Commit message (mandatory):<br>
+                <INPUT TYPE="text" NAME="Message" VALUE="" SIZE="30">
+              </td>
+            </tr>
       <tr>
         <td align=right>
           <input type="submit" value="Submit">
