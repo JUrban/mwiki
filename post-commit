@@ -30,7 +30,7 @@ if (defined ($ENV{"MAKEJOBS"})) {
   $makejobs = $ENV{"MAKEJOBS"};
 }
 else {
-    $makejobs = `$git config mwiki.makejobs`;
+    $makejobs = `git config mwiki.makejobs`;
     chomp($makejobs);
 }
 
