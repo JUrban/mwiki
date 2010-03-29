@@ -51,6 +51,10 @@ my @mml_changed = ();
 my @non_mml_changed = ();
 
 my $cwd = getcwd ();
+
+# untaint 
+if($cwd =~ /(.*)/) { $cwd = $1; }  
+
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
 my $main_repo = $cwd;
