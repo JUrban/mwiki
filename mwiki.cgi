@@ -292,7 +292,7 @@ if($action eq "edit")
         <td>
           <input type="radio" name="ProblemSource" value="UPLOAD">Article file to upload (not supported yet)
           <br/>
-          <input type="file" name="UPLOADProblem"  size="20" />
+          <input type="file" name="UPLOADProblem"  size="30" />
         <tr valign="top">
         </td>
           <input type="hidden" name="p" value="$git_project">
@@ -304,6 +304,12 @@ if($action eq "edit")
         <!--	Optional vocabulary file to upload (its name will be kept)<BR> -->
         <!--	<input type="file" name="VocFile"  size="20" /></TD> -->
       </tr>
+      <tr>
+              <td align=top>
+	      Commit message (mandatory):<br>
+                <INPUT TYPE="text" NAME="Message" VALUE="" SIZE="30">
+              </td>
+            </tr>
       <tr>
         <td align=right>
           <input type="submit" value="Submit">
