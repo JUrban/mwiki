@@ -231,7 +231,7 @@ if($action eq "commit")
     my $git_commit_exit_code = ($? >> 8);
     unless ($git_commit_exit_code == 0) 
     {
-	pr_print ("Error commiting to the backend repository:");
+	pr_print ("Error commiting to the backend repository: $git_commit_output");
 	pr_print ("The exit code was $git_commit_exit_code");
 
 	system ("$git reset --hard 2>&1");
