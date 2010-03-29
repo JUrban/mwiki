@@ -242,7 +242,7 @@ if($action eq "commit")
 # now push to frontend, disabling pre-receive
     my $mv_out = system("/bin/mv -f $frontend_repo/hooks/pre-receive $frontend_repo/hooks/pre-receive.old 2>&1");
     my $git_push_output 
-	= system("$git push frontend HEAD 2>&1");
+	= system("$git push --verbose frontend HEAD 2>&1");
     my $git_push_exit_code = ($? >> 8);
     unless ($git_push_exit_code == 0) 
     {
