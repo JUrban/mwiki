@@ -1,3 +1,4 @@
+# -*- mode: conf; -*-
 Alias /mwiki "/var/cache/mwiki/public/mwiki/html"
 <Directory /mwiki>
   Options Indexes FollowSymLinks MultiViews
