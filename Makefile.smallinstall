@@ -214,7 +214,8 @@ gitweb: public-repo-export
 
 mwiki: public-repos
 	mkdir -p $(CGILIB)/mwiki
-	$(INSTALL) -m 755 mwiki.cgi \
+	$(INSTALL) -m 755 \
+           --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) mwiki.cgi \
 	  $(CGILIB)/mwiki/mwiki.cgi
 	$(INSTALL) -m 644 mwiki.apacheconf \
 	  $(APACHE_ROOT)/etc/apache2/sites-available/mwiki
