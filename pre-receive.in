@@ -274,8 +274,7 @@ unless ($git_add_exit_code == 0) {
   pr_print ("Error adding the new mizar files to the backend repository:");
   pr_print ("The exit code was $git_add_exit_code");
 
-  system ("git reset HEAD 2>&1");
-  system ("git checkout -- 2>&1");
+  system ("git reset --hard 2>&1");
 #  move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
 
   exit 1;
@@ -289,8 +288,7 @@ unless ($git_commit_exit_code == 0) {
   pr_print ("Error commiting to the backend repository:");
   pr_print ("The exit code was $git_commit_exit_code");
 
-  system ("git reset HEAD 2>&1");
-  system ("git checkout -- 2>&1");
+  system ("git reset --hard 2>&1");
 
   # The commit failed, so we need to resurrect the files in purgatory
 #  move_all_files_from_to ($purgatory_mml, $backend_repo_mml);

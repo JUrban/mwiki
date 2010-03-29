@@ -5,6 +5,8 @@ MIZ = $(patsubst %, %.miz, $(MMLLAR))
 VPATH = mml
 export SHELL=/bin/bash
 ECHO = /bin/echo
+WIKIHOST=mws.cs.ru.nl
+GITPROJECT=mw1.git
 
 # .PHONY is a bad bad thing, it remakes the target all over; don't use this
 #.PHONY: deps
@@ -71,7 +73,7 @@ absrefs: $(patsubst %, %-absrefs.xml, $(MMLLAR))
 	  xsl/addabsrefs.xsl mml/$*.xmlvrf
 
 htmls: $(patsubst %, %.html, $(MMLLAR))
-	.perl/mkmmlindex.pl mml/*.hdr > html/index.html
+	.perl/mkmmlindex.pl -ghttp://$(WIKIHOST):1234/ -p$(GITPROJECT) mml/*.hdr > html/index.html
 
 %.html: %-absrefs.xml %.hdr
 	@$(ECHO) $(html-tag) $*
@@ -87,6 +89,8 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 	  --param ajax_proofs 1 \
 	  --param ajax_proof_dir \'proofs\' \
 	  --param wiki_links 1 \
+	  --param lwikihost \'$(WIKIHOST)\' \
+	  --param lgitproject \'$(GITPROJECT)\' \
 	  --output html/$*.html \
 	  xsl/miz.xsl mml/$*-absrefs.xml
 	@touch mml/$*.html

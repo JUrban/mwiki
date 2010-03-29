@@ -7,10 +7,27 @@
 
 use strict;
 use File::Basename;
+use Getopt::Long;
+use Pod::Usage;
 
 ## TODO: this two should be options
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
 my $git_project = "mw1.git";
+
+my ($help, $man);
+
+Getopt::Long::Configure ("bundling");
+
+GetOptions('gitwebcgi|g=s'    => \$lgitwebcgi,
+	   'project|p=s'    => \$git_project,
+	   'help|h'          => \$help,
+	   'man'             => \$man)
+    or pod2usage(2);
+
+pod2usage(1) if($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if($man);
+
+pod2usage(2) if ($#ARGV < 0);
 
 my ($title, $authors, $date, $copyright);
 $title = "";

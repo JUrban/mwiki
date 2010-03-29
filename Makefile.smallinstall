@@ -39,18 +39,12 @@
 # - HEAD: default /usr/bin/head.  See description of INSTALL variable.
 
 PUBLIC_REPO_NAME=mwiki-public
-DEVEL_REPO_NAME=mwiki-devel
 SCRATCH_BASE=$(REPOS_BASE)/scratch
 PUBLIC_REPOS_BASE=$(REPOS_BASE)/public
-DEVEL_REPOS_BASE=$(REPOS_BASE)/devel
 PUBLIC_REPO=$(REPOS_BASE)/public/mwiki
 PUBLIC_SANDBOX=$(PUBLIC_REPOS_BASE)/sandbox
 PUBLIC_COMPILED_REPO=$(PUBLIC_REPOS_BASE)/compiled
-DEVEL_REPO=$(REPOS_BASE)/devel/mwiki
-DEVEL_SANDBOX=$(DEVEL_REPOS_BASE)/sandbox
-DEVEL_COMPILED_REPO=$(DEVEL_REPOS_BASE)/compiled
 BARE_PUBLIC_REPO=$(PUBLIC_REPOS_BASE)/mwiki.git
-BARE_DEVEL_REPO=$(DEVEL_REPOS_BASE)/mwiki.git
 REPOBIN=$(PUBLIC_REPO)/bin
 MIZBIN=$(MIZFILES)/bin
 MAKEJOBS=1
@@ -63,10 +57,15 @@ HEAD=/usr/bin/head
 INSTALL=/usr/bin/install
 INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
 
+# this should be passed as arg - e.g. mws.cs.ru.nl
+WIKIHOST=localhost
+
+# path to you cgi-bin directory, where mwiki goes
+CGILIB=/usr/lib/cgi-bin
+
 APACHE_ROOT=
 HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
 PUBLIC_MWIKI_USER=mwiki
-DEVEL_MWIKI_USER=mizdev
 
 # .PHONY: all repo sandbox deps xml repo-miz repo-prel repo-perl repo-bin repo-xsl repo-export repo-gitinit repo-makefiles
 
@@ -74,16 +73,13 @@ MIZBINARIES=accom envget exporter makeenv transfer verifier
 
 MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
 
-repos: public-repos devel-repos gitweb mwiki
+repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
 
 public-repos: public-repo-init public-sandbox public-compiled public-repo-export
 	chown -R $(PUBLIC_MWIKI_USER) $(PUBLIC_REPOS_BASE)
 	chgrp -R $(PUBLIC_MWIKI_USER) $(PUBLIC_REPOS_BASE)
 
-devel-repos: devel-repo-init devel-sandbox devel-compiled devel-repo-export
-	chown -R $(DEVEL_MWIKI_USER) $(DEVEL_REPOS_BASE)
-	chgrp -R $(DEVEL_MWIKI_USER) $(DEVEL_REPOS_BASE)
 
 scratch-mizfiles:
 	# .miz
@@ -133,7 +129,7 @@ scratch-deps: scratch-mizfiles
 	@$(MAKE) -C $(SCRATCH_BASE)/mml -j $(MAKEJOBS) evls deps MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH)
 
 scratch-html: scratch-deps
-	@$(MAKE) -C $(SCRATCH_BASE) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH)
+	@$(MAKE) -C $(SCRATCH_BASE) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH) WIKIHOST=$(WIKIHOST) GITPROJECT=mwiki.git
 
 scratch: scratch-html
 
@@ -148,12 +144,14 @@ public-repo-init: public-mwiki-user scratch
 	$(INSTALL) \
 	  --mode 644 \
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
-	  gitignore-public $(PUBLIC_REPO)/.gitignore
+	  mml-gitignore $(PUBLIC_REPO)/.gitignore
 	$(INSTALL) \
 	  --mode 644 \
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
 	  public-repo-description $(PUBLIC_REPO)/.git/description
-	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.'
+	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.' \
+           && git config mwiki.wikihost $(WIKIHOST) \
+           && git config mwiki.htmldir http://$(WIKIHOST)/mwiki 
 
 	$(INSTALL) \
 	  --mode 755 \
@@ -161,29 +159,6 @@ public-repo-init: public-mwiki-user scratch
 	  --group=$(PUBLIC_MWIKI_USER) \
 	  pre-commit post-commit $(PUBLIC_REPO)/.git/hooks
 
-devel-repo-init: devel-mwiki-user scratch
-	mkdir -p $(DEVEL_REPO)
-	cp -R $(SCRATCH_BASE)/* $(DEVEL_REPO)
-	cp -R $(SCRATCH_BASE)/.perl $(DEVEL_REPO)
-	chown $(DEVEL_MWIKI_USER) $(DEVEL_REPO)
-	chgrp $(DEVEL_MWIKI_USER) $(DEVEL_REPO)
-
-	cd $(DEVEL_REPO) && git init
-	$(INSTALL) \
-	  --mode 644 \
-	  --owner=$(DEVEL_MWIKI_USER) --group=$(DEVEL_MWIKI_USER) \
-	  gitignore-devel $(DEVEL_REPO)/.gitignore
-	$(INSTALL) \
-	  --mode 644 \
-	  --owner=$(DEVEL_MWIKI_USER) --group=$(DEVEL_MWIKI_USER) \
-	  devel-repo-description $(DEVEL_REPO)/.git/description
-
-	cd $(DEVEL_REPO) && git add . && git commit -m 'Initial commit.'
-
-	$(INSTALL) \
-	  --mode 755 \
-	  --owner=$(DEVEL_MWIKI_USER) --group=$(DEVEL_MWIKI_USER) \
-	  pre-commit post-commit $(DEVEL_REPO)/.git/hooks
 
 
 public-mwiki-user:
@@ -197,32 +172,18 @@ public-mwiki-user:
 	  --user=$(PUBLIC_MWIKI_USER) \
 	  --detach
 
-devel-mwiki-user:
-	-adduser --shell=/usr/bin/git-shell \
-	  --disabled-password \
-	  --home=$(DEVEL_REPOS_BASE) \
-	  $(DEVEL_MWIKI_USER) \
-	    || echo "$(DEVEL_MWIKI_USER) already exists"
 
 public-compiled: scratch
 	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_COMPILED_REPO)
 #                                ===> ^ <===
 # trailing slash -- see the rsync man page to learn why it's there
 
-devel-compiled: scratch
-	rsync -a --del $(SCRATCH_BASE)/ $(DEVEL_COMPILED_REPO)
-#                                ===> ^ <===
-# trailing slash -- see the rsync man page to learn why it's there
 
 public-sandbox: scratch # our dirty sandbox
 	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_SANDBOX)
 #                                ===> ^ <===
 # trailing slash -- see the rsync man page to learn why it's there
 
-devel-sandbox: scratch # our dirty sandbox
-	rsync -a --del $(SCRATCH_BASE)/ $(DEVEL_SANDBOX)
-#                                ===> ^ <===
-# trailing slash -- see the rsync man page to learn why it's there
 
 public-repo-export: public-repo-init
 	git clone --bare $(PUBLIC_REPO) $(BARE_PUBLIC_REPO)
@@ -236,28 +197,25 @@ public-repo-export: public-repo-init
 	chown $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
 	chgrp $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
 	touch $(BARE_PUBLIC_REPO)/git-daemon-export-ok
+	cd $(BARE_PUBLIC_REPO) && git config core.sharedRepository true \
+           && git config daemon.receivepack true \
+           && git config mwiki.backend $(PUBLIC_REPO)/ \
+           && git config mwiki.wikihost $(WIKIHOST) \
+           && git config mwiki.htmldir http://$(WIKIHOST)/mwiki 
+	cd $(PUBLIC_REPO) && git remote add frontend $(BARE_PUBLIC_REPO)
 
-devel-repo-export: devel-repo-init
-	git clone --bare $(DEVEL_REPO) $(BARE_DEVEL_REPO)
-	$(INSTALL) \
-	  --mode=644 \
-	  --owner=$(DEVEL_MWIKI_USER) --group=$(DEVEL_MWIKI_USER) \
-	  devel-repo-description $(BARE_DEVEL_REPO)/description
-	sed -e "s|@@BACKEND@@|$(DEVEL_REPO)|g" < pre-receive.in \
-	  > $(BARE_DEVEL_REPO)/hooks/pre-receive
-	chmod 755 $(BARE_DEVEL_REPO)/hooks/pre-receive
-	chown $(DEVEL_MWIKI_USER) $(BARE_DEVEL_REPO)/hooks/pre-receive
-	chgrp $(DEVEL_MWIKI_USER) $(BARE_DEVEL_REPO)/hooks/pre-receive
 
-gitweb: public-repo-export devel-repo-export
-	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/mwiki-public.git
-	ln -s $(BARE_DEVEL_REPO) $(GITWEB_ROOT)/mwiki-devel.git
+gitweb: public-repo-export 
+	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/mwiki.git
 	$(INSTALL) -m 644 gitweb $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -s ../sites-available/gitweb gitweb
 	apache2ctl restart
 
 mwiki: public-repos
+	mkdir -p $(CGILIB)/mwiki
+	$(INSTALL) -m 755 mwiki.cgi \
+	  $(CGILIB)/mwiki/mwiki.cgi
 	$(INSTALL) -m 644 mwiki.apacheconf \
 	  $(APACHE_ROOT)/etc/apache2/sites-available/mwiki
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
@@ -266,13 +224,10 @@ mwiki: public-repos
 
 clean:
 	rm -Rf $(REPOS_BASE)
-	rm -f $(GITWEB_ROOT)/mwiki-public.git
-	rm -f $(GITWEB_ROOT)/mwiki-devel.git
+	rm -f $(GITWEB_ROOT)/mwiki.git
 	-killall git-daemon
 	deluser $(PUBLIC_MWIKI_USER) \
 	  || echo "user $(PUBLIC_MWIKI_USER) doesn't exist"
-	deluser $(DEVEL_MWIKI_USER) \
-	  || echo "user $(DEVEL_MWIKI_USER) doesn't exist"
 	rm -f $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
 	rm -f $(APACHE_ROOT)/etc/apache2/sites-enabled/mwiki
 	rm -f $(APACHE_ROOT)/etc/apache2/sites-available/mwiki

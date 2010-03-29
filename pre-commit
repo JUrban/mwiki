@@ -12,6 +12,10 @@ use lib '.perl';
 
 use mizar;
 
+# this is required to untaint backticks - 
+# not sure if we will go all the way to untainting
+$ENV{"PATH"} = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
+
 sub pc_pad {
   my $str = shift;
   chomp $str;

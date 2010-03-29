@@ -21,12 +21,24 @@
 *.sgl
 
 # extensions of files created/used by verifier
+*.err
 *.frx
 *.idx
 *.par
+*.parx
+*.refx
+*.log
 *.ref
 *.xml
 
+# extensions of other files created by us
+*.dep
+*.hdr
+*.html
+*.xmlexp
+*.xmlvrf
+*-prel
+*-dep
 
 # the distro files
 .emacs

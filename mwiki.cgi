@@ -96,6 +96,9 @@ my $backend_repo_path = "";
 # the directory with the htmlized wiki files (needed for index and other links)
 my $htmldir       = "";
 
+# the wikihost, and the true cgi path
+my $wikihost= "";
+
 if (-d $frontend_repo)
 {
     chdir $frontend_repo;
@@ -103,6 +106,9 @@ if (-d $frontend_repo)
     chomp($backend_repo_path);
     $htmldir = `$git config mwiki.htmldir`;
     chomp($htmldir);
+    $wikihost=`$git config mwiki.wikihost`;
+    chomp($wikihost);
+    $lgitwebcgi="http://$wikihost:1234/";
 }
 else
 {
@@ -168,6 +174,8 @@ if($action eq "commit")
 
     my $backend_repo_mml = $backend_repo_path . "mml";
 
+    # remove the dos stuff
+    $input_article =~ s/\r//g;
     # Copy the contents of the new file to the backend repo.
     my $received_path = $backend_repo_mml . "/" . $article_filename;
     open(PFH, ">$received_path") or pr_die "$received_path not writable";
@@ -199,9 +207,10 @@ if($action eq "commit")
 
 # All newly received mizar files are now in sitting in the backend
 # repo.  Now we add them.
-    $ENV{GIT_DIR}
-	= $backend_repo_path . "/" . ".git"; # GIT_DIR is set to "." by git
+#    $ENV{GIT_DIR}
+#	= $backend_repo_path . "/" . ".git"; # GIT_DIR is set to "." by git
     chdir $backend_repo_path;              # before executing this hook!
+    pr_print ("Adding $input_file to $backend_repo_path");
     system ("$git add $input_file 2>&1");
     my $git_add_exit_code = ($? >> 8);
     unless ($git_add_exit_code == 0) 
@@ -209,14 +218,14 @@ if($action eq "commit")
 	pr_print ("Error adding the new mizar files to the backend repository:");
 	pr_print ("The exit code was $git_add_exit_code");
 
-	system ("$git reset HEAD 2>&1");
-	system ("$git checkout -- 2>&1");
+	system ("$git reset --hard 2>&1");
 
 	pr_die "";
     }
 
 # We've successful added new files to the repo -- let's commit!
-    $ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
+#    $ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
+    chdir $backend_repo_path;              # before executing this hook!
     my $git_commit_output 
 	= system ("$git commit -m 'Web commit' 2>&1");
     my $git_commit_exit_code = ($? >> 8);
@@ -225,12 +234,22 @@ if($action eq "commit")
 	pr_print ("Error commiting to the backend repository:");
 	pr_print ("The exit code was $git_commit_exit_code");
 
-	system ("$git reset HEAD 2>&1");
-	system ("$git checkout -- 2>&1");
+	system ("$git reset --hard 2>&1");
 
 	pr_die "";
     }
 
+# now push to frontend, disabling pre-receive
+    my $mv_out = system("/bin/mv -f $frontend_repo/hooks/pre-receive $frontend_repo/hooks/pre-receive.old 2>&1");
+    my $git_push_output 
+	= system("$git push frontend HEAD 2>&1");
+    my $git_push_exit_code = ($? >> 8);
+    unless ($git_push_exit_code == 0) 
+    {
+	pr_print ("Error pushing to the frontend repository: $git_push_output :: $mv_out");
+	pr_print ("The exit code was $git_push_exit_code");
+    }
+    system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
 }
 
 ## the action for editing
