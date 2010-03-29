@@ -6,10 +6,6 @@ use File::Temp qw/ tempdir /;
 use Carp;
 use Cwd;
 
-# There should be exactly one line given to this script by git.
-my $first_line = <STDIN>;
-my $second_line = <STDIN>;
-
 sub pr_pad {
   my $str = shift;
   return ("[pre-receive] $str");
@@ -21,13 +17,16 @@ sub pr_print {
   my $str = shift;
   chomp ($str); # in case it already had some extra whitespace at the end
   print (pr_pad ($str . "\n"));
+  return;
 }
 
+# There should be exactly one line given to this script by git.
+my $first_line = <>;
+my $second_line = <>;
 unless (defined $first_line) {
   pr_print ('Standard input was empty!  How is that possible?');
   exit 1;
 }
-
 if (defined $second_line) {
   pr_print ('We currently handle pushes to only one refspec (namely, the master branch)');
   exit 1;
@@ -38,33 +37,33 @@ if (defined $second_line) {
 #
 # <old-value> SP <new-value> SP <ref-name> LF
 chomp $first_line;
-my ($old_sha1, $new_sha1, $refspec) = split (/\ /, $first_line);
-unless (defined $old_sha1 && defined $new_sha1 && defined $refspec) {
+my ($old_sha, $new_sha, $refspec) = split (/\ /x, $first_line);
+unless (defined $old_sha && defined $new_sha && defined $refspec) {
   pr_print ('The given line does not match the format specified in the githooks(5) man page');
   exit 1;
 }
 
 # Check for sane SHA1 values
-unless ($old_sha1 =~ /[a-z0-9]{40}/ && $new_sha1 =~ /[a-z0-9]{40}/) {
+unless ($old_sha =~ /[a-z0-9]{40}/x && $new_sha =~ /[a-z0-9]{40}/x) {
   pr_print ('Suspicious SHA1 values given');
   exit 1;
 }
 
 # Ensure that the new SHA1 and the old SHA1 are the names of commit
 # objects.
-my $old_sha1_type = `git cat-file -t $old_sha1`;
-my $new_sha1_type = `git cat-file -t $new_sha1`;
-chomp $old_sha1_type;
-chomp $new_sha1_type;
-unless ($old_sha1_type eq 'commit') {
+my $old_sha_type = `git cat-file -t $old_sha`;
+my $new_sha_type = `git cat-file -t $new_sha`;
+chomp $old_sha_type;
+chomp $new_sha_type;
+unless ($old_sha_type eq 'commit') {
   pr_print ("The old object with the name,");
-  pr_print ("  $old_sha1");
+  pr_print ("  $old_sha");
   pr_print ("is not a commit; unable to proceed.");
   exit 1;
 }
-unless ($new_sha1_type eq 'commit') {
+unless ($new_sha_type eq 'commit') {
   pr_print ("The new object with the name,");
-  pr_print ("  $new_sha1");
+  pr_print ("  $new_sha");
   pr_print ("is not a commit; unable to proceed.");
   exit 1;
 }
@@ -77,14 +76,14 @@ unless ($refspec eq 'refs/heads/master') {
 
 # Now that we know that the SHA1 object names being pushed are
 # commits, find their associated trees
-my $old_commit_tree = `git cat-file commit $old_sha1 | grep ^tree | cut -f 2 -d ' '`;
-my $new_commit_tree = `git cat-file commit $new_sha1 | grep ^tree | cut -f 2 -d ' '`;
+my $old_commit_tree = `git cat-file commit $old_sha | grep ^tree | cut -f 2 -d ' '`;
+my $new_commit_tree = `git cat-file commit $new_sha | grep ^tree | cut -f 2 -d ' '`;
 chomp $old_commit_tree;
 chomp $new_commit_tree;
 
 # Ensure that no non-mizar code is being pushed
 my @non_miz_files 
-  = `git show --pretty=oneline --name-only $new_sha1 | tail -n -1 | grep --invert-match ".miz"`;
+  = `git show --pretty=oneline --name-only $new_sha | tail -n -1 | grep --invert-match ".miz"`;
 unless (scalar @non_miz_files == 0) {
   pr_print ('We do not currently support pushing non-.miz files to our repository');
   exit 1;
@@ -96,19 +95,19 @@ unless (scalar @non_miz_files == 0) {
 # 2 they are actually files, i.e., blobs in git terminology
 # 3 their size is less than, say, one megabyte;
 # 4 they have mode 644 ("should never happen", given condition #2)
-my @miz_files = `git show --name-only --pretty=oneline $new_sha1 | tail -n -1 | grep "\.miz\$"`;
+my @miz_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | grep "\.miz\$"`;
 for my $miz_file (@miz_files) {
   chomp $miz_file;
-  unless ($miz_file =~ /^mml\/([a-z0-9_]+\.miz)$/) { # strip the "mml/" prefix
+  if ($miz_file =~ /\A mml \/ ([a-z0-9_]+\.miz) \z/xm) { # strip "mml/" prefix
+    $miz_file = $1;
+  }else {
     pr_print ("Suspcious: .miz file is not under the mml subdirectory");
     pr_print ("The path is $miz_file");
     exit 1;
   }
-  my $article_filename = $1; # from previous match, stripping "mml/" prefix
-
-  my $miz_file_size = `git cat-file -s $new_sha1:$miz_file`;
+  my $miz_file_size = `git cat-file -s $new_sha:$miz_file`;
   chomp $miz_file_size;
-  unless ($miz_file_size < 1000000) {
+  if ($miz_file_size > 1000000) {
     pr_print ("Suspicious: the .miz file $miz_file is bigger than one megabyte");
     exit 1;
   }
@@ -172,12 +171,11 @@ foreach my $received_miz_file (@miz_files) {
 
 sub strip_initial_mml {
   my $path = shift;
-  $path =~ /^mml\/([a-z0-9_]+\.miz$)/;
-  my $stripped = $1;
-  unless (defined $stripped) {
-    die "Something went wrong when trying to strip the \"mml/\" from \"$path\"";
+  if ($path =~ /\A mml \/ ([a-z0-9_]+\.miz) \z /xm) {
+    return $1;
+  } else {
+    croak ("Something went wrong when stripping the \"mml/\" from \"$path\"");
   }
-  return $stripped;
 }
 
 pr_print ("brand new mizar files: ");
@@ -219,7 +217,7 @@ foreach my $received_mml_miz_file (@miz_files) {
   my $received_path = $backend_repo_mml . "/" . $article_filename;
   `git cat-file blob $new_commit_tree:$received_mml_miz_file > $received_path`;
   unless (-e $received_path) {
-    die "We didn't output anything to $received_path";
+    croak ("We didn't output anything to $received_path");
   }
 }
 
@@ -266,8 +264,9 @@ sub move_all_files_from_to {
 
 # All newly received mizar files are now in sitting in the backend
 # repo.  Now we add them.
-$ENV{GIT_DIR} 
+local $ENV{GIT_DIR} 
   = $backend_repo_path . "/" . ".git"; # GIT_DIR is set to "." by git
+
 chdir $backend_repo_path;              # before executing this hook!
 system ("git add @miz_files 2>&1");
 my $git_add_exit_code = ($? >> 8);
@@ -282,7 +281,6 @@ unless ($git_add_exit_code == 0) {
 }
 
 # We've successful added new files to the repo -- let's commit!
-$ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
 my $git_commit_output 
   = system ("git commit -m 'Anonymous push' 2>&1");
 my $git_commit_exit_code = ($? >> 8);
