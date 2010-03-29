@@ -6,3 +6,12 @@ Alias /mwiki "/var/cache/mwiki/public/mwiki/html"
   Order allow,deny
   allow from all
 </Directory>
+
+ScriptAlias /cgi-bin/mwiki/ /usr/lib/cgi-bin/mwiki
+<Directory "/usr/lib/cgi-bin/mwiki">
+  AllowOverride None
+  Options +ExecCGI
+  SetHandler cgi-script
+  Order allow,deny
+  Allow from all
+</Directory>
