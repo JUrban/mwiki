@@ -34,6 +34,7 @@ my $git_project	  = $query->param('p');
 # these exist only when commiting
 my $ProblemSource = $query->param('ProblemSource');
 my $input_article = $query->param('Formula');
+my $message       = $query->param('Message');
 
 # this is required to untaint backticks
 $ENV{"PATH"} = "";
@@ -88,7 +89,6 @@ if ((defined $action) && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/)))
     $action = $1;
 }
 else { pr_die("Unknown action \"$action\"."); }
-
 
 my $frontend_repo = $frontend_dir . $git_project;
 my $backend_repo_path = "";
@@ -167,6 +167,12 @@ if($action eq "commit")
 {
     printcommitheader();
 
+    if(defined($message) && ($message =~ /^[^']+$/) && ($message =~ /^\s*(\S+)\s*$/))
+    {
+	$message = $1;
+    }
+    else { pr_die("Bad commit message: \"$message\" "); }
+
     unless (length($input_article) < 1000000) 
     {
 	pr_die ("Suspicious: the .miz file $input_file is bigger than one megabyte");
@@ -227,7 +233,7 @@ if($action eq "commit")
 #    $ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
     chdir $backend_repo_path;              # before executing this hook!
     my $git_commit_output 
-	= system ("$git commit -m 'Web commit' 2>&1");
+	= system ("$git commit -m '$message' 2>&1");
     my $git_commit_exit_code = ($? >> 8);
     unless ($git_commit_exit_code == 0) 
     {
