@@ -189,6 +189,7 @@ devel-repo-init: devel-mwiki-user scratch
 public-mwiki-user:
 	-adduser --shell=/usr/bin/git-shell \
 	  --home=$(PUBLIC_REPOS_BASE) \
+	  --disabled-password \
 	  $(PUBLIC_MWIKI_USER) \
 	    || echo "$(PUBLIC_MWIKI_USER) already exists"
 	-git daemon \
@@ -236,6 +237,7 @@ public-repo-export: public-repo-init
 	chown $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
 	chgrp $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
 	touch $(BARE_PUBLIC_REPO)/git-daemon-export-ok
+	GIT_DIR=$(BARE_PUBLIC_REPO) git config --add daemon.receivepack true
 
 devel-repo-export: devel-repo-init
 	git clone --bare $(DEVEL_REPO) $(BARE_DEVEL_REPO)
