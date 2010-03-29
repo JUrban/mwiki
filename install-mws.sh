@@ -1,6 +1,6 @@
 #!/bin/sh
 
-repos_base=/var/cache/git/mwiki
+repos_base=/var/cache/mwiki
 mizfiles=/home/mptp/mizwrk/7.11.05_4.133.1080
 xsl4miz=/home/mptp/gr/xsl4mizar
 num_articles=5
@@ -17,6 +17,6 @@ make -f Makefile.smallinstall $targets \
     MIZFILES=$mizfiles \
     XSL4MIZ=$xsl4miz \
     NUM_ARTICLES=$num_articles \
-    PUBLIC_MWIKI_USER=git \
+    PUBLIC_MWIKI_USER=www-data \
     MAKEJOBS=8 \
     WIKIHOST=mws.cs.ru.nl
