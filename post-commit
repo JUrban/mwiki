@@ -24,6 +24,16 @@ sub pc_print {
 # verified/compiled a bunch of changes to the MML.
 
 my $cwd = getcwd ();
+
+my $makejobs = 1;
+if (defined ($ENV{"MAKEJOBS"})) {
+  $makejobs = $ENV{"MAKEJOBS"};
+}
+else {
+    $makejobs = `$git config mwiki.makejobs`;
+    chomp($makejobs);
+}
+
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
 my $compiled = $cwd . "/" . "../compiled";
@@ -39,11 +49,6 @@ if (!defined ($ENV{"MIZBIN"}) or -z $ENV{"MIZBIN"}) {
   $ENV{"MIZBIN"} = $sandbox . "/bin";
 }
 $ENV{"PATH"} = $ENV{"PATH"} . ":" . $ENV{"MIZBIN"};
-
-my $makejobs = 1;
-if (defined ($ENV{"MAKEJOBS"})) {
-  $makejobs = $ENV{"MAKEJOBS"};
-}
 
 $ENV{"MIZFILES"} = $sandbox;
 system ("make --jobs $makejobs absrefs 2> make-absrefs-err | tee make-absrefs-out");
