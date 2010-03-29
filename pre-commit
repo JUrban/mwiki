@@ -55,6 +55,16 @@ my $cwd = getcwd ();
 # untaint 
 if($cwd =~ /(.*)/) { $cwd = $1; }  
 
+# MAKEJOBS: number of different make jobs to run simultaneously
+my $makejobs = 1;
+if (defined ($ENV{"MAKEJOBS"})) {
+  $makejobs = $ENV{"MAKEJOBS"};
+}
+else {
+    $makejobs = `git config mwiki.makejobs`;
+    chomp($makejobs);
+}
+
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
 my $main_repo = $cwd;
@@ -109,11 +119,6 @@ if (!defined ($ENV{"MIZBIN"}) or -z $ENV{"MIZBIN"}) {
 }
 $ENV{"PATH"} = $ENV{"PATH"} . ":" . $ENV{"MIZBIN"};
 
-# MAKEJOBS: number of different make jobs to run simultaneously
-my $makejobs = 1;
-if (defined ($ENV{"MAKEJOBS"})) {
-  $makejobs = $ENV{"MAKEJOBS"};
-}
 
 separate_mml_from_non_mml ();
 clean_the_dirty_sandbox ();

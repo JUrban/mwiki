@@ -1,7 +1,8 @@
 # -*- mode: conf; -*-
-Alias /mwiki "/var/cache/mwiki/public/mwiki/html"
+Alias /mwiki "/var/cache/mwiki/public/compiled/html"
 <Directory /mwiki>
   Options Indexes FollowSymLinks MultiViews
+  DirectoryIndex 00INDEX.html
   AllowOverride None
   Order allow,deny
   allow from all

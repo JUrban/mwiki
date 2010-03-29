@@ -151,6 +151,7 @@ public-repo-init: public-mwiki-user scratch
 	  public-repo-description $(PUBLIC_REPO)/.git/description
 	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.' \
            && git config mwiki.wikihost $(WIKIHOST) \
+           && git config mwiki.makejobs $(MAKEJOBS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/mwiki 
 
 	$(INSTALL) \
@@ -201,6 +202,7 @@ public-repo-export: public-repo-init
            && git config daemon.receivepack true \
            && git config mwiki.backend $(PUBLIC_REPO)/ \
            && git config mwiki.wikihost $(WIKIHOST) \
+           && git config mwiki.makejobs $(MAKEJOBS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/mwiki 
 	cd $(PUBLIC_REPO) && git remote add frontend $(BARE_PUBLIC_REPO)
 
@@ -214,7 +216,8 @@ gitweb: public-repo-export
 
 mwiki: public-repos
 	mkdir -p $(CGILIB)/mwiki
-	$(INSTALL) -m 755 mwiki.cgi \
+	$(INSTALL) -m 755 \
+           --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) mwiki.cgi \
 	  $(CGILIB)/mwiki/mwiki.cgi
 	$(INSTALL) -m 644 mwiki.apacheconf \
 	  $(APACHE_ROOT)/etc/apache2/sites-available/mwiki

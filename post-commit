@@ -24,6 +24,16 @@ sub pc_print {
 # verified/compiled a bunch of changes to the MML.
 
 my $cwd = getcwd ();
+
+my $makejobs = 1;
+if (defined ($ENV{"MAKEJOBS"})) {
+  $makejobs = $ENV{"MAKEJOBS"};
+}
+else {
+    $makejobs = `git config mwiki.makejobs`;
+    chomp($makejobs);
+}
+
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
 my $compiled = $cwd . "/" . "../compiled";
@@ -40,18 +50,13 @@ if (!defined ($ENV{"MIZBIN"}) or -z $ENV{"MIZBIN"}) {
 }
 $ENV{"PATH"} = $ENV{"PATH"} . ":" . $ENV{"MIZBIN"};
 
-my $makejobs = 1;
-if (defined ($ENV{"MAKEJOBS"})) {
-  $makejobs = $ENV{"MAKEJOBS"};
-}
-
 $ENV{"MIZFILES"} = $sandbox;
 system ("make --jobs $makejobs absrefs 2> make-absrefs-err | tee make-absrefs-out");
 system ("make --jobs $makejobs htmls WIKIHOST=$wikihost GITPROJECT=$repo_name.git 2> make-htmls-err | tee make-htmls-out");
 
-chdir ($sandbox_mml);
-`../.perl/mkmmlindex.pl -ghttp://$wikihost:1234/ -p$repo_name.git *.hdr > ../html/index.html`;
-chdir ($cwd);
+#chdir ($sandbox_mml);
+#`../.perl/mkmmlindex.pl -ghttp://$wikihost:1234/ -p$repo_name.git *.hdr > ../html/index.html`;
+#chdir ($cwd);
 
 # Copy the sandbox: force compiled to be a copy of the known compiled MML.
 # We are hoping that this is fairly fast.
