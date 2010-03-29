@@ -234,4 +234,5 @@ clean:
 	rm -f $(APACHE_ROOT)/etc/apache2/sites-enabled/gitweb
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.error.log
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.access.log
+	rm -f $(CGILIB)/mwiki/mwiki.cgi
 	apache2ctl restart
