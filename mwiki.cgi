@@ -254,7 +254,9 @@ if($action eq "commit")
     unless ($git_push_exit_code == 0) 
     {
 	pr_print ("Error pushing to the frontend repository: $git_push_output :: $mv_out");
-	pr_print ("The exit code was $git_push_exit_code");
+	system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
+	pr_die ("The exit code was $git_push_exit_code");
+
     }
     system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
     pr_print ("All OK!");
