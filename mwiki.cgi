@@ -16,7 +16,7 @@ use HTTP::Request::Common;
 ##       variable of the backend and frontend.
 
 # directory where frontends are stored
-my $frontend_dir  = "/var/cache/git/";
+my $frontend_dir  = "/var/cache/mwiki/public/";
 
 # path to the git cgi
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
