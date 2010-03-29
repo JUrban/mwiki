@@ -167,7 +167,7 @@ if($action eq "commit")
 {
     printcommitheader();
 
-    if(defined($message) && ($message =~ /^[^']+$/) && ($message =~ /^\s*(\S+)\s*$/))
+    if(defined($message) && ($message =~ /^[^']+$/) && ($message =~ /^\s*(\S(\s|\S)*)\s*$/))
     {
 	$message = $1;
     }
