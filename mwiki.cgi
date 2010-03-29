@@ -1,4 +1,4 @@
-#!/usr/bin/perl -T -w
+#!/usr/bin/perl  -w
 
 use strict;
 use CGI;
@@ -37,7 +37,7 @@ my $input_article = $query->param('Formula');
 my $message       = $query->param('Message');
 
 # this is required to untaint backticks
-$ENV{"PATH"} = "";
+# $ENV{"PATH"} = "";
 
 
 print $query->header();
