@@ -20,6 +20,11 @@ sub pr_print {
   return;
 }
 
+sub pr_die {
+  pr_print(@_);
+  exit 1;
+}
+
 # There should be exactly one line given to this script by git.
 my $first_line = <>;
 my $second_line = <>;
@@ -144,6 +149,28 @@ for my $miz_file (@miz_files) {
 my $backend_repo_path = '@@BACKEND@@';
 my $backend_repo_mml = $backend_repo_path . "/" . "mml";
 
+
+my $wikilock;
+
+# locking taken from ikiwiki
+sub lockwiki () {
+	# Take an exclusive lock on the wiki to prevent multiple concurrent
+	# run issues. The lock will be dropped on program exit.
+	open($wikilock, '>', $backend_repo_path . "/" . ".wikilock") ||
+	    pr_die ("The wiki cannot write to the lock file $backend_repo_path/.wikilock: $!");
+	if (! flock($wikilock, 2|4)) { # LOCK_EX | LOCK_NB
+		pr_die("The wiki is being used for another commit, try again in a minute: failed to get lock");
+	}
+	return 1;
+}
+
+sub unlockwiki () {
+	return close($wikilock) if $wikilock;
+	return;
+}
+
+
+
 # Separate the old miz files -- the ones that already exist in the
 # backend repo -- from the new miz files -- the genuinely new
 # contributions.  To determine whether something is old/already
@@ -207,6 +234,9 @@ if (scalar @updated_miz_files == 0) {
 #   my $purgatory_path = $purgatory_mml . "/" . $article_filename;
 #   `git show $old_commit_tree:$updated_miz_file > $purgatory_path`;
 # }
+
+
+lockwiki();
 
 # Now that we've moved the mizar files that are updated in this
 # proposed commit to a safe purgatory, copy the contents of the new
@@ -295,6 +325,8 @@ unless ($git_commit_exit_code == 0) {
 
   exit 1;
 }
+
+unlockwiki();
 
 # If we made it this far, then we deserve a break.
 exit 0;
