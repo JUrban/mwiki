@@ -50,6 +50,7 @@ MIZBIN=$(MIZFILES)/bin
 MAKEJOBS=1
 SHEETS=addabsrefs miz evl2dep
 CSS=article
+JAVASCRIPT=article
 PERLSCRIPTS=mkxmlhead mkmmlindex duplicates
 PERLMODULES=mizar
 GITWEB_ROOT=/var/cache/git
@@ -117,6 +118,11 @@ scratch-mizfiles:
 	mkdir -p $(SCRATCH_BASE)/html
 	for sheet in $(CSS); do \
 	  $(INSTALL) --mode 644 $$sheet.css $(SCRATCH_BASE)/html; \
+	done
+	# javascript
+	mkdir -p $(SCRATCH_BASE)/html
+	for jsfile in $(JAVASCRIPT); do \
+	  $(INSTALL) --mode 644 $$jsfile.js $(SCRATCH_BASE)/html; \
 	done
 	# perl
 	mkdir -p $(SCRATCH_BASE)/.perl
