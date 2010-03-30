@@ -167,7 +167,7 @@ if($action eq "commit")
 {
     printcommitheader();
 
-    if(defined($message) && ($message =~ /^[^']+$/) && ($message =~ /^\s*(\S+)\s*$/))
+    if(defined($message) && ($message =~ /^[^']+$/) && ($message =~ /^\s*(\S(\s|\S)*)\s*$/))
     {
 	$message = $1;
     }
@@ -268,7 +268,7 @@ if($action eq "edit")
 
     my $old_content = "";
 
-    if(-e $backend_repo_path)
+    if(-e $backend_repo_file)
     {
 	open(FILEHANDLE, $backend_repo_file) or pr_die "$backend_repo_file not readable!";
 	$old_content = do { local $/; <FILEHANDLE> };
@@ -317,7 +317,7 @@ if($action eq "edit")
       <tr>
               <td align=top>
 	      Commit message (mandatory):<br>
-                <INPUT TYPE="text" NAME="Message" VALUE="" SIZE="30">
+                <textarea name="Message" tabindex="3"  rows="2" cols="40" id="MessageTextBox"></textarea>
               </td>
             </tr>
       <tr>
