@@ -331,6 +331,30 @@ if($action eq "history")
     print_iframe("$lgitwebcgi?p=$git_project;a=history;f=$input_file");
 }
 
+my $article_template=<<AEND
+:: Article Title
+::  by Article Author
+::
+::
+:: Copyright (c) Article Author
+
+environ
+
+ vocabularies TARSKI, XBOOLE_0;
+ notations TARSKI, XBOOLE_0;
+ constructors TARSKI, XBOOLE_0;
+ definitions TARSKI, XBOOLE_0;
+ theorems TARSKI, XBOOLE_0, XBOOLE_1;
+ schemes XBOOLE_0;
+
+begin
+
+reserve x,x1,x2 for set;
+
+theorem Foo: x=x;
+AEND
+;
+
 ## the action for editing
 if($action eq "edit")
 {
@@ -345,7 +369,7 @@ if($action eq "edit")
     }
     else
     {
-	$old_content = "New article comes here";
+	$old_content = $article_template;
     }
 
     print<<END;
