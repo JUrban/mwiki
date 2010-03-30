@@ -340,15 +340,15 @@ if($action eq "edit")
       <tr>
         <td>
           <input type="radio" name="ProblemSource" value="Formula" id="ProblemSourceRadioButton" checked>Edit article<br/>
-          <textarea name="Formula" tabindex="3"  rows="40" cols="90" id="FORMULAEProblemTextBox">$old_content</textarea>
+          <textarea name="Formula" tabindex="3"  rows="35" cols="90" id="FORMULAEProblemTextBox">$old_content</textarea>
         <tr valign="top">
         </td>
-        <td>
-          <input type="radio" name="ProblemSource" value="UPLOAD">Article file to upload (not supported yet)
-          <br/>
-          <input type="file" name="UPLOADProblem"  size="30" />
-        <tr valign="top">
-        </td>
+         <!--      <td>
+         <!-- <input type="radio" name="ProblemSource" value="UPLOAD">Article file to upload (not supported yet) -->
+         <!-- <br/> -->
+         <!-- <input type="file" name="UPLOADProblem"  size="30" />  -->
+         <!--  <tr valign="top">  -->
+         <!-- </td> -->
           <input type="hidden" name="p" value="$git_project">
           <input type="hidden" name="a" value="commit">
           <input type="hidden" name="f" value="$input_file">
