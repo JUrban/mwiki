@@ -12,6 +12,7 @@ use Pod::Usage;
 
 ## TODO: this two should be options
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
+my $lmwikicgi     = "http://mws.cs.ru.nl/cgi-bin/mwiki/mwiki.cgi";
 my $git_project = "mw1.git";
 
 my ($help, $man);
@@ -19,6 +20,7 @@ my ($help, $man);
 Getopt::Long::Configure ("bundling");
 
 GetOptions('gitwebcgi|g=s'    => \$lgitwebcgi,
+	   'mwikicgi|m=s'    => \$lmwikicgi,
 	   'project|p=s'    => \$git_project,
 	   'help|h'          => \$help,
 	   'man'             => \$man)
@@ -57,8 +59,7 @@ sub print_one_html
 }
 
 my $header=<<END;
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <head>
 <title>Mizar Mathematical Library (current wiki state), Index of Identifiers</title>
 <style type="text/css">
@@ -72,7 +73,7 @@ my $header=<<END;
 <body>
  <div  class="wikiactions">
     <ul>
-         <li> <a href="$lgitwebcgi?p=$git_project">Gitweb</a> </li>
+         <li> <a href="$lmwikicgi?p=$git_project">Gitweb</a> </li>
     </ul>
 </div>
 <div class=index>
