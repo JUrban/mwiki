@@ -1,5 +1,8 @@
 # -*- mode: makefile; -*-
-MMLLAR=$(shell cat $(MIZFILES)/mml.lar) tarski
+MMLMIZALL=$(shell ls mml/*.miz)
+MMLMIZSTD=$(filter-out mml/hidden.miz, $(MMLMIZALL))
+MMLLAR=$(patsubst mml/%.miz, %, $(MMLMIZSTD))
+# MMLLAR=$(shell cat $(MIZFILES)/mml.lar) tarski
 DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
 VPATH = mml

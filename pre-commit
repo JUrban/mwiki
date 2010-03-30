@@ -92,11 +92,7 @@ sub separate_mml_from_non_mml {
     chomp ($edited);
     my ($name, $path, $extension) = fileparse ($edited, qr/\.[^.]+/);
     if ($path eq "mml/") {
-      if (mizar::belongs_to_mml ($name)) {
 	push (@mml_changed, $name);
-      } else {
-	push (@non_mml_changed, $name);
-      }
     } else {
       pc_print ("You're committing a mizar file ($edited) outside the MML subdirectory; we don'handle this case yet");
       exit 1;

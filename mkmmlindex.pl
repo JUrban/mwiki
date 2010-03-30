@@ -65,6 +65,7 @@ my $header=<<END;
 	body {font-family: monospace; margin: 0px;}
 	.wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
 	.wikiactions li { display: inline; padding: .2em .4em; }
+        div.index {padding-left: 3mm;}
 </style>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
@@ -74,10 +75,12 @@ my $header=<<END;
          <li> <a href="$lgitwebcgi?p=$git_project">Gitweb</a> </li>
     </ul>
 </div>
+<div class=index>
+<div class=indexheading>
 <h1>
-<a href="index.html"> Mizar Mathematical Library (current wiki state)</a>,
-Index of MML Identifiers
+Mizar Mathematical Library (current wiki state)
 </h1>
+</div>
 <hr/>
 <p>
 [<a href="#A">A</a>,
@@ -114,6 +117,7 @@ my $footer=<<END;
 </dl>
 </dd>
 </dl>
+</div>
 <hr/>
 </body>
 </html>
@@ -121,22 +125,20 @@ END
 
 
 print $header;
-my $prevletter;
-foreach my $name (sort keys %all)
-  {
-    my $firstletter = uc (substr ($name, 0, 1));
-    unless (defined $prevletter) {
-      $prevletter = $firstletter;
-      print "<dt>$firstletter</dt>";
-      print '<dd>';
-      print '<dl>';
+my @names = sort keys %all;
+if($#names >= 0)
+{
+    my $prevletter = uc(substr($names[0], 0, 1));
+    print ('<dt><A NAME="', $prevletter, '"><b>', $prevletter, '</B></A><dd><dl>', "\n");
+
+    foreach my $name (@names)
+    {
+	unless ($prevletter eq uc(substr($name, 0, 1)))
+	{
+	    $prevletter = uc(substr($name, 0, 1));
+	    print ('</dl>', "\n", '<dt><A NAME="', $prevletter, '"><b>', $prevletter, '</B></A><dd><dl>', "\n");
+	}
+	print_one_html($name);
     }
-
-    unless ($prevletter eq $firstletter)
-      {
-	print ('</dl></dd>', "\n", '<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a></dt><dd><dl>', "\n");
-      }
-
-    print_one_html($name);
-  }
+}
 print $footer;
