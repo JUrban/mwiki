@@ -241,6 +241,25 @@ system ("make --keep-going --jobs $makejobs xmlvrfs 2> make-xml-err | tee make-x
 maybe_die_if_make_errors_in_dir ($sandbox_mml, "$sandbox/make-xml-err",
 				 'Failure verifying and generating XML');
 
+# Ensure that the new articles do not have any "@proof" bits.  To do
+# this, we look for SkippedProof elements in the newly generated XML
+# for the changed articles.  The only boundary condition is
+# tarski.miz, which, as a foundational article containing only axioms,
+# naturally has skipped proofs.  We will allow the user to add new
+# axioms to tarski.miz.  This is the only article in the MML where we
+# permit skipped proofs.  This should be OK; if we've gotten this far,
+# then we know that the submission is a coherent update of the MML.
+chdir ($sandbox_mml);
+foreach my $mml_changed (@mml_changed) {
+  unless ($mml_changed eq 'tarski') { # sure, go ahead and add new axioms to taski.miz
+    my $article_xml = $mml_changed . '.xmlvrf';
+    if (system ("grep --max-count 1 '^<SkippedProof' $article_xml") == 0) {
+      pc_print ("You are not allowed to omit proofs from articles in the MML.");
+      exit 1;
+    }
+  }
+}
+
 # Export the computed prel data
 chdir ($sandbox); # just to be clear
 system ("make --keep-going --jobs $makejobs prels > make-prel-out 2> make-prel-err | tee make-prel-out");
