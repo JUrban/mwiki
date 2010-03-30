@@ -65,6 +65,7 @@ my $header=<<END;
 	body {font-family: monospace; margin: 0px;}
 	.wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
 	.wikiactions li { display: inline; padding: .2em .4em; }
+        div.index {padding-left: 3mm;}
 </style>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
@@ -74,10 +75,12 @@ my $header=<<END;
          <li> <a href="$lgitwebcgi?p=$git_project">Gitweb</a> </li>
     </ul>
 </div>
+<div class=index>
+<div class=indexheading>
 <h1>
-<a href="index.html"> Mizar Mathematical Library (current wiki state)</a>,
-Index of MML Identifiers
+Mizar Mathematical Library (current wiki state)
 </h1>
+</div>
 <hr/>
 <p>
 [<a href="#A">A</a>,
@@ -114,6 +117,7 @@ my $footer=<<END;
 </dl>
 </dd>
 </dl>
+</div>
 <hr/>
 </body>
 </html>
