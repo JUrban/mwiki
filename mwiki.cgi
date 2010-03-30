@@ -167,7 +167,7 @@ sub print_iframe
 {
     my $url = shift;
     print<<END1
-<iframe src ="$url" width="90%" height="90%">
+<iframe src ="$url" width="90%" height="90%" style="margin:10px" frameborder="1">
 <p>Your user agent does not support iframes or is currently configured
   not to display iframes. However, you may visit
   <A href="$url">the related document.</A></p>
