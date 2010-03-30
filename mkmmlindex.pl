@@ -81,6 +81,22 @@ my $header=<<END;
 <h1>
 Mizar Mathematical Library (current wiki state)
 </h1>
+<form method="post" action="mwiki.cgi" enctype="multipart/form-data">
+<table>
+<tr>
+<td align=top>
+	      Create/Edit article<br>
+                <input type="text" name="f" value="mml/foo.miz" SIZE="20">
+</td>
+          <input type="hidden" name="p" value="$git_project">
+          <input type="hidden" name="a" value="edit">
+
+        <td align=right>
+          <input type="submit" value="Go">
+         </td>
+</tr>
+</table>
+</form>
 </div>
 <hr/>
 <p>
