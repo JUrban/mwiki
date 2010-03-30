@@ -73,7 +73,7 @@ my $header=<<END;
 <body>
  <div  class="wikiactions">
     <ul>
-         <li> <a href="$lmwikicgi?p=$git_project">Gitweb</a> </li>
+         <li> <a href="$lmwikicgi?p=$git_project;a=gitweb">Gitweb</a> </li>
     </ul>
 </div>
 <div class=index>
