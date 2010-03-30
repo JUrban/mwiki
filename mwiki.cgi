@@ -91,7 +91,7 @@ if ((defined $input_file) && ($input_file =~ /^(mml\/(([a-z0-9_]+)\.miz))$/))
 {
     ($input_file, $article_filename, $aname) = ($1, $2, $3);
 }
-elsif (action =~ /^(gitweb)$/) { $aname=""; }
+elsif ($action =~ /^(gitweb)$/) { $aname=""; }
 else { pr_die("The file name \"$input_file\" is not allowed"); }
 
 
@@ -163,20 +163,25 @@ VEND
 END
 }
 
+sub print_iframe
+{
+    my $url = shift;
+    print<<END1
+<iframe src ="$url" width="90%" height="90%">
+<p>Your user agent does not support iframes or is currently configured
+  not to display iframes. However, you may visit
+  <A href="$url">the related document.</A></p>
+</iframe>
+END1
+
+}
+
 ## the action for gitweb
 ## this has to exit here before we start working with $input_file
 if($action eq "gitweb")
 {
     printheader();
-
-print<<END1
-<iframe src ="$lgitwebcgi?p=$git_project" width="90%" height="90%">
-<p>Your user agent does not support iframes or is currently configured
-  not to display iframes. However, you may visit
-  <A href="$lgitwebcgi?p=$git_project">the related document.</A></p>
-</iframe>
-END1
-
+    print_iframe("$lgitwebcgi?p=$git_project");
     print $query->end_html;
     exit;
 }
@@ -291,28 +296,14 @@ if($action eq "commit")
 if($action eq "blob_plain")
 {
     printheader();
-
-print<<END1
-<iframe src ="$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file" width="90%" height="90%">
-  <p>Your user agent does not support iframes or is currently configured
-  not to display iframes. However, you may visit
-  <A href="$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file">the related document.</A></p>
-</iframe>
-END1
+    print_iframe("$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file");
 }
 
 ## the action for history
 if($action eq "history")
 {
     printheader();
-
-print<<END1
-<iframe src ="$lgitwebcgi?p=$git_project;a=history;f=$input_file" width="90%" height="90%">
-  <p>Your user agent does not support iframes or is currently configured
-  not to display iframes. However, you may visit
-  <A href="$lgitwebcgi?p=$git_project;a=history;f=$input_file">the related document.</A></p>
-</iframe>
-END1
+    print_iframe("$lgitwebcgi?p=$git_project;a=history;f=$input_file");
 }
 
 ## the action for editing
