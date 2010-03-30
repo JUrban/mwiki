@@ -9,7 +9,7 @@ num_articles=2
 if [ "$1" = "clean" ]; then
     targets='clean'
 else
-    targets='public-repos mwiki'
+    targets='public-repos mwiki gitweb'
 fi
 
 make -f Makefile.smallinstall $targets \
