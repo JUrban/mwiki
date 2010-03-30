@@ -197,7 +197,7 @@ sub lockwiki () {
 	open($wikilock, '>', $backend_repo_path . ".wikilock") ||
 	    pr_die ("The wiki cannot write to the lock file $backend_repo_path.wikilock: $!");
 	if (! flock($wikilock, 2|4)) { # LOCK_EX | LOCK_NB
-		pr_die("The wiki is being used for another commit: failed to get lock");
+		pr_die("The wiki is being used for another commit, try again in a minute: failed to get lock");
 	}
 	return 1;
 }
@@ -354,6 +354,7 @@ if($action eq "edit")
      <li><a href="javascript:javascript:history.go(-1)">Cancel</a></li>
      <li><a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
      <li><a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
+     <li><a href="$htmldir/">Index</a> </li>
      <li><a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
   </ul>
 </div>
