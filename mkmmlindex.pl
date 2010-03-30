@@ -121,22 +121,20 @@ END
 
 
 print $header;
-my $prevletter;
-foreach my $name (sort keys %all)
-  {
-    my $firstletter = uc (substr ($name, 0, 1));
-    unless (defined $prevletter) {
-      $prevletter = $firstletter;
-      print "<dt>$firstletter</dt>";
-      print '<dd>';
-      print '<dl>';
+my @names = sort keys %all;
+if($#names >= 0)
+{
+    my $prevletter = uc(substr($names[0], 0, 1));
+    print ('<dt><A NAME="', $prevletter, '"><b>', $prevletter, '</B></A><dd><dl>', "\n");
+
+    foreach my $name (@names)
+    {
+	unless ($prevletter eq uc(substr($name, 0, 1)))
+	{
+	    $prevletter = uc(substr($name, 0, 1));
+	    print ('</dl>', "\n", '<dt><A NAME="', $prevletter, '"><b>', $prevletter, '</B></A><dd><dl>', "\n");
+	}
+	print_one_html($name);
     }
-
-    unless ($prevletter eq $firstletter)
-      {
-	print ('</dl></dd>', "\n", '<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a></dt><dd><dl>', "\n");
-      }
-
-    print_one_html($name);
-  }
+}
 print $footer;
