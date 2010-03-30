@@ -30,6 +30,8 @@ sub pc_print {
   print (pc_pad ($str . "\n"));
 }
 
+my $wikilock;
+
 sub pc_die
 {
     pc_print(@_);
@@ -41,26 +43,6 @@ my $cwd = getcwd ();
 
 # untaint 
 if($cwd =~ /(.*)/) { $cwd = $1; }  
-
-
-# locking taken from ikiwiki
-my $wikilock;
-sub lockwiki () {
-	# Take an exclusive lock on the wiki to prevent multiple concurrent
-	# run issues. The lock will be dropped on program exit.
-	open($wikilock, '>', "$cwd/.wikilock") ||
-	    pc_die ("The wiki cannot write to the lock file $cwd/.wikilock: $!");
-	if (! flock($wikilock, 2|4)) { # LOCK_EX | LOCK_NB
-		pc_die("The wiki is being used for another commit: failed to get lock");
-	}
-	return 1;
-}
-
-sub unlockwiki () {
-	return close($wikilock) if $wikilock;
-	return;
-}
-
 
 # Compute list of mizar files that belong to the index (i.e., the
 # mizar files that are about to be committed). git diff-index will

@@ -188,6 +188,26 @@ if($action eq "gitweb")
 
 my $backend_repo_file = $backend_repo_path . "/" . $input_file;
 
+my $wikilock;
+
+# locking taken from ikiwiki
+sub lockwiki () {
+	# Take an exclusive lock on the wiki to prevent multiple concurrent
+	# run issues. The lock will be dropped on program exit.
+	open($wikilock, '>', $backend_repo_path . ".wikilock") ||
+	    pr_die ("The wiki cannot write to the lock file $backend_repo_path.wikilock: $!");
+	if (! flock($wikilock, 2|4)) { # LOCK_EX | LOCK_NB
+		pr_die("The wiki is being used for another commit: failed to get lock");
+	}
+	return 1;
+}
+
+sub unlockwiki () {
+	return close($wikilock) if $wikilock;
+	return;
+}
+
+
 
 ## the action for committing
 if($action eq "commit")
@@ -212,6 +232,11 @@ if($action eq "commit")
 
     # remove the dos stuff
     $input_article =~ s/\r//g;
+
+    chdir $backend_repo_path;              # before locking executing this hook!
+
+    lockwiki();
+
     # Copy the contents of the new file to the backend repo.
     my $received_path = $backend_repo_mml . "/" . $article_filename;
     open(PFH, ">$received_path") or pr_die "$received_path not writable";
@@ -245,7 +270,6 @@ if($action eq "commit")
 # repo.  Now we add them.
 #    $ENV{GIT_DIR}
 #	= $backend_repo_path . "/" . ".git"; # GIT_DIR is set to "." by git
-    chdir $backend_repo_path;              # before executing this hook!
     pr_print ("Adding $input_file to $backend_repo_path");
     system ("$git add $input_file 2>&1");
     my $git_add_exit_code = ($? >> 8);
@@ -290,6 +314,7 @@ if($action eq "commit")
     }
     system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
     pr_print ("All OK!");
+    unlockwiki();
 }
 
 ## the action for raw
