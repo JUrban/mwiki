@@ -50,7 +50,7 @@
 * TODO Log the results of anonymous pushes to the system log.
   We should keep track of what's going on, both for web edits and
   anonymous git pushes.
-* TODO Make HTML valid
+* IN-PROGRESS Make HTML valid
   If we want this to be web scrapable, etc., then it should at least
   be valid.  The frontend index.html, for example, is really bad
   (specifies HTML 2.0 -- from 1995), and in any case is invalid:
