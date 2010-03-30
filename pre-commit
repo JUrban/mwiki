@@ -130,8 +130,6 @@ separate_mml_from_non_mml ();
 clean_the_dirty_sandbox ();
 copy_new_articles_to_sandbox ();
 
-
-
 sub ensure_existence {
   my $path = shift;
   if (-e $path) {
