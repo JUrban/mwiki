@@ -81,8 +81,8 @@ my $header=<<END;
 <h1>
 Mizar Mathematical Library (current wiki state)
 </h1>
-<form method="post" action="mwiki.cgi" enctype="multipart/form-data">
-<table>
+<form method="post" action="$lmwikicgi" enctype="multipart/form-data">
+<table align=right>
 <tr>
 <td align=top>
 	      Create/Edit article<br>
