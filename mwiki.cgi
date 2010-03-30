@@ -268,7 +268,7 @@ if($action eq "edit")
 
     my $old_content = "";
 
-    if(-e $backend_repo_path)
+    if(-e $backend_repo_file)
     {
 	open(FILEHANDLE, $backend_repo_file) or pr_die "$backend_repo_file not readable!";
 	$old_content = do { local $/; <FILEHANDLE> };
