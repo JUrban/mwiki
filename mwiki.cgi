@@ -79,12 +79,6 @@ if(defined($git_project) && ($git_project =~ /^([a-zA-Z0-9_\-\.]+)$/))
 }
 else { pr_die("The repository name \"$git_project\" is not allowed"); }
 
-if ((defined $input_file) && ($input_file =~ /^(mml\/(([a-z0-9_]+)\.miz))$/))
-{
-    ($input_file, $article_filename, $aname) = ($1, $2, $3);
-}
-else { pr_die("The file name \"$input_file\" is not allowed"); }
-
 if ((defined $action) 
     && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/) || ($action =~ /^(history)$/) 
 	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)))
@@ -92,6 +86,14 @@ if ((defined $action)
     $action = $1;
 }
 else { pr_die("Unknown action \"$action\"."); }
+
+if ((defined $input_file) && ($input_file =~ /^(mml\/(([a-z0-9_]+)\.miz))$/))
+{
+    ($input_file, $article_filename, $aname) = ($1, $2, $3);
+}
+elsif (action =~ /^(gitweb)$/) { $aname=""; }
+else { pr_die("The file name \"$input_file\" is not allowed"); }
+
 
 my $frontend_repo = $frontend_dir . $git_project;
 my $backend_repo_path = "";
@@ -133,10 +135,7 @@ if(!(defined $htmldir) || (length($htmldir) == 0))
     pr_die "No html directory for the project $git_project";
 }
 
-
-my $backend_repo_file = $backend_repo_path . "/" . $input_file;
-
-## only print the file links if the file is ok
+## only print the file links if the file is ok - the length of $aname is 0 if only gitweb
 ## WARNING: This sub is using global vars $aname,$input_file,$git_project; don't move it!
 ##          It is a sub only because without it the scoping breaks.
 sub printheader
@@ -163,6 +162,27 @@ VEND
 </div>
 END
 }
+
+## the action for gitweb
+## this has to exit here before we start working with $input_file
+if($action eq "gitweb")
+{
+    printheader();
+
+print<<END1
+<iframe src ="$lgitwebcgi?p=$git_project" width="90%" height="90%">
+<p>Your user agent does not support iframes or is currently configured
+  not to display iframes. However, you may visit
+  <A href="$lgitwebcgi?p=$git_project">the related document.</A></p>
+</iframe>
+END1
+
+    print $query->end_html;
+    exit;
+}
+
+my $backend_repo_file = $backend_repo_path . "/" . $input_file;
+
 
 ## the action for committing
 if($action eq "commit")
@@ -291,20 +311,6 @@ print<<END1
   <p>Your user agent does not support iframes or is currently configured
   not to display iframes. However, you may visit
   <A href="$lgitwebcgi?p=$git_project;a=history;f=$input_file">the related document.</A></p>
-</iframe>
-END1
-}
-
-## the action for gitweb
-if($action eq "gitweb")
-{
-    printheader();
-
-print<<END1
-<iframe src ="$lgitwebcgi?p=$git_project" width="90%" height="90%">
-<p>Your user agent does not support iframes or is currently configured
-  not to display iframes. However, you may visit
-  <A href="$lgitwebcgi?p=$git_project">the related document.</A></p>
 </iframe>
 END1
 }
