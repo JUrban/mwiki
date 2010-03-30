@@ -42,6 +42,7 @@ my $message       = $query->param('Message');
 
 print $query->header();
 print $query->start_html(-title=>"Processing $input_file",
+			 -dtd=>'-//W3C//DTD HTML 3.2//EN',
 			-head  => style(
 {-type => 'text/css'},
 'body {font-family: monospace; margin: 0px;}
@@ -78,12 +79,6 @@ if(defined($git_project) && ($git_project =~ /^([a-zA-Z0-9_\-\.]+)$/))
 }
 else { pr_die("The repository name \"$git_project\" is not allowed"); }
 
-if ((defined $input_file) && ($input_file =~ /^(mml\/(([a-z0-9_]+)\.miz))$/))
-{
-    ($input_file, $article_filename, $aname) = ($1, $2, $3);
-}
-else { pr_die("The file name \"$input_file\" is not allowed"); }
-
 if ((defined $action) 
     && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/) || ($action =~ /^(history)$/) 
 	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)))
@@ -91,6 +86,14 @@ if ((defined $action)
     $action = $1;
 }
 else { pr_die("Unknown action \"$action\"."); }
+
+if ((defined $input_file) && ($input_file =~ /^(mml\/(([a-z0-9_]+)\.miz))$/))
+{
+    ($input_file, $article_filename, $aname) = ($1, $2, $3);
+}
+elsif ($action =~ /^(gitweb)$/) { $aname=""; }
+else { pr_die("The file name \"$input_file\" is not allowed"); }
+
 
 my $frontend_repo = $frontend_dir . $git_project;
 my $backend_repo_path = "";
@@ -132,10 +135,7 @@ if(!(defined $htmldir) || (length($htmldir) == 0))
     pr_die "No html directory for the project $git_project";
 }
 
-
-my $backend_repo_file = $backend_repo_path . "/" . $input_file;
-
-## only print the file links if the file is ok
+## only print the file links if the file is ok - the length of $aname is 0 if only gitweb
 ## WARNING: This sub is using global vars $aname,$input_file,$git_project; don't move it!
 ##          It is a sub only because without it the scoping breaks.
 sub printheader
@@ -162,6 +162,32 @@ VEND
 </div>
 END
 }
+
+sub print_iframe
+{
+    my $url = shift;
+    print<<END1
+<iframe src ="$url" width="90%" height="90%" style="margin:10px" frameborder="1">
+<p>Your user agent does not support iframes or is currently configured
+  not to display iframes. However, you may visit
+  <A href="$url">the related document.</A></p>
+</iframe>
+END1
+
+}
+
+## the action for gitweb
+## this has to exit here before we start working with $input_file
+if($action eq "gitweb")
+{
+    printheader();
+    print_iframe("$lgitwebcgi?p=$git_project");
+    print $query->end_html;
+    exit;
+}
+
+my $backend_repo_file = $backend_repo_path . "/" . $input_file;
+
 
 ## the action for committing
 if($action eq "commit")
@@ -270,36 +296,14 @@ if($action eq "commit")
 if($action eq "blob_plain")
 {
     printheader();
-
-print<<END1
-<iframe src ="$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file" width="90%" height="90%">
-  <p>Your browser does not support iframes.</p>
-</iframe>
-END1
+    print_iframe("$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file");
 }
 
 ## the action for history
 if($action eq "history")
 {
     printheader();
-
-print<<END1
-<iframe src ="$lgitwebcgi?p=$git_project;a=history;f=$input_file" width="90%" height="90%">
-  <p>Your browser does not support iframes.</p>
-</iframe>
-END1
-}
-
-## the action for gitweb
-if($action eq "gitweb")
-{
-    printheader();
-
-print<<END1
-<iframe src ="$lgitwebcgi?p=$git_project" width="90%" height="90%">
-  <p>Your browser does not support iframes.</p>
-</iframe>
-END1
+    print_iframe("$lgitwebcgi?p=$git_project;a=history;f=$input_file");
 }
 
 ## the action for editing
@@ -336,15 +340,15 @@ if($action eq "edit")
       <tr>
         <td>
           <input type="radio" name="ProblemSource" value="Formula" id="ProblemSourceRadioButton" checked>Edit article<br/>
-          <textarea name="Formula" tabindex="3"  rows="40" cols="90" id="FORMULAEProblemTextBox">$old_content</textarea>
+          <textarea name="Formula" tabindex="3"  rows="35" cols="90" id="FORMULAEProblemTextBox">$old_content</textarea>
         <tr valign="top">
         </td>
-        <td>
-          <input type="radio" name="ProblemSource" value="UPLOAD">Article file to upload (not supported yet)
-          <br/>
-          <input type="file" name="UPLOADProblem"  size="30" />
-        <tr valign="top">
-        </td>
+         <!--      <td>
+         <!-- <input type="radio" name="ProblemSource" value="UPLOAD">Article file to upload (not supported yet) -->
+         <!-- <br/> -->
+         <!-- <input type="file" name="UPLOADProblem"  size="30" />  -->
+         <!--  <tr valign="top">  -->
+         <!-- </td> -->
           <input type="hidden" name="p" value="$git_project">
           <input type="hidden" name="a" value="commit">
           <input type="hidden" name="f" value="$input_file">

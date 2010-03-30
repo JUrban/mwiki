@@ -236,7 +236,7 @@ maybe_die_if_make_errors_in_dir ($sandbox_mml, 'make-deps-err',
 
 # Now try to verify the new articles (i.e., generate the article XML).
 chdir ($sandbox);
-system ("make --keep-going --jobs $makejobs xmlvrfs 2> make-xml-err | tee make-xml-out");
+system ("make --keep-going --jobs $makejobs hdrs xmlvrfs 2> make-xml-err | tee make-xml-out");
 # die_if_make_died ($? >> 8);
 maybe_die_if_make_errors_in_dir ($sandbox_mml, "$sandbox/make-xml-err",
 				 'Failure verifying and generating XML');
