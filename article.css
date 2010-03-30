@@ -76,6 +76,7 @@ span.lab {
 
 span.comment {
 	font-style: italic;
+	color: red;
 }
 
 span.hide {
