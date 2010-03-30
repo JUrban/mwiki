@@ -84,7 +84,9 @@ if ((defined $input_file) && ($input_file =~ /^(mml\/(([a-z0-9_]+)\.miz))$/))
 }
 else { pr_die("The file name \"$input_file\" is not allowed"); }
 
-if ((defined $action) && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/)))
+if ((defined $action) 
+    && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/) || ($action =~ /^(history)$/) 
+	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)))
 {
     $action = $1;
 }
@@ -136,7 +138,7 @@ my $backend_repo_file = $backend_repo_path . "/" . $input_file;
 ## only print the file links if the file is ok
 ## WARNING: This sub is using global vars $aname,$input_file,$git_project; don't move it!
 ##          It is a sub only because without it the scoping breaks.
-sub printcommitheader
+sub printheader
 {
     my $viewlinks = "";
 
@@ -145,8 +147,8 @@ sub printcommitheader
 	$viewlinks=<<VEND
          <li> <a href="$htmldir/$aname.html">View</a> </li>
          <li> <a href="?p=$git_project;a=edit;f=$input_file">Edit</a> </li>
-         <li> <a href="$lgitwebcgi?p=$git_project;a=history;f=$input_file">History</a> </li>
-         <li> <a href="$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
+         <li> <a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
+         <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
 VEND
     }
 
@@ -155,17 +157,19 @@ VEND
     <ul>
          $viewlinks
          <li> <a href="$htmldir/">Index</a> </li>
-         <li> <a href="$lgitwebcgi?p=$git_project">Gitweb</a> </li>
+         <li> <a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
     </ul>
 </div>
-<pre>
 END
 }
 
 ## the action for committing
 if($action eq "commit")
 {
-    printcommitheader();
+    printheader();
+
+    print "<pre>";
+
 
     if(defined($message) && ($message =~ /^[^']+$/) && ($message =~ /^\s*(\S(\s|\S)*)\s*$/))
     {
@@ -262,6 +266,42 @@ if($action eq "commit")
     pr_print ("All OK!");
 }
 
+## the action for raw
+if($action eq "blob_plain")
+{
+    printheader();
+
+print<<END1
+<iframe src ="$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file" width="90%" height="90%">
+  <p>Your browser does not support iframes.</p>
+</iframe>
+END1
+}
+
+## the action for history
+if($action eq "history")
+{
+    printheader();
+
+print<<END1
+<iframe src ="$lgitwebcgi?p=$git_project;a=history;f=$input_file" width="90%" height="90%">
+  <p>Your browser does not support iframes.</p>
+</iframe>
+END1
+}
+
+## the action for gitweb
+if($action eq "gitweb")
+{
+    printheader();
+
+print<<END1
+<iframe src ="$lgitwebcgi?p=$git_project" width="90%" height="90%">
+  <p>Your browser does not support iframes.</p>
+</iframe>
+END1
+}
+
 ## the action for editing
 if($action eq "edit")
 {
@@ -283,9 +323,9 @@ if($action eq "edit")
  <div class="wikiactions">
   <ul>
      <li><a href="javascript:javascript:history.go(-1)">Cancel</a></li>
-     <li><a href="$lgitwebcgi?p=$git_project;a=history;f=$input_file">History</a> </li>
-     <li><a href="$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
-     <li><a href="$lgitwebcgi?p=$git_project">Gitweb</a> </li>
+     <li><a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
+     <li><a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
+     <li><a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
   </ul>
 </div>
 <dl>
