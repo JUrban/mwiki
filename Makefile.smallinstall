@@ -49,6 +49,7 @@ REPOBIN=$(PUBLIC_REPO)/bin
 MIZBIN=$(MIZFILES)/bin
 MAKEJOBS=1
 SHEETS=addabsrefs miz evl2dep
+CSS=article
 PERLSCRIPTS=mkxmlhead mkmmlindex duplicates
 PERLMODULES=mizar
 GITWEB_ROOT=/var/cache/git
@@ -111,6 +112,11 @@ scratch-mizfiles:
 	mkdir -p $(SCRATCH_BASE)/xsl
 	for sheet in $(SHEETS); do \
 	  $(INSTALL) --mode 644 $(XSL4MIZ)/$$sheet.xsl $(SCRATCH_BASE)/xsl; \
+	done
+	# css
+	mkdir -p $(SCRATCH_BASE)/html
+	for sheet in $(CSS); do \
+	  $(INSTALL) --mode 644 $$sheet.css $(SCRATCH_BASE)/html; \
 	done
 	# perl
 	mkdir -p $(SCRATCH_BASE)/.perl
