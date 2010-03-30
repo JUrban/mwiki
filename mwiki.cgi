@@ -42,6 +42,7 @@ my $message       = $query->param('Message');
 
 print $query->header();
 print $query->start_html(-title=>"Processing $input_file",
+			 -dtd=>'-//W3C//DTD HTML 3.2//EN',
 			-head  => style(
 {-type => 'text/css'},
 'body {font-family: monospace; margin: 0px;}
@@ -273,7 +274,9 @@ if($action eq "blob_plain")
 
 print<<END1
 <iframe src ="$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file" width="90%" height="90%">
-  <p>Your browser does not support iframes.</p>
+  <p>Your user agent does not support iframes or is currently configured
+  not to display iframes. However, you may visit
+  <A href="$lgitwebcgi?p=$git_project;a=blob_plain;f=$input_file">the related document.</A></p>
 </iframe>
 END1
 }
@@ -285,7 +288,9 @@ if($action eq "history")
 
 print<<END1
 <iframe src ="$lgitwebcgi?p=$git_project;a=history;f=$input_file" width="90%" height="90%">
-  <p>Your browser does not support iframes.</p>
+  <p>Your user agent does not support iframes or is currently configured
+  not to display iframes. However, you may visit
+  <A href="$lgitwebcgi?p=$git_project;a=history;f=$input_file">the related document.</A></p>
 </iframe>
 END1
 }
@@ -297,7 +302,9 @@ if($action eq "gitweb")
 
 print<<END1
 <iframe src ="$lgitwebcgi?p=$git_project" width="90%" height="90%">
-  <p>Your browser does not support iframes.</p>
+<p>Your user agent does not support iframes or is currently configured
+  not to display iframes. However, you may visit
+  <A href="$lgitwebcgi?p=$git_project">the related document.</A></p>
 </iframe>
 END1
 }
