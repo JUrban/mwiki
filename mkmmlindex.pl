@@ -53,7 +53,7 @@ sub print_one_html
 {
     my ($name) = @_;
     my $name_uc = uc($name);
-    print "<dt><a href=\"$name.html\">$name_uc</a>,</dt><dd>$all{$name}->[1]. <i>$all{$name}->[0]</i></dd>\n"
+    print "<li><a href=\"$name.html\">$name_uc</a>, $all{$name}->[1]. <i>$all{$name}->[0]</i></li>\n"
 }
 
 my $header=<<END;
@@ -129,12 +129,12 @@ foreach my $name (sort keys %all)
       $prevletter = $firstletter;
       print "<dt>$firstletter</dt>";
       print '<dd>';
-      print '<dl>';
+      print '<ul>';
     }
 
     unless ($prevletter eq $firstletter)
       {
-	print ('</dl></dd>', "\n", '<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a></dt><dd><dl>', "\n");
+	print ('</ul></dd>', "\n", '<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a></dt><dd><dl>', "\n");
       }
 
     print_one_html($name);
