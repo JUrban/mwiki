@@ -42,7 +42,7 @@ my $message       = $query->param('Message');
 
 print $query->header();
 print $query->start_html(-title => "Processing $input_file",
-			 -dtd => '-//W3C//DTD XHTML 1.0 Transitional//EN',
+			 # -dtd => '-//W3C//DTD XHTML 1.0 Transitional//EN',
 			 -head => [
 				   Link ({-rel => 'stylesheet',
 				       -href => '/mwiki/edit.css'})
