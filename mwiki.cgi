@@ -45,7 +45,7 @@ print $query->start_html(-title => "Processing $input_file",
 			 -dtd => '-//W3C//DTD XHTML 1.0 Transitional//EN',
 			 -head => [
 				   Link ({-rel => 'stylesheet',
-				       -href => 'edit.css'})
+				       -href => '/mwiki/edit.css'})
 				  ]);
 sub pr_pad {
   my $str = shift;
