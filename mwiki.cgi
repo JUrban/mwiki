@@ -407,8 +407,6 @@ if($action eq "edit")
         <td>
            <textarea name="Message" tabindex="3"  rows="2" cols="40" id="MessageTextBox"></textarea>
         </td>
-      </tr>
-      <tr>
         <td align="right">
           <input type="submit" value="Submit"/>
           <input type="reset" value="Reset"/>
