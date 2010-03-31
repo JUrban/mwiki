@@ -183,7 +183,7 @@ public-mwiki-user:
 	sv shutdown git-daemon
 	mv /etc/sv/git-daemon/run /etc/sv/git-daemon/run.original
 	install -m 755 mwiki-gitdaemon.run /etc/sv/git-daemon/run
-	sv restart git-daemon
+	sv start git-daemon
 
 public-compiled: scratch
 	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_COMPILED_REPO)
@@ -253,4 +253,4 @@ clean:
 	sv shutdown git-daemon
 	rm -f /etc/sv/git-daemon/run
 	mv /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
-	sv restart git-daemon
+	sv start git-daemon
