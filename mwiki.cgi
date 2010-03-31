@@ -310,6 +310,7 @@ if($action eq "commit")
     }
     system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
     pr_print ("All OK!");
+    print "</pre>\n"
     unlockwiki();
 }
 
