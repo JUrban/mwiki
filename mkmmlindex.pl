@@ -83,7 +83,7 @@ my $header=<<END;
 <table align="right">
 <tr valign="top">
 <td>
-                <input type="text" name="f" value="mml/foo.miz" size="20">
+                <input type="text" name="f" value="mml/foo.miz" size="20"/>
 </td>
 <td>
 <input type="hidden" name="p" value="$git_project"/>
@@ -150,14 +150,14 @@ my @names = sort keys %all;
 if($#names >= 0)
 {
     my $prevletter = uc(substr($names[0], 0, 1));
-    print ('<dt><A NAME="', $prevletter, '"><b>', $prevletter, '</B></A><dd><dl>', "\n");
+    print ('<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a><dd><dl>', "\n");
 
     foreach my $name (@names)
     {
 	unless ($prevletter eq uc(substr($name, 0, 1)))
 	{
 	    $prevletter = uc(substr($name, 0, 1));
-	    print ('</dl>', "\n", '<dt><A NAME="', $prevletter, '"><b>', $prevletter, '</B></A><dd><dl>', "\n");
+	    print ('</dl>', "\n", '<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a><dd><dl>', "\n");
 	}
 	print_one_html($name);
     }
