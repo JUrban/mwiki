@@ -353,7 +353,7 @@ AEND
 
 sub html_escape {
   my $text = shift;
-  $text =~ s/&/&amp;/;
+  $text =~ s/&/&amp;/g;
   return $text;
 }
 
