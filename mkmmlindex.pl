@@ -59,7 +59,8 @@ sub print_one_html
 }
 
 my $header=<<END;
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>Mizar Mathematical Library (current wiki state), Index of Identifiers</title>
 <style type="text/css">
@@ -76,18 +77,18 @@ my $header=<<END;
          <li> <a href="$lmwikicgi?p=$git_project;a=gitweb">Gitweb</a> </li>
     </ul>
 </div>
-<div class=index>
-<div class=indexheading>
+<div class="index">
+<div class="indexheading">
 <form method="post" action="$lmwikicgi" enctype="multipart/form-data">
-<table align=right>
+<table align="right">
 <tr>
-<td align=top>
+<td align="top">
                 <input type="text" name="f" value="mml/foo.miz" SIZE="20">
 </td>
           <input type="hidden" name="p" value="$git_project">
           <input type="hidden" name="a" value="edit">
 
-        <td align=right>
+        <td align="right">
           <input type="submit" value="Create/Edit">
          </td>
 </tr>
