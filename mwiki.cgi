@@ -42,13 +42,9 @@ my $message       = $query->param('Message');
 
 print $query->header();
 print $query->start_html(-title=>"Processing $input_file",
-			 -dtd=>'-//W3C//DTD HTML 3.2//EN',
-			-head  => style(
-{-type => 'text/css'},
-'body {font-family: monospace; margin: 0px;}
-.wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
-.wikiactions li { display: inline; padding: .2em .4em; }'
-                         )
+			 -dtd=>'-//W3C//DTD XHTML 1.0 Transitional//EN',
+			 -head => link ({-rel => 'stylesheet',
+					 -href => 'edit.css'})
 );
 
 sub pr_pad {
