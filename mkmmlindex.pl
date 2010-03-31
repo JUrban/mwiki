@@ -150,7 +150,7 @@ my @names = sort keys %all;
 if($#names >= 0)
 {
     my $prevletter = uc(substr($names[0], 0, 1));
-    print ('<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a><dd><dl>', "\n");
+    print ('<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a></dt><dd><dl>', "\n");
 
     foreach my $name (@names)
     {
