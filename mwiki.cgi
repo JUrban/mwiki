@@ -400,9 +400,12 @@ if($action eq "edit")
           <input type="hidden" name="f" value="$input_file"/>
         </td>
       </tr>
-      <tr valign="top">
-        <td>Commit message (mandatory):<br/>
-            <textarea name="Message" tabindex="3"  rows="2" cols="40" id="MessageTextBox"/>
+      <tr>
+        <td>Commit message (mandatory):</td>
+      </tr>
+      <tr>
+        <td>
+           <textarea name="Message" tabindex="3"  rows="2" cols="40" id="MessageTextBox"></textarea>
         </td>
       </tr>
       <tr>
