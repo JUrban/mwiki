@@ -180,12 +180,10 @@ public-mwiki-user:
 	  --home=$(PUBLIC_REPOS_BASE) \
 	  $(PUBLIC_MWIKI_USER) \
 	    || echo "$(PUBLIC_MWIKI_USER) already exists"
-	-git daemon \
-	  --syslog \
-	  --base-path=$(PUBLIC_REPOS_BASE) \
-	  --user=$(PUBLIC_MWIKI_USER) \
-	  --detach
-
+	sv stop git-daemon
+	mv /etc/sv/git-daemon/run /etc/sv/git-daemon/run.original
+	install -m 755 mwiki-gitdaemon.run /etc/sv/git-daemon/run
+	sv restart git-daemon
 
 public-compiled: scratch
 	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_COMPILED_REPO)
@@ -252,3 +250,7 @@ clean:
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.access.log
 	rm -f $(CGILIB)/mwiki/mwiki.cgi
 	apache2ctl restart
+	sv stop git-daemon
+	rm -f /etc/sv/git-daemon/run
+	mv /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
+	sv restart git-daemon
