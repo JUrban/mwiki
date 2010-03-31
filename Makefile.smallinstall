@@ -175,11 +175,11 @@ public-repo-init: public-mwiki-user scratch
 
 
 public-mwiki-user:
-	-adduser --shell=/usr/bin/git-shell \
-	  --disabled-password \
-	  --home=$(PUBLIC_REPOS_BASE) \
-	  $(PUBLIC_MWIKI_USER) \
-	    || echo "$(PUBLIC_MWIKI_USER) already exists"
+	# -adduser --shell=/usr/bin/git-shell \
+	#   --disabled-password \
+	#   --home=$(PUBLIC_REPOS_BASE) \
+	#   $(PUBLIC_MWIKI_USER) \
+	#     || echo "$(PUBLIC_MWIKI_USER) already exists"
 	sv stop git-daemon
 	mv /etc/sv/git-daemon/run /etc/sv/git-daemon/run.original
 	install -m 755 mwiki-gitdaemon.run /etc/sv/git-daemon/run
@@ -239,9 +239,9 @@ mwiki: public-repos
 clean:
 	rm -Rf $(REPOS_BASE)
 	rm -f $(GITWEB_ROOT)/mwiki.git
-	-killall git-daemon
-	deluser $(PUBLIC_MWIKI_USER) \
-	  || echo "user $(PUBLIC_MWIKI_USER) doesn't exist"
+	# -killall git-daemon
+	# deluser $(PUBLIC_MWIKI_USER) \
+	#   || echo "user $(PUBLIC_MWIKI_USER) doesn't exist"
 	rm -f $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
 	rm -f $(APACHE_ROOT)/etc/apache2/sites-enabled/mwiki
 	rm -f $(APACHE_ROOT)/etc/apache2/sites-available/mwiki
