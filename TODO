@@ -144,3 +144,19 @@
   corresponding tools and work with us on their plugging-in and
   use. Without good testers and developers, it is not going to work.
 * DONE Factor out the CSS from the generated article HTML to a separate file
+* TODO Don't use SkippedProofs, but rather "@proof"		      :jesse:
+  The "@proof" should be preceded by whitespace, or at the beginning of a line,
+  and not in the context of a comment.
+* TODO Index file: what should it be called?
+  The idea is to not restrict the names of articles submitted to the
+  wiki.  Since "index.miz" is a valid mizar name, which would generate
+  "index.html", we want to avoid "index.html" as the name of our
+  index.  Josef proposed "00INDEX.html", which has the advantage that
+  in a directory listing it shows up at the top.  But I think that's a
+  valid article name, too.  I propose "frontpage.html".  The basename
+  has nine characters, which makes it an invalid mizar article name.
+  But this has the advantage that it will not show up at the top of a
+  directory listing.  What about "0000index.html"?  Nine characters,
+  definitely at the top.
+* TODO Make sure we properly escape (X)HTML characters in mwiki.cgi   :jesse:
+  Escaping ampersands is just the begining.
