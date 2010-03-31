@@ -157,7 +157,7 @@ if($#names >= 0)
 	unless ($prevletter eq uc(substr($name, 0, 1)))
 	{
 	    $prevletter = uc(substr($name, 0, 1));
-	    print ('</dl>', "\n", '<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a></dt><dd><dl>', "\n");
+	    print ('</dl></dd>', "\n", '<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a></dt><dd><dl>', "\n");
 	}
 	print_one_html($name);
     }
