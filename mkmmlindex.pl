@@ -81,15 +81,19 @@ my $header=<<END;
 <div class="indexheading">
 <form method="post" action="$lmwikicgi" enctype="multipart/form-data">
 <table align="right">
-<tr>
-<td align="top">
-                <input type="text" name="f" value="mml/foo.miz" SIZE="20">
+<tr valign="top">
+<td>
+                <input type="text" name="f" value="mml/foo.miz" size="20">
 </td>
-          <input type="hidden" name="p" value="$git_project">
-          <input type="hidden" name="a" value="edit">
+<td>
+<input type="hidden" name="p" value="$git_project"/>
+</td>
+<td>
+<input type="hidden" name="a" value="edit"/>
+</td>
 
         <td align="right">
-          <input type="submit" value="Create/Edit">
+          <input type="submit" value="Create/Edit"/>
          </td>
 </tr>
 </table>
