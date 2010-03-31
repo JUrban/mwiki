@@ -176,7 +176,7 @@ public-repo-init: public-mwiki-user scratch
 
 public-mwiki-user:
 	-adduser --shell=/usr/bin/git-shell \
-	  --disabled-password
+	  --disabled-password \
 	  --home=$(PUBLIC_REPOS_BASE) \
 	  $(PUBLIC_MWIKI_USER) \
 	    || echo "$(PUBLIC_MWIKI_USER) already exists"
