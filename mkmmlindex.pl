@@ -63,7 +63,7 @@ my $header=<<END;
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>Mizar Mathematical Library (current wiki state), Index of Identifiers</title>
-<style type="text/css" src="index.css"/>
+<link rel="stylesheet" href="index.css"/>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>
