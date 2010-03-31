@@ -180,7 +180,7 @@ public-mwiki-user:
 	#   --home=$(PUBLIC_REPOS_BASE) \
 	#   $(PUBLIC_MWIKI_USER) \
 	#     || echo "$(PUBLIC_MWIKI_USER) already exists"
-	sv stop git-daemon
+	sv shutdown git-daemon
 	mv /etc/sv/git-daemon/run /etc/sv/git-daemon/run.original
 	install -m 755 mwiki-gitdaemon.run /etc/sv/git-daemon/run
 	sv restart git-daemon
@@ -249,7 +249,7 @@ clean:
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.error.log
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.access.log
 	apache2ctl restart
-	sv stop git-daemon
+	sv shutdown git-daemon
 	rm -f /etc/sv/git-daemon/run
 	mv /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
 	sv restart git-daemon
