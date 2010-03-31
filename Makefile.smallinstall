@@ -232,6 +232,12 @@ mwiki: public-repos
 	  $(CGILIB)/mwiki/mwiki.cgi
 	$(INSTALL) -m 644 mwiki.apacheconf \
 	  $(APACHE_ROOT)/etc/apache2/sites-available/mwiki
+	if [ -e $(APACHE_ROOT)/mods-available/dir.conf ]; then \
+	  mv $(APACHE_ROOT)/mods-available/dir.conf \
+	     $(APACHE_ROOT)/mods-available/dir.conf.original; \
+	fi
+	$(INSTALL) -m 644 mwiki-frontpage.apacheconf \
+	  $(APACHE_ROOT)/mods-available/dir.conf
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -s ../sites-available/mwiki mwiki
 	apache2ctl restart
@@ -249,6 +255,11 @@ clean:
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.error.log
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.access.log
 	rm -f $(CGILIB)/mwiki/mwiki.cgi
+	if [ -e $(APACHE_ROOT)/mods-available/dir.conf.original ]; then \
+	  rm -f $(APACHE_ROOT)/mods-available/dir.conf;
+	  mv $(APACHE_ROOT)/mods-available/dir.conf.original \
+	     $(APACHE_ROOT)/mods-available/dir.conf; \
+	fi
 	apache2ctl restart
 	sv down git-daemon
 	rm -f /etc/sv/git-daemon/run
