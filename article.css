@@ -74,6 +74,10 @@ span.lab {
 	font-style: italic;
 }
 
+span.constant {
+    color: maroon;
+}
+
 span.comment {
 	font-style: italic;
 	color: red;
