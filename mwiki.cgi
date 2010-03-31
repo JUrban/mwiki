@@ -381,11 +381,11 @@ if($action eq "edit")
 <dl>
   <dd>
     <form method="post" action="mwiki.cgi" enctype="multipart/form-data">
-    <br>
+    <br/>
     <table>
       <tr>
         <td>
-          <input type="radio" name="ProblemSource" value="Formula" id="ProblemSourceRadioButton" checked>Edit article<br/>
+          <input type="radio" name="ProblemSource" value="Formula" id="ProblemSourceRadioButton" selected="checked"/>Edit article<br/>
           <textarea name="Formula" tabindex="3"  rows="35" cols="90" id="FORMULAEProblemTextBox">$old_content</textarea>
         <tr valign="top">
         </td>
@@ -395,9 +395,9 @@ if($action eq "edit")
          <!-- <input type="file" name="UPLOADProblem"  size="30" />  -->
          <!--  <tr valign="top">  -->
          <!-- </td> -->
-          <input type="hidden" name="p" value="$git_project">
-          <input type="hidden" name="a" value="commit">
-          <input type="hidden" name="f" value="$input_file">
+          <input type="hidden" name="p" value="$git_project"/>
+          <input type="hidden" name="a" value="commit"/>
+          <input type="hidden" name="f" value="$input_file"/>
         <!--	<td> <input type="radio" name="ProblemSource" value="URL" >URL to fetch article from<br> -->
         <!--	<input type="text" name="FormulaURL" tabindex="4"  size="80" /><TR VALIGN=TOP></TD> -->
         <!-- <td> <input type="checkbox" name="VocSource" value="UPLOAD"> -->
@@ -406,14 +406,14 @@ if($action eq "edit")
       </tr>
       <tr>
               <td align=top>
-	      Commit message (mandatory):<br>
+	      Commit message (mandatory):<br/>
                 <textarea name="Message" tabindex="3"  rows="2" cols="40" id="MessageTextBox"></textarea>
               </td>
             </tr>
       <tr>
         <td align=right>
-          <input type="submit" value="Submit">
-          <input type="reset" value="Reset">
+          <input type="submit" value="Submit"/>
+          <input type="reset" value="Reset"/>
          </td>
        </tr>
      </table>
