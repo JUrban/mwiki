@@ -351,6 +351,12 @@ theorem Foo: x=x;
 AEND
 ;
 
+sub html_escape {
+  my $text = shift;
+  $text =~ s/&/&amp;/;
+  return $text;
+}
+
 ## the action for editing
 if($action eq "edit")
 {
@@ -367,6 +373,8 @@ if($action eq "edit")
     {
 	$old_content = $article_template;
     }
+
+    $old_content = html_escape ($old_content);
 
     print<<END;
  <div class="wikiactions">
@@ -385,7 +393,7 @@ if($action eq "edit")
     <table>
       <tr>
         <td>
-          <input type="radio" name="ProblemSource" value="Formula" id="ProblemSourceRadioButton" selected="checked"/>Edit article<br/>
+          <input type="radio" name="ProblemSource" value="Formula" id="ProblemSourceRadioButton" checked="checked"/>Edit article<br/>
           <textarea name="Formula" tabindex="3"  rows="35" cols="90" id="FORMULAEProblemTextBox">$old_content</textarea>
         <tr valign="top">
         </td>
