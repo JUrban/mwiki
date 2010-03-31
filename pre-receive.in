@@ -98,9 +98,7 @@ unless (scalar @non_miz_files == 0) {
 my @miz_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | grep "\.miz\$"`;
 for my $miz_file (@miz_files) {
   chomp $miz_file;
-  if ($miz_file =~ /\A mml \/ ([a-z0-9_]+\.miz) \z/xm) { # strip "mml/" prefix
-    $miz_file = $1;
-  }else {
+  if ($miz_file !~ /\A mml \/ ([a-z0-9_]+\.miz) \z/xm) { # strip "mml/" prefix
     pr_print ("Suspcious: .miz file is not under the mml subdirectory");
     pr_print ("The path is $miz_file");
     exit 1;
