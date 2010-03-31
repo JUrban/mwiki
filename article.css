@@ -78,6 +78,30 @@ span.constant {
     color: maroon;
 }
 
+span.variable {
+	color: olive;
+}
+
+span.locus {
+	color: maroon;
+}
+
+span.pred-scheme {
+	color: maroon;
+}
+
+span.func-scheme {
+	color: maroon;
+}
+
+span.p-pred {
+	color: maroon;
+}
+
+span.p-func {
+	color: maroon;
+}
+
 span.comment {
 	font-style: italic;
 	color: red;
