@@ -43,10 +43,10 @@ my $message       = $query->param('Message');
 print $query->header();
 print $query->start_html(-title => "Processing $input_file",
 			 -dtd => '-//W3C//DTD XHTML 1.0 Transitional//EN',
-			 -head [
-				Link ({-rel => 'stylesheet',
+			 -head => [
+				   Link ({-rel => 'stylesheet',
 				       -href => 'edit.css'})
-			       ]);
+				  ]);
 sub pr_pad {
   my $str = shift;
   return ("[Mwiki] $str");
