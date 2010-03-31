@@ -41,9 +41,9 @@ my $message       = $query->param('Message');
 
 
 print $query->header();
-print $query->start_html(-title=>"Processing $input_file",
-			 -dtd=>'-//W3C//DTD XHTML 1.0 Transitional//EN',
-			 -head => link ({-rel => 'stylesheet',
+print $query->start_html(-title => "Processing $input_file",
+			 -dtd => '-//W3C//DTD XHTML 1.0 Transitional//EN',
+			 -link ({-rel => 'stylesheet',
 					 -href => 'edit.css'})
 );
 
