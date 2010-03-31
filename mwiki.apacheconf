@@ -4,7 +4,7 @@ Alias /mwiki "/var/cache/mwiki/public/compiled/html"
   Options +Indexes
   DirectoryIndex 00INDEX.html
   Order allow,deny
-  allow from all
+  Allow from all
 </Directory>
 
 ScriptAlias /cgi-bin/mwiki/ /usr/lib/cgi-bin/mwiki
