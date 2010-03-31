@@ -256,7 +256,7 @@ clean:
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.access.log
 	rm -f $(CGILIB)/mwiki/mwiki.cgi
 	if [ -e $(APACHE_ROOT)/mods-available/dir.conf.original ]; then \
-	  rm -f $(APACHE_ROOT)/mods-available/dir.conf;
+	  rm -f $(APACHE_ROOT)/mods-available/dir.conf; \
 	  mv $(APACHE_ROOT)/mods-available/dir.conf.original \
 	     $(APACHE_ROOT)/mods-available/dir.conf; \
 	fi
