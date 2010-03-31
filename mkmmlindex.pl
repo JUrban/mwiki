@@ -78,6 +78,21 @@ my $header=<<END;
 </div>
 <div class=index>
 <div class=indexheading>
+<form method="post" action="$lmwikicgi" enctype="multipart/form-data">
+<table align=right>
+<tr>
+<td align=top>
+                <input type="text" name="f" value="mml/foo.miz" SIZE="20">
+</td>
+          <input type="hidden" name="p" value="$git_project">
+          <input type="hidden" name="a" value="edit">
+
+        <td align=right>
+          <input type="submit" value="Create/Edit">
+         </td>
+</tr>
+</table>
+</form>
 <h1>
 Mizar Mathematical Library (current wiki state)
 </h1>

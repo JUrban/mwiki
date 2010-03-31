@@ -30,6 +30,20 @@ sub pc_print {
   print (pc_pad ($str . "\n"));
 }
 
+my $wikilock;
+
+sub pc_die
+{
+    pc_print(@_);
+    die();
+}
+
+
+my $cwd = getcwd ();
+
+# untaint 
+if($cwd =~ /(.*)/) { $cwd = $1; }  
+
 # Compute list of mizar files that belong to the index (i.e., the
 # mizar files that are about to be committed). git diff-index will
 # give a list of changed files.  We compare the index to HEAD, the
@@ -50,10 +64,6 @@ unless (scalar (@non_miz_changed) == 0) {
 my @mml_changed = ();
 my @non_mml_changed = ();
 
-my $cwd = getcwd ();
-
-# untaint 
-if($cwd =~ /(.*)/) { $cwd = $1; }  
 
 # MAKEJOBS: number of different make jobs to run simultaneously
 my $makejobs = 1;
