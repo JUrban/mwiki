@@ -395,22 +395,10 @@ if($action eq "edit")
         <td>
           <input type="radio" name="ProblemSource" value="Formula" id="ProblemSourceRadioButton" checked="checked"/>Edit article<br/>
           <textarea name="Formula" tabindex="3"  rows="35" cols="90" id="FORMULAEProblemTextBox">$old_content</textarea>
-        <tr valign="top">
-        </td>
-         <!--      <td>
-         <!-- <input type="radio" name="ProblemSource" value="UPLOAD">Article file to upload (not supported yet) -->
-         <!-- <br/> -->
-         <!-- <input type="file" name="UPLOADProblem"  size="30" />  -->
-         <!--  <tr valign="top">  -->
-         <!-- </td> -->
           <input type="hidden" name="p" value="$git_project"/>
           <input type="hidden" name="a" value="commit"/>
           <input type="hidden" name="f" value="$input_file"/>
-        <!--	<td> <input type="radio" name="ProblemSource" value="URL" >URL to fetch article from<br> -->
-        <!--	<input type="text" name="FormulaURL" tabindex="4"  size="80" /><TR VALIGN=TOP></TD> -->
-        <!-- <td> <input type="checkbox" name="VocSource" value="UPLOAD"> -->
-        <!--	Optional vocabulary file to upload (its name will be kept)<BR> -->
-        <!--	<input type="file" name="VocFile"  size="20" /></TD> -->
+        </td>
       </tr>
       <tr>
               <td align=top>
