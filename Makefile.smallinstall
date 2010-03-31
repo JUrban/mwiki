@@ -66,7 +66,7 @@ WIKIHOST=localhost
 CGILIB=/usr/lib/cgi-bin
 
 APACHE_ROOT=
-HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
+HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2
 PUBLIC_MWIKI_USER=mwiki
 
 # .PHONY: all repo sandbox deps xml repo-miz repo-prel repo-perl repo-bin repo-xsl repo-export repo-gitinit repo-makefiles
@@ -232,12 +232,12 @@ mwiki: public-repos
 	  $(CGILIB)/mwiki/mwiki.cgi
 	$(INSTALL) -m 644 mwiki.apacheconf \
 	  $(APACHE_ROOT)/etc/apache2/sites-available/mwiki
-	if [ -e $(APACHE_ROOT)/mods-available/dir.conf ]; then \
-	  mv $(APACHE_ROOT)/mods-available/dir.conf \
-	     $(APACHE_ROOT)/mods-available/dir.conf.original; \
+	if [ -e $(HTTPD_CONF_DIR)/mods-available/dir.conf ]; then \
+	  mv $(HTTPD_CONF_DIR)/mods-available/dir.conf \
+	     $(HTTPD_CONF_DIR)/mods-available/dir.conf.original; \
 	fi
 	$(INSTALL) -m 644 mwiki-frontpage.apacheconf \
-	  $(APACHE_ROOT)/mods-available/dir.conf
+	  $(HTTPD_CONF_DIR)/mods-available/dir.conf
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -s ../sites-available/mwiki mwiki
 	apache2ctl restart
@@ -255,10 +255,10 @@ clean:
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.error.log
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.access.log
 	rm -f $(CGILIB)/mwiki/mwiki.cgi
-	if [ -e $(APACHE_ROOT)/mods-available/dir.conf.original ]; then \
-	  rm -f $(APACHE_ROOT)/mods-available/dir.conf; \
-	  mv $(APACHE_ROOT)/mods-available/dir.conf.original \
-	     $(APACHE_ROOT)/mods-available/dir.conf; \
+	if [ -e $(HTTPD_CONF_DIR)/mods-available/dir.conf.original ]; then \
+	  rm -f $(HTTPD_CONF_DIR)/mods-available/dir.conf; \
+	  mv $(HTTPD_CONF_DIR)/mods-available/dir.conf.original \
+	     $(HTTPD_CONF_DIR)/mods-available/dir.conf; \
 	fi
 	apache2ctl restart
 	sv down git-daemon
