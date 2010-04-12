@@ -22,6 +22,11 @@
   CLOSED: [2010-03-19 Fri 10:53]
   When we do not commit, show people a log of the pre-commit check,
   and improve the pre-commit/make to tell the errors
+* TODO Use the gitweb improvements
+  like in http://repo.or.cz/w/CellLocator.git - looks like
+  gitweb can be configured nicely to have additional info for projects -
+  look into the Girocco gitweb directory for the setup
+* TODO: investigate using ScriptLog directive for logging the cgi I/O
 * TODO Better stage/unstage logic in pre-receive 
   (and possibly st similar for pre-commit)
   The current way of doing this is bad when the commit/add fails:
