@@ -3,6 +3,14 @@
 #+SEQ_TODO: BUG | FIXED
 #+TAGS: jesse josef
 #+STARTUP: overview
+* TODO A full-featured suite for saving one's own mizar notebooks
+** TODO Consider using weblocks for this
+   I've had some experience with the hunchentoot web engine
+   (http://weitz.de/hunchentoot/); weblocks is a very cool extension
+   of hunchentoot that could make this process very slick and full
+   featured. We could be the github of the formal mathematics world :->
+
+   http://weblocks.viridian-project.de/
 * DONE Set up some perl tests
   As things stand now, I am testing this code by doing a lot of manual
   changes.  Setting up perl tests would help to make this process more
