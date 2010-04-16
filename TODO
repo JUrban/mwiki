@@ -161,7 +161,8 @@
   corresponding tools and work with us on their plugging-in and
   use. Without good testers and developers, it is not going to work.
 * DONE Factor out the CSS from the generated article HTML to a separate file
-* IN-PROGRESS Don't use SkippedProofs, but rather "@proof"	      :jesse:
+* DONE Don't use SkippedProofs, but rather "@proof"		      :jesse:
+  CLOSED: [2010-04-16 Fri 20:12]
   The "@proof" should be preceded by whitespace, or at the beginning of a line,
   and not in the context of a comment.
 * DONE Index file: what should it be called?
