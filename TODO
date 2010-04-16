@@ -181,3 +181,4 @@
   CLOSED: [2010-04-16 Fri 20:36] Escaping ampersands is just the
   begining.  Solution: the function escapeHTML, conveniently provided
   already in the CGI.pm perl module.
+* TODO Set up xsl4mizar as a git submodule of mwiki
