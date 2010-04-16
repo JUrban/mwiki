@@ -177,5 +177,7 @@
   But this has the advantage that it will not show up at the top of a
   directory listing.  What about "0000index.html"?  Nine characters,
   definitely at the top.
-* TODO Make sure we properly escape (X)HTML characters in mwiki.cgi   :jesse:
-  Escaping ampersands is just the begining.
+* DONE Make sure we properly escape (X)HTML characters in mwiki.cgi   :jesse:
+  CLOSED: [2010-04-16 Fri 20:36] Escaping ampersands is just the
+  begining.  Solution: the function escapeHTML, conveniently provided
+  already in the CGI.pm perl module.

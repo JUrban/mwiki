@@ -352,12 +352,6 @@ theorem Foo: x=x;
 AEND
 ;
 
-sub html_escape {
-  my $text = shift;
-  $text =~ s/&/&amp;/g;
-  return $text;
-}
-
 ## the action for editing
 if($action eq "edit")
 {
@@ -375,7 +369,7 @@ if($action eq "edit")
 	$old_content = $article_template;
     }
 
-    $old_content = html_escape ($old_content);
+    $old_content = escapeHTML ($old_content);
 
     print<<END;
  <div class="wikiactions">
