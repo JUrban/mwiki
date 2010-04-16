@@ -34,8 +34,9 @@
   like in http://repo.or.cz/w/CellLocator.git - looks like
   gitweb can be configured nicely to have additional info for projects -
   look into the Girocco gitweb directory for the setup
-* TODO: investigate using ScriptLog directive for logging the cgi I/O
-* TODO Better stage/unstage logic in pre-receive 
+* TODO investigate using ScriptLog directive for logging the cgi I/O
+* DONE Better stage/unstage logic in pre-receive 
+  CLOSED: [2010-04-16 Fri 19:59]
   (and possibly st similar for pre-commit)
   The current way of doing this is bad when the commit/add fails:
   When we modify a file, and call git add, its current content is staged.
@@ -58,7 +59,8 @@
 * TODO Log the results of anonymous pushes to the system log.
   We should keep track of what's going on, both for web edits and
   anonymous git pushes.
-* IN-PROGRESS Make HTML valid
+* DONE Make HTML valid
+  CLOSED: [2010-04-16 Fri 19:59]
   If we want this to be web scrapable, etc., then it should at least
   be valid.  The frontend index.html, for example, is really bad
   (specifies HTML 2.0 -- from 1995), and in any case is invalid:
@@ -110,14 +112,15 @@
   my MacBook Pro and my new little eeepc, as well as my Portuguese
   server.
 
-* TODO Track the master and stable on GitHub.x
+* TODO Track the master and stable on GitHub.
   Just by post-commit hooks probably.
 * TODO Think if we really need the frontend repo
   We might be fine with just one, OTOH, ikiwiki also uses two repos,
   and we would have to investigate the pre-receive hook for handling
   bad pushes, and not be able to save incorrect work. This is what
   frontend might be useful for.
-* TODO Create an "edit" button, and the correspondin cgi
+* DONE Create an "edit" button, and the correspondin cgi
+  CLOSED: [2010-04-16 Fri 19:59]
   like in ikiwiki. This gets directly commited in the master, and on
   success, the page is updated. Otherwise, errors are shown to the
   user. We might save his work in some branch or frontend, and let him
@@ -135,7 +138,8 @@
   rebuild after this.
 * TODO Create the "clone" button
   and give people a way how to clone things and push to the frontend
-* TODO Implement proper locking, of the repos and sandboxes
+* DONE Implement proper locking, of the repos and sandboxes
+  CLOSED: [2010-04-16 Fri 20:00]
   Especially wrt to the online editing, because pushes and commits to
   frontends and master probably can rely on git's locking.
 * TODO Think of handling mutually incompatible, but correct, developments
@@ -157,10 +161,11 @@
   corresponding tools and work with us on their plugging-in and
   use. Without good testers and developers, it is not going to work.
 * DONE Factor out the CSS from the generated article HTML to a separate file
-* TODO Don't use SkippedProofs, but rather "@proof"		      :jesse:
+* IN-PROGRESS Don't use SkippedProofs, but rather "@proof"	      :jesse:
   The "@proof" should be preceded by whitespace, or at the beginning of a line,
   and not in the context of a comment.
-* TODO Index file: what should it be called?
+* DONE Index file: what should it be called?
+  CLOSED: [2010-04-16 Fri 20:01]
   The idea is to not restrict the names of articles submitted to the
   wiki.  Since "index.miz" is a valid mizar name, which would generate
   "index.html", we want to avoid "index.html" as the name of our
