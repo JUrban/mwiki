@@ -1,2 +1,4 @@
-(defclass notebook ()
-  (owner title repo))
+
+(in-package :mwiki)
+
+;;; site.lisp ends here
