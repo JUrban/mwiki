@@ -14,8 +14,11 @@
   :description "A collaborative web site for working with mizar articles"
   :long-description ""
   :components ((:file "packages")
-	       (:file "site" :depends-on ("packages")))
+	       (:file "xhtml-utils" :depends-on ("packages"))
+	       (:file "site" :depends-on ("packages" "xhtml-utils")))
   :depends-on (:cl-fad
 	       :bordeaux-threads
+	       :cl-who
 	       :parenscript
+	       :usocket
 	       :hunchentoot))
