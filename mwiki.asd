@@ -15,6 +15,9 @@
   :long-description ""
   :components ((:file "packages")
 	       (:file "xhtml-utils" :depends-on ("packages"))
+	       (:file "user" :depends-on ("packages"))
+	       (:file "repo" :depends-on ("packages"))
+	       (:file "notebook" :depends-on ("repo"))
 	       (:file "site" :depends-on ("packages" "xhtml-utils")))
   :depends-on (:cl-fad
 	       :bordeaux-threads

@@ -2,6 +2,8 @@
 (in-package :mwiki)
 
 (defclass notebook ()
-  (owner title repo))
+  ((owner :type user)
+   (title :type string)
+   (repo :type repo)))
 
 ;;; notebook.lisp ends here
