@@ -181,4 +181,8 @@
   CLOSED: [2010-04-16 Fri 20:36] Escaping ampersands is just the
   begining.  Solution: the function escapeHTML, conveniently provided
   already in the CGI.pm perl module.
-* TODO Set up xsl4mizar as a git submodule of mwiki
+* DONE Set up xsl4mizar as a git submodule of mwiki
+  CLOSED: [2010-04-27 Tue 16:19] 
+
+  JAA: I did this in my own private repo.  Does it make a difference
+  in other people's repos?
