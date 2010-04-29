@@ -8,8 +8,8 @@
 (defsystem mwiki
   :name "mwiki"
   :version "0.1"
-  :author "Jesse Alama <jesse.alama@gmail.com>"
-  :maintainer "Jesse Alama <jesse.alama@gmail.com>"
+  :author "Jesse Alama <jesse.alama@gmail.com> and Josef Urban <josef.urban@gmail.com>"
+  :maintainer "Jesse Alama <jesse.alama@gmail.com> and Josef Urban <josef.urban@gmail.com>"
   :license "GPL"
   :description "A collaborative web site for working with mizar articles"
   :long-description ""
