@@ -2,13 +2,16 @@
 (in-package :mwiki)
 
 (defclass article ()
-  ((name :type string
-	 :initform ""
-	 :accessor article-name)
-   (source :type string
-	   :initform "")
-   (html :initform nil
-	 :accessor article-html)))
+  ((name 
+    :type string
+    :initform ""
+    :accessor article-name)
+   (source
+    :type string
+    :initform "")
+   (html 
+    :initform nil
+    :accessor article-html)))
 
 (defgeneric verify (article)
   (:documentation 
