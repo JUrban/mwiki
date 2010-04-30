@@ -20,6 +20,7 @@
 	       (:file "coq-article" :depends-on ("article"))
 	       (:file "repo" :depends-on ("packages"))
 	       (:file "notebook" :depends-on ("repo"))
+	       (:file "mizar-notebook" :depends-on ("notebook"))
 	       (:file "article" :depends-on ("packages"))
 	       (:file "site" :depends-on ("packages" "xhtml-utils")))
   :depends-on (:cl-fad
