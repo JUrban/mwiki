@@ -22,7 +22,7 @@
     :accessor notebook-articles)))
 
 (defgeneric verify (notebook)
-  (:documenation 
+  (:documentation 
    "Verfiy the logical validity of the whole contents of a notebook."))
 
 (defgeneric add-article (notebook article)
