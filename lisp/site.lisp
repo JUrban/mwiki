@@ -5,9 +5,6 @@
 
 ;; Dispatch table
 
-(setq *dispatch-table*
-      (list (create-prefix-dispatcher "/" 'initial-page)))
-
 ;; Logging
 
 (setf *message-log-pathname* "/tmp/mwiki/logs/messages")
@@ -33,9 +30,19 @@
 (defvar current-acceptor nil
   "The most recently created hunchentoot acceptor object.")
 
+(defvar dispatch-table
+  (list (create-prefix-dispatcher "/" 'initial-page)))
+
+(defun update-dispatch-table ()
+  (setf (request-dispatcher current-acceptor)
+	dispatch-table))
+
 (defun startup (&optional (port 8080))
   (handler-case (progn
-		  (setf current-acceptor (make-instance 'acceptor :port port))
+		  (setf current-acceptor 
+			(make-instance 'acceptor 
+				       :port port
+				       :request-dispatcher dispatch-table))
 		  (values t (start current-acceptor)))
     (usocket:address-in-use-error () 
       (values nil (format nil "Port ~A is already taken" port)))))
