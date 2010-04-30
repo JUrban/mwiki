@@ -2,11 +2,17 @@
 (in-package :mwiki)
 
 (defclass article ()
-  ((source :type string
+  ((name :type string
+	 :initform ""
+	 :accessor article-name)
+   (source :type string
 	   :initform "")
-   (xml :initform nil
-	:accessor article-xml)
    (html :initform nil
 	 :accessor article-html)))
+
+(defgeneric verify ((article article)))
+
+(defgeneric as-html ((article article)))
+	       
 
 ;;; article.lisp ends here
