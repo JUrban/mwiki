@@ -18,6 +18,7 @@
 	       (:file "user" :depends-on ("packages"))
 	       (:file "repo" :depends-on ("packages"))
 	       (:file "notebook" :depends-on ("repo"))
+	       (:file "article" :depends-on ("packages"))
 	       (:file "site" :depends-on ("packages" "xhtml-utils")))
   :depends-on (:cl-fad
 	       :bordeaux-threads
