@@ -16,6 +16,7 @@
   :components ((:file "packages")
 	       (:file "xhtml-utils" :depends-on ("packages"))
 	       (:file "user" :depends-on ("packages"))
+	       (:file "mizar-article" :depends-on ("article"))
 	       (:file "repo" :depends-on ("packages"))
 	       (:file "notebook" :depends-on ("repo"))
 	       (:file "article" :depends-on ("packages"))
