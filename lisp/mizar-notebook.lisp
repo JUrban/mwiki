@@ -18,22 +18,17 @@
     :initarg :mml-version
     :accessor notebook-mml-version)))
 
-(defmethod add-article ((nb mizar-notebook) ((article mizar-article)))
+(defmethod add-article ((nb mizar-notebook) (article mizar-article))
   (if (member (article-name article)
-	      (mizar-notebook-articles notebook) :test #'string=)
+	      (notebook-articles nb) :test #'string=)
       (error "There is already an article with name ~A in the notebook ~A"
 	     (article-name article) nb)
-      (push article (mizar-notebook-articles notebook))))
+      (push article (notebook-articles nb))))
 
 (defmethod update-article ((nb mizar-notebook) (new-article mizar-article))
   (setf (notebook-articles nb)
-	(remove new-article (notebook-articles notebook) 
+	(remove new-article (notebook-articles nb) 
 		:test #'string=
 		:key #'article-name)))
-
-(defmethod verify ((notebook mizar-notebook))
-  
-	     
-      
 
 ;;; mizar-notebook.lisp ends here
