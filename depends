@@ -5,6 +5,7 @@ liblist-moreutils-perl
 git-core
 gitweb
 apache2
+runit
 
 Client dependencies:
 
