@@ -1,4 +1,8 @@
 ; -*- mode: org; -*-
+#+SEQ_TODO: TODO IN-PROGRESS | DONE
+#+SEQ_TODO: BUG | FIXED
+#+TAGS: jesse josef
+#+STARTUP: overview
 * DONE Set up some perl tests
   As things stand now, I am testing this code by doing a lot of manual
   changes.  Setting up perl tests would help to make this process more
@@ -144,4 +148,4 @@
   least for one PA, and others get motivated to actually give us the
   corresponding tools and work with us on their plugging-in and
   use. Without good testers and developers, it is not going to work.
-* TODO Factor out the CSS from the generated article HTML to a separate file
+* DONE Factor out the CSS from the generated article HTML to a separate file
