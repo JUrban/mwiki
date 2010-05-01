@@ -104,11 +104,6 @@ scratch-mizfiles:
 	for binary in $(MIZBINARIES); do \
 	  $(INSTALL) --mode 755 $(MIZBIN)/$$binary $(SCRATCH_BASE)/bin/$$binary; \
 	done
-	# data
-	for rootfile in $(MIZROOTFILES); do \
-	  cp -p $(MIZFILES)/$$rootfile $(SCRATCH_BASE); \
-	done
-	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(SCRATCH_BASE)/mml.lar
 	# xsl
 	mkdir -p $(SCRATCH_BASE)/xsl
 	for sheet in $(SHEETS); do \
