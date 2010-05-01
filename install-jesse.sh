@@ -12,9 +12,12 @@ else
     targets='public-repos mwiki gitweb'
 fi
 
-make -f Makefile.install $targets \
-	REPOS_BASE=$repos_base \
-	MIZFILES=$mizfiles \
-	MIZBIN=$mizbin \
-	XSL4MIZ=$xsl4miz \
-	NUM_ARTICLES=$num_articles;
+make -f Makefile.smallinstall $targets \
+    REPOS_BASE=$repos_base \
+    MIZFILES=$mizfiles \
+    MIZBIN=$mizbin \
+    XSL4MIZ=$xsl4miz \
+    NUM_ARTICLES=$num_articles \
+    PUBLIC_MWIKI_USER=www-data \
+    WIKIHOST="192.168.0.12";
+
