@@ -242,6 +242,5 @@ clean:
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.access.log
 	apache2ctl restart
 	sv down git-daemon
-	rm -f /etc/sv/git-daemon/run
-	mv /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
+	-mv -f /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
 	sv up git-daemon
