@@ -24,7 +24,6 @@
 (defmethod verify ((article mizar-article))
   (let ((miz (article-mizar-filename article))
 	(xml (article-xml-filename article)))
-    (make miz)
     (cond ((file-exists-p xml)
 	   (setf (article-xml article) xml))
 	  (t (error "The XML representation of ~A couldn't be generated.")))))
