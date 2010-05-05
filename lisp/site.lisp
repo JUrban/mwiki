@@ -180,28 +180,34 @@
 (setq *prologue*
       "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">")
 
-(define-xml-handler initial-page ()
-  (with-title "Welcome to the MIZAR Wiki!"
-    (:p "Welcome to the " (:tt "MIZAR") " wiki!")))
-
 ;; Initialization and cleanup
 
 (defvar current-acceptor nil
   "The most recently created hunchentoot acceptor object.")
 
 (defvar dispatch-table
-  (list (create-prefix-dispatcher "/" 'initial-page)))
+  `(,(create-prefix-dispatcher "/" 'initial-page)))
+
+(defun mwiki-request-dispatcher (request)
+  "The default request dispatcher which selects a request handler
+based on a list of individual request dispatchers all of which can
+either return a handler or neglect by returning NIL."
+  (loop for dispatcher in dispatch-table
+        for action = (funcall dispatcher request)
+        when action return (funcall action)
+        finally (setf (return-code *reply*) +http-not-found+)))
 
 (defun update-dispatch-table ()
-  (setf (request-dispatcher current-acceptor)
+  (setf (acceptor-request-dispatcher current-acceptor)
 	dispatch-table))
 
 (defun startup (&optional (port 8080))
   (handler-case (progn
 		  (setf current-acceptor 
-			(make-instance 'acceptor 
-				       :port port
-				       :request-dispatcher dispatch-table))
+			(make-instance 
+			 'acceptor 
+			 :port port
+			 :request-dispatcher 'mwiki-request-dispatcher))
 		  (values t (start current-acceptor)))
     (usocket:address-in-use-error () 
       (values nil (format nil "Port ~A is already taken" port)))))
