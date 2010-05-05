@@ -210,5 +210,36 @@
   (stop current-acceptor)
   (setf current-acceptor nil))
 
+(defun present-article (article)
+  (let ((short-name (article-name article))
+	(description (article-description article)))
+    (htm
+     (:a :href (fmt "~A.html" short-name) (fmt "~A: ~A" short-name description))
+     "by " (str (article-author article)))))
+
+(defun present-article-list ()
+  (htm
+   (:ul
+    (dolist (article (articles initial-mizar-library))
+      (htm
+       (:li (present-article article)))))))
+
+(defvar frontend-sandbox-root "/tmp/mwiki/public/mml")
+
+(defun initialize-article-html-handlers ()
+  (dolist (article (articles initial-mizar-library))
+    (let ((name (article-name article)))
+      (push (create-static-file-dispatcher-and-handler 
+	     (format nil "/~A.html" name)
+	     (pathname (format nil "~A/~A.html" frontend-sandbox-root name)))
+	    dispatch-table)))
+  (update-dispatch-table))
+
+(define-xml-handler initial-page ()
+  (with-title "Welcome to the Mizar wiki!"
+    (:p "Thanks for visiting.")
+    (present-article-list)))
+     
+
 
 ;;; site.lisp ends here
