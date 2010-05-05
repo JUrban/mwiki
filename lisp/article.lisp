@@ -6,9 +6,17 @@
     :type string
     :initform ""
     :accessor article-name)
+   (description
+    :type string
+    :initform ""
+    :accessor article-description)
    (source
     :type string
     :initform "")
+   (author
+    :type string
+    :initform ""
+    :accessor article-author)
    (html 
     :initform nil
     :accessor article-html)))
