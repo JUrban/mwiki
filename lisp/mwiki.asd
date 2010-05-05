@@ -21,8 +21,11 @@
 	       (:file "repo" :depends-on ("packages"))
 	       (:file "notebook" :depends-on ("repo"))
 	       (:file "mizar-notebook" :depends-on ("notebook"))
+	       (:file "mizar-library" :depends-on ("packages"))
 	       (:file "article" :depends-on ("packages"))
-	       (:file "site" :depends-on ("packages" "xhtml-utils")))
+	       (:file "site" :depends-on ("packages"
+					  "xhtml-utils"
+					  "mizar-library")))
   :depends-on (:cl-fad
 	       :bordeaux-threads
 	       :cl-who
