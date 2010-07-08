@@ -150,3 +150,4 @@
   use. Without good testers and developers, it is not going to work.
 * DONE Factor out the CSS from the generated article HTML to a separate file
 * TODO Fix error message when environment is incorrect (inknown file)
+* TODO Enhance the deafult environ to work with empty (possibly more - templates for environs)
