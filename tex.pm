@@ -50,7 +50,7 @@ sub latexml {
     my $DoXML = 1;
 
     # latexml;
-    my $latexml =  ($DoVerif == 0)? "true": "/home/urban/bin/latexml";
+    my $latexml =  ($DoXML == 0)? "true": "/home/urban/bin/latexml";
 
     # latexmlpost binary
     my $latexmlpost = "/home/urban/bin/latexmlpost";
