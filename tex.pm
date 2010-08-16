@@ -1,10 +1,11 @@
 #!/usr/bin/perl
-# CoqDoc and Coq plugin
+# Latexml and latex plugin
 # based on the WikiText plugin.
-package IkiWiki::Plugin::coq;
+package IkiWiki::Plugin::tex;
 
 use warnings;
 use strict;
+use Encode;
 use IkiWiki 3.00;
 use File::Temp qw/ :mktemp  /;
 use File::Basename;
@@ -55,6 +56,7 @@ sub latexml {
     # latexmlpost binary
     my $latexmlpost = "/home/urban/bin/latexmlpost";
 
+    my $latexmlc = "/usr/bin/latexmlc";
 
     if($DoTmp == 1)
     {
@@ -74,8 +76,10 @@ sub latexml {
 	open(PFH, ">$config{srcdir}/$directories$ProblemFile") or die "$ProblemFile not writable";
 	printf(PFH "%s",$content);
 	close(PFH);
+	
+	$result = decode_utf8(`cd $config{srcdir}/$directories; $latexmlc --post --local $ProblemFile`);
 
-	$result = `cd $config{srcdir}/$directories; $latexml $ProblemFile --destination=$ProblemFile.xml; $latexmlpost $ProblemFile.xml --destination=$ProblemFile.xhtml; cat $ProblemFile.xhtml`;
+#	$result = `cd $config{srcdir}/$directories; $latexml $ProblemFile --destination=$ProblemFile.xml; $latexmlpost $ProblemFile.xml --destination=$ProblemFile.xhtml; cat $ProblemFile.xhtml`;
     }
 
 #    $result =~ s/\"[a-zA-Z0-9_-]+\.html\#/\"\#/g;
