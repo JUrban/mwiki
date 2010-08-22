@@ -1,4 +1,28 @@
 ## random notes about ikiwiki code, useful for planetmath and borrowing code for mathwiki
+## the code is at ~/ec/ikiwiki/git.ikiwiki.info/ (but I also have it as a debian package)
+
+## The wiki is just a CGI script - eg. /home/urban/public_html/pm1/ikiwiki.cgi
+## When executed like this, it dies, lacking the "do" action at /home/urban/lib/perl5/IkiWiki/CGI.pm line 413.
+## TODO: copy the action structure to mathwiki if suitable from CGI.pm
+
+## These two are run always when the cgi is run (in CGI.pm) - a bit too much if the index is big.
+## Can the cgi stay loaded (mod_perl, etc)?
+lockwiki();
+loadindex();
+
+## the cgi uses sessions - see man CGI::Session::Tutorial sessions
+## pass their session id to the server (as a cookie or cgi param)
+
+# creation of the corresponding cookie name (ikiwiki_session_wikiname)
+CGI::Session->name("ikiwiki_session_".encode_entities($config{wikiname}));
+
+# storing the session into BDB file sessions.db in the .ikiwiki dir:
+my $session = eval { CGI::Session->new("driver:DB_File", $q,
+			{ FileName => "$config{wikistatedir}/sessions.db" }) };
+
+$session->param("name"); # is used to check for banned users - see @{$config{banned_users}}, check_banned ($$)
+
+
 
 ## IkiWiki/Setup.pm - utils run when --setup
 
