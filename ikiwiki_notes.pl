@@ -1,6 +1,15 @@
 ## random notes about ikiwiki code, useful for planetmath and borrowing code for mathwiki
 ## the code is at ~/ec/ikiwiki/git.ikiwiki.info/ (but I also have it as a debian package)
 
+## Templates: see explanation in the html/templates/index.html, and also man HTML:Template
+## creation:
+To create a template, simply add a template directive to a page, and the
+   page will provide a link that can be used to create the template. The
+   template is a regular wiki page, located in the templates/ subdirectory
+   inside the source directory of the wiki.
+
+## when are backlinks collected? after the markup is converted to html or before,on the markdwn form?
+
 ## The wiki is just a CGI script - eg. /home/urban/public_html/pm1/ikiwiki.cgi
 ## When executed like this, it dies, lacking the "do" action at /home/urban/lib/perl5/IkiWiki/CGI.pm line 413.
 ## TODO: copy the action structure to mathwiki if suitable from CGI.pm
@@ -13,14 +22,53 @@ loadindex();
 ## the cgi uses sessions - see man CGI::Session::Tutorial sessions
 ## pass their session id to the server (as a cookie or cgi param)
 
-# creation of the corresponding cookie name (ikiwiki_session_wikiname)
+## creation of the corresponding cookie name (ikiwiki_session_wikiname)
 CGI::Session->name("ikiwiki_session_".encode_entities($config{wikiname}));
 
-# storing the session into BDB file sessions.db in the .ikiwiki dir:
+## storing the session into BDB file sessions.db in the .ikiwiki dir:
 my $session = eval { CGI::Session->new("driver:DB_File", $q,
 			{ FileName => "$config{wikistatedir}/sessions.db" }) };
 
+## session integrity - storing in the 'sid' form field the session id
+# To guard against CSRF, the user's session id (sid)
+# can be stored on a form. This function will check
+# (for logged in users) that the sid on the form matches
+# the session id in the cookie.
+sub checksessionexpiry ($$) {
+	my $q=shift; my $session = shift; 
+	if (defined $session->param("name")) {
+		my $sid=$q->param('sid');
+		if (! defined $sid || $sid ne $session->id) {
+			error(gettext("Your login session has expired.")); }}}
+
 $session->param("name"); # is used to check for banned users - see @{$config{banned_users}}, check_banned ($$)
+
+## the cgi loads the session, or creates new one here
+$session=cgi_getsession($q);
+
+## see cgi_prefs($$) on how the forms are built and the 'sid' hidden attribute smuggled there:
+eval q{use CGI::FormBuilder};
+	error($@) if $@;
+	my $form = CGI::FormBuilder->new(
+		title => "preferences", name => "preferences", header => 0, charset => "utf-8", method => 'POST',
+		validate => {email => 'EMAIL',}, required => 'NONE', javascript => 0,
+		params => $q, action => $config{cgiurl}, template => {type => 'div'}, stylesheet => baseurl()."style.css",
+		fieldsets => [[login => gettext("Login")], [preferences => gettext("Preferences")], 
+			      [admin => gettext("Admin")]],);
+
+
+### UserInfo.pm - seems to be completely reusable, just stored hash with fields and values for each user
+
+# this is the userdb ($userinfo) - stored hash
+sub userinfo_retrieve () {
+	my $userinfo=eval{ Storable::lock_retrieve("$config{wikistatedir}/userdb") };
+	return $userinfo;}
+
+## each user can have fields, this is userinfo_set:
+$userinfo->{$user}->{$field}=$value;
+
+## These are the stored userdata:
+userinfo_setall($session->param("name"), {email => "", password => "", regdate => time,})
 
 
 
@@ -152,4 +200,35 @@ title><TMPL_VAR TITLE></title>
 </span>
 
 ## recentchanges.tmpl - should be changed to xhtml (or the planetmath pages should - how?)
+
+## regexp documentation - see this code:
+# This regexp is based on the one in Text::WikiFormat.
+my $link_regexp=qr{
+        (?<![^A-Za-z0-9\s])     # try to avoid expanding non-links with a
+                                # zero width negative lookbehind for
+                                # characters that suggest it's not a link
+        \b                      # word boundry
+        (
+                (?:
+                        [A-Z]           # Uppercase start
+                        [a-z0-9]        # followed by lowercase
+                        \w*             # and rest of word
+                )
+                {2,}                    # repeated twice
+        )
+}x;
+
+
+## link creation - probably the scan hook - this is take from camlecase.pm:
+sub scan (@) {
+        my %params=@_;
+        my $page=$params{page};
+        my $content=$params{content};
+
+        while ($content =~ /$link_regexp/g) {
+                add_link($page, linkpage($1)) unless ignored($1)
+        }
+}
+
+
 
