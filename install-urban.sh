@@ -1,7 +1,7 @@
 #!/bin/sh
 
 repos_base=/var/cache/mwiki
-mizfiles=/home/urban/mizwrk/7.11.05_4.133.1080
+mizfiles=/home/urban/mizinst/7.11.06_4.145.1096
 xsl4miz=/home/urban/gr/xsl4mizar
 num_articles=5
 
