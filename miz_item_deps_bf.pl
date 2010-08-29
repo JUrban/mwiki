@@ -2,11 +2,20 @@
 
 =head1 NAME
 
-miz_item_deps_bf.pl file ( get implicit Mizar depndencies, using brute-force approach)
+miz_item_deps_bf.pl [Options] XMLElementRegexp ExtensionOfImportedFile ArticleName
+
+(get precise implicit Mizar dependencies on imported constructs using
+a brute-force approach)
 
 =head1 SYNOPSIS
 
-miz_item_deps_bf.pl Definiens dfs ~/test/a
+# get Definiens dependencies
+
+miz_item_deps_bf.pl -q Definiens dfs ~/test/a
+
+# get RCluster,CCluster,FCluster dependencies
+
+miz_item_deps_bf.pl -q \[RCF\]Cluster ecl ~/test/a1
 
  Options:
    --mizfiles=<arg>,        -m<arg>
