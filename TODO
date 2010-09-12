@@ -11,6 +11,8 @@
    featured. We could be the github of the formal mathematics world :->
 
    http://weblocks.viridian-project.de/
+=======
+>>>>>>> refs/remotes/urban/master
 * DONE Set up some perl tests
   As things stand now, I am testing this code by doing a lot of manual
   changes.  Setting up perl tests would help to make this process more
@@ -59,8 +61,12 @@
 * TODO Log the results of anonymous pushes to the system log.
   We should keep track of what's going on, both for web edits and
   anonymous git pushes.
+<<<<<<< HEAD
 * DONE Make HTML valid
   CLOSED: [2010-04-16 Fri 19:59]
+=======
+* IN-PROGRESS Make HTML valid
+>>>>>>> refs/remotes/urban/master
   If we want this to be web scrapable, etc., then it should at least
   be valid.  The frontend index.html, for example, is really bad
   (specifies HTML 2.0 -- from 1995), and in any case is invalid:
@@ -161,6 +167,7 @@
   corresponding tools and work with us on their plugging-in and
   use. Without good testers and developers, it is not going to work.
 * DONE Factor out the CSS from the generated article HTML to a separate file
+<<<<<<< HEAD
 * DONE Don't use SkippedProofs, but rather "@proof"		      :jesse:
   CLOSED: [2010-04-16 Fri 20:12]
   The "@proof" should be preceded by whitespace, or at the beginning of a line,
@@ -186,3 +193,8 @@
 
   JAA: I did this in my own private repo.  Does it make a difference
   in other people's repos?
+=======
+* TODO Fix error message when environment is incorrect (inknown file)
+* TODO Enhance the deafult environ to work with empty (possibly more - templates for environs)
+* TODO ADD line numbers to the edit window (or allow seeing output with errors)
+>>>>>>> refs/remotes/urban/master

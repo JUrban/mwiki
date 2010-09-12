@@ -1,0 +1,785 @@
+Script started on jeu 01 jui 2010 15:35:53 CEST
+lionelm@harif:~$ rlwrap coqtop
+Welcome to Coq 8.2pl1 (August 2009)
+
+Coq < Start Dependency Dumps.
+Error: Unknown command of the non proof-editing mode.
+
+Coq < 
+lionelm@harif:~$ rlwrap coq-interface
+Welcome to Coq 8.2pl1 (August 2009)
+
+Coq < Start Dependency Dumps.
+
+Coq < Definition A:=5.
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.O
+n
+vernac$id_list
+6
+e
+blabla
+A is defined
+
+Coq < Start Pcoq Objects.
+
+Coq < Print A.
+a
+vernac$defn
+Definition
+a
+vernac$ident
+A
+n
+vernac$binder_list
+0
+a
+vernac$int_encapsulator
+5
+a
+vernac$ident
+nat
+n
+vernac$definition
+5
+n
+vernac$command_list
+1
+e
+blabla
+
+Coq < Print nat.
+a
+vernac$co_ind
+Inductive
+a
+vernac$ident
+nat
+n
+vernac$binder_list
+0
+a
+vernac$sortc
+Set
+a
+vernac$ident
+O
+a
+vernac$ident
+nat
+n
+vernac$constr
+2
+a
+vernac$ident
+S
+a
+vernac$ident
+nat
+a
+vernac$ident
+nat
+n
+vernac$arrowc
+2
+n
+vernac$constr
+2
+n
+vernac$constr_list
+2
+n
+vernac$none
+0
+n
+vernac$ind_spec
+5
+n
+vernac$ind_spec_list
+1
+n
+vernac$mind_decl
+2
+n
+vernac$command_list
+1
+e
+blabla
+
+Coq < Start Default Objects.
+
+Coq < Definition A:=5.
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.O
+n
+vernac$id_list
+6
+e
+blabla
+Error: A already exists
+
+Coq < Goal True->True.
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Logic.True
+a
+vernac$ident
+Coq.Init.Logic.True
+n
+vernac$id_list
+2
+e
+blabla
+1 subgoal
+  
+  ============================
+   True -> True
+
+Unnamed_thm < intro I.
+message
+depends
+13
+n
+vernac$id_list
+0
+e
+blabla
+1 subgoal
+  
+  I : True
+  ============================
+   True
+
+Unnamed_thm < exact I.
+message
+depends
+13
+a
+vernac$ident
+I
+a
+vernac$ident
+I
+a
+vernac$ident
+I
+n
+vernac$id_list
+3
+e
+blabla
+Proof completed.
+
+Unnamed_thm < Qed.
+intro I.
+exact I.
+
+message
+depends
+13
+a
+vernac$ident
+I
+a
+vernac$ident
+I
+a
+vernac$ident
+I
+n
+vernac$id_list
+3
+e
+blabla
+Unnamed_thm is defined
+
+Coq < Hint Resolve Unnamed_thm : Foo.
+
+Coq < auto with Foo.
+Error: Unknown command of the non proof-editing mode.
+
+Coq < Goal True.
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Logic.True
+n
+vernac$id_list
+1
+e
+blabla
+1 subgoal
+  
+  ============================
+   True
+
+Unnamed_thm0 < info auto with Foo.
+ == exact I.
+    
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Logic.I
+n
+vernac$id_list
+1
+e
+blabla
+Proof completed.
+
+Unnamed_thm0 < Abort.
+Current goal aborted
+
+Coq < Goal True->True.
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Logic.True
+a
+vernac$ident
+Coq.Init.Logic.True
+n
+vernac$id_list
+2
+e
+blabla
+1 subgoal
+  
+  ============================
+   True -> True
+
+Unnamed_thm0 < auto with Foo.
+message
+depends
+13
+a
+vernac$ident
+H
+n
+vernac$id_list
+1
+e
+blabla
+Proof completed.
+
+Unnamed_thm0 < Undo.
+1 subgoal
+  
+  ============================
+   True -> True
+
+Unnamed_thm0 < info auto with Foo.
+ == intro H; exact H.
+    
+message
+depends
+13
+a
+vernac$ident
+H
+n
+vernac$id_list
+1
+e
+blabla
+Proof completed.
+
+Unnamed_thm0 < Abort.
+Current goal aborted
+
+Coq < Axiom F:False.
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Logic.False
+n
+vernac$id_list
+1
+e
+blabla
+F is assumed
+
+Coq < Theorem Simple:Forall P:Prop, P.
+Toplevel input, characters 28-29:
+> Theorem Simple:Forall P:Prop, P.
+>                             ^
+Syntax error: '.' expected after [vernac:gallina] (in [vernac_aux]).
+
+Coq < Theorem Simple:forall P:Prop, P.
+message
+depends
+13
+n
+vernac$id_list
+0
+e
+blabla
+1 subgoal
+  
+  ============================
+   forall P : Prop, P
+
+Simple < intro P>
+Simple < .
+Toplevel input, characters 7-8:
+> intro P>
+>        ^
+Syntax error: '.' or '...' expected after [tactic:tactic] (in [subgoal_command]).
+
+Simple < intro P.
+message
+depends
+13
+n
+vernac$id_list
+0
+e
+blabla
+1 subgoal
+  
+  P : Prop
+  ============================
+   P
+
+Simple < apply false_ind.
+Toplevel input, characters 6-15:
+> apply false_ind.
+>       ^^^^^^^^^
+Error: The reference false_ind was not found in the current environment.
+
+Simple < Print False.
+Inductive False : Prop :=  
+
+Simple < Print False.
+Inductive False : Prop :=  
+
+Simple < apply False_ind.
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Logic.False_ind
+a
+vernac$ident
+Coq.Init.Logic.False_ind
+a
+vernac$ident
+Coq.Init.Logic.False_ind
+a
+vernac$ident
+P
+n
+vernac$id_list
+4
+e
+blabla
+1 subgoal
+  
+  P : Prop
+  ============================
+   False
+
+Simple < exact F.
+message
+depends
+13
+a
+vernac$ident
+Top.F
+a
+vernac$ident
+Top.F
+a
+vernac$ident
+Top.F
+n
+vernac$id_list
+3
+e
+blabla
+Proof completed.
+
+Simple < Qed.
+intro P.
+apply False_ind.
+exact F.
+
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Logic.False_ind
+a
+vernac$ident
+Coq.Init.Logic.False_ind
+a
+vernac$ident
+Coq.Init.Logic.False_ind
+a
+vernac$ident
+P
+a
+vernac$ident
+Top.F
+a
+vernac$ident
+Top.F
+a
+vernac$ident
+Top.F
+n
+vernac$id_list
+7
+e
+blabla
+Simple is defined
+
+Coq < Hint Resolve Unnamed_thm : Simple.
+
+Coq < Hint Resolve Simple : Foo.
+Error: Simple cannot be used as a hint.
+
+Coq < Hint Resolve Top.Simple : Foo.
+Error: Simple cannot be used as a hint.
+
+Coq < Print Simple.
+Simple = fun P : Prop => False_ind P F
+     : forall P : Prop, P
+
+Argument scope is [type_scope]
+
+Coq < Set Firstorder Depth 5.
+
+Coq < Hint Resolve sdklsdkl : Foo.
+Toplevel input, characters 13-21:
+> Hint Resolve sdklsdkl : Foo.
+>              ^^^^^^^^
+Error: The reference sdklsdkl was not found in the current environment.
+
+Coq < Definition P:nat.
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Datatypes.nat
+n
+vernac$id_list
+1
+e
+blabla
+1 subgoal
+  
+  ============================
+   nat
+
+P < auto.
+message
+depends
+13
+n
+vernac$id_list
+0
+e
+blabla
+1 subgoal
+  
+  ============================
+   nat
+
+P < auto with /.
+Toplevel input, characters 10-11:
+> auto with /.
+>           ^
+Syntax error: '*' or identifier expected after 'with' (in [hintbases]).
+
+P < auto with *.
+message
+depends
+13
+n
+vernac$id_list
+0
+e
+blabla
+1 subgoal
+  
+  ============================
+   nat
+
+P < Undo.
+1 subgoal
+  
+  ============================
+   nat
+
+P < Abort.
+Current goal aborted
+
+Coq < Hint Resolve 5 : Foo.
+
+Coq < Hint Resolve 7 : Foo.
+
+Coq < Definition P:nat.
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Datatypes.nat
+n
+vernac$id_list
+1
+e
+blabla
+1 subgoal
+  
+  ============================
+   nat
+
+P < auto with Foo.
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.O
+n
+vernac$id_list
+8
+e
+blabla
+Proof completed.
+
+P < Show Proof.
+LOC: 
+Subgoals
+Proof: 7
+
+P < Defined.
+auto with Foo.
+
+message
+depends
+13
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.S
+a
+vernac$ident
+Coq.Init.Datatypes.O
+n
+vernac$id_list
+8
+e
+blabla
+P is defined
+
+Coq < Print P.
+P = 7
+     : nat
+
+Coq < Start Pcoq Mode.
+Starting Centaur Specialized loop
+CENTAUR_RESERVED_TOKEN_start_command
+42
+1
+Print P.
+CENTAUR_RESERVED_TOKEN_end_command
+
+message
+PRINT_VALUE
+a
+vernac$defn
+Definition
+a
+vernac$ident
+P
+n
+vernac$binder_list
+0
+a
+vernac$int_encapsulator
+7
+a
+vernac$ident
+nat
+n
+vernac$definition
+5
+n
+vernac$command_list
+1
+e
+blabla
+message
+acknowledge
+42
+1
+0
+0
+
+44
+n
+vernac$id_list
+0
+e
+blabla
+0
+
+E-n-d---M-e-s-s-a-g-e
+
+CENTAUR_RESERVED_TOKEN_start_command
+42
+2
+Start Default Objects. Print P.
+CENTAUR_RESERVED_TOKEN_end_command
+
+message
+PRINT_VALUE
+P = 7
+     : nat
+message
+acknowledge
+42
+2
+0
+0
+
+46
+n
+vernac$id_list
+0
+e
+blabla
+0
+
+E-n-d---M-e-s-s-a-g-e
+
+CENTAUR_RESERVED_TOKEN_start_command
+42
+1
+Definition U:=nat.
+CENTAUR_RESERVED_TOKEN_end_command
+message
+depends
+42
+a
+vernac$ident
+Coq.Init.Datatypes.nat
+n
+vernac$id_list
+1
+e
+blabla
+U is defined
+message
+acknowledge
+42
+1
+0
+0
+
+47
+n
+vernac$id_list
+0
+e
+blabla
+0
+
+E-n-d---M-e-s-s-a-g-e
+
+lionelm@harif:~$ exit
+
+Script done on jeu 01 jui 2010 16:48:45 CEST

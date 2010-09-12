@@ -49,7 +49,7 @@ REPOBIN=$(PUBLIC_REPO)/bin
 MIZBIN=$(MIZFILES)/bin
 MAKEJOBS=1
 SHEETS=addabsrefs miz evl2dep
-CSS=article index edit
+CSS=article index
 JAVASCRIPT=article
 PERLSCRIPTS=mkxmlhead mkmmlindex duplicates
 PERLMODULES=mizar
@@ -83,14 +83,16 @@ public-repos: public-repo-init public-sandbox public-compiled public-repo-export
 	chgrp -R $(PUBLIC_MWIKI_USER) $(PUBLIC_REPOS_BASE)
 
 
-scratch-mizfiles:
+scratch-directories:
+	mkdir -p $(SCRATCH_BASE)
+	cd $(SCRATCH_BASE) && mkdir mml prel bin xsl html .perl
+
+scratch-mizfiles: scratch-directories
 	# .miz
-	mkdir -p $(SCRATCH_BASE)/mml
 	for article in hidden tarski $(INITIAL_SEGMENT); do \
 	  $(INSTALL) --preserve-timestamps --mode=644 $(MIZFILES)/mml/$$article.miz $(SCRATCH_BASE)/mml; \
 	done
 	# prel
-	mkdir -p $(SCRATCH_BASE)/prel
 	cp -p $(MIZFILES)/prel/h/hidden.* $(SCRATCH_BASE)/prel
 	cp -p $(MIZFILES)/prel/*/*.dre $(SCRATCH_BASE)/prel
 	chown -R $(PUBLIC_MWIKI_USER) $(SCRATCH_BASE)/prel
@@ -100,32 +102,26 @@ scratch-mizfiles:
 	done
 	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(SCRATCH_BASE)/mml.lar
 	# bin
-	mkdir -p $(SCRATCH_BASE)/bin
 	for binary in $(MIZBINARIES); do \
 	  $(INSTALL) --mode 755 $(MIZBIN)/$$binary $(SCRATCH_BASE)/bin/$$binary; \
 	done
-	# data
-	for rootfile in $(MIZROOTFILES); do \
-	  cp -p $(MIZFILES)/$$rootfile $(SCRATCH_BASE); \
-	done
-	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(SCRATCH_BASE)/mml.lar
 	# xsl
-	mkdir -p $(SCRATCH_BASE)/xsl
 	for sheet in $(SHEETS); do \
 	  $(INSTALL) --mode 644 $(XSL4MIZ)/$$sheet.xsl $(SCRATCH_BASE)/xsl; \
 	done
 	# css
-	mkdir -p $(SCRATCH_BASE)/html
 	for sheet in $(CSS); do \
 	  $(INSTALL) --mode 644 $$sheet.css $(SCRATCH_BASE)/html; \
 	done
 	# javascript
+<<<<<<< HEAD
 	mkdir -p $(SCRATCH_BASE)/html
+=======
+>>>>>>> refs/remotes/urban/master
 	for jsfile in $(JAVASCRIPT); do \
 	  $(INSTALL) --mode 644 $$jsfile.js $(SCRATCH_BASE)/html; \
 	done
 	# perl
-	mkdir -p $(SCRATCH_BASE)/.perl
 	for perlfile in $(PERLMODULES); do \
 	  $(INSTALL) --mode 644 $$perlfile.pm $(SCRATCH_BASE)/.perl; \
 	done
@@ -262,6 +258,10 @@ clean:
 	fi
 	apache2ctl restart
 	sv down git-daemon
+<<<<<<< HEAD
 	rm -f /etc/sv/git-daemon/run
 	mv /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
+=======
+	-mv -f /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
+>>>>>>> refs/remotes/urban/master
 	sv up git-daemon

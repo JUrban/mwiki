@@ -47,6 +47,9 @@ xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 	fi;
 	@mv mml/$*.xml mml/$*.xmlvrf
 
+
+# #TODO: we should not be touching foo-prel when nothing got changed -
+#        use the MD5/SHA1 testing?
 prels: $(patsubst %, %-prel, $(MMLLAR))
 %-prel: %.xmlvrf
 	@$(ECHO) $(prel-tag) $*
