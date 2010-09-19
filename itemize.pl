@@ -8,7 +8,9 @@ use XML::LibXML;
 
 my $article_name = $ARGV[0];
 my $article_miz = $article_name . '.miz';
+my $article_lsp = $article_name . '.lsp';
 my $article_xml = $article_name . '.xml1';
+my $article_idx = $article_name . '.idx';
 my $article_work_dir = $article_name . '-items';
 
 unless (-e "$article_name.miz") {
@@ -60,6 +62,11 @@ sub miz_xml {
   return ($parser->parse_file($article_xml));
 }
 
+sub miz_idx {
+  my $parser = XML::LibXML->new();
+  return ($parser->parse_file($article_idx));
+}
+
 my %reservation_table = ();
 
 sub nulls_to_newlines {
@@ -82,6 +89,83 @@ sub init_reservation_table {
     $reservation_table{$line_number}
       = nulls_to_newlines ($reservation_block_nulled);
   }
+}
+
+sub tokens {
+  unless (-e $article_lsp) {
+    die ("$article.lsp doesn't exist; unable to proceed");
+  }
+  my @tokens = ();
+  open (LSP, q{<}, $article_lsp)
+    or die ("Unable to open $article.lsp for reading; unable to proceed");
+  my $token;
+  while (defined ($token = <LSP>)) {
+    chomp ($token);
+    push (@tokens, $token);
+  }
+  close (LSP)
+    or die ("Unable to close input filehandle for $article.lsp");
+  return (\@tokens);
+}
+
+sub reservations_from_xml {
+  my $doc = miz_xml ();
+  my @reservations = $doc->findnodes ('/Reservation');
+  return (\@reservations);
+}
+
+my %vid_table = ();
+
+sub init_vid_table {
+  my $doc = miz_idx ();
+  my @symbols = $doc->findnodes ('/Symbol');
+  foreach my $symbol (@symbols) {
+    my $vid = $symbol->findvalue ('@nr');
+    my $name = $symbol->findvalue ('@name');
+    $vid_table{$vid} = $name;
+  }
+}
+
+sub split_reservations {
+  my $tokens_ref = tokens ();
+  my @tokens = @{$tokens_ref};
+  my @reservations = ();
+  my $reservation = "";
+  my $scanning_identifiers = 0;
+  my $scanning_reservation_block = 0;
+  for (my $i = 0, $i++, ) {
+    my $token = $tokens[$i];
+    if ($token eq 'reserve') {
+      $scanning_identifiers = 1;
+      $scanning_reservation_block = 1;
+    } elsif ($scanning_identifiers) {
+      $reservation .= $token;
+    } elsif ($token eq 'for') {
+      $scanning_identifiers = 0;
+      $reservations .= $token;
+    } elsif ($scanning_reservation_block) {
+      my $next = $tokens[$i + 1];
+      $reservations .= $next;
+      if ($next eq ';') {
+	push (@reservations, $reservation);
+	$reservation = '';
+	$scanning_reservation_block = 0;
+      } elsif ($next eq 'of' or $next eq 'over') {
+	my $after_next = $tokens[$i + 2];
+	until ($after_next eq ';' or $after_next eq 'for') {
+	  $reservation .= $token;
+	  $i++;
+	  $token = $tokens[$i];
+	  $next = $tokens[$i + 1];
+	  $after_next = $tokens[$i + 2];
+	}
+	if ($after_next eq ';') {
+	  $scanning_reservation_block = 0;
+	}
+      }
+    }
+  }
+  return (\@reservations);
 }
 
 sub prepare_work_dirs {
@@ -423,6 +507,13 @@ sub separate_theorems {
   return;
 }
 
-scan_vids ();
+# scan_vids ();
 
-separate_theorems ();
+# separate_theorems ();
+
+
+my $reservations_ref = split_reservations ();
+my @reservations = @{$reservations_ref};
+foreach my $reservation (@reservations) {
+  print "$reservation\n";
+}
