@@ -1,5 +1,7 @@
 ;;; reservations.el Finding mizar reservations
 
+(require 'cl)
+
 (defvar reservation-registry (make-hash-table :test #'equal))
 
 (defun within-comment ()
@@ -170,7 +172,7 @@
       (goto-char (point-min))
       (forward-line (1- beg-line))
       (forward-char beg-col)
-      (setf beg (point)))
+      (setf beg (point))
       (forward-line (- end-line beg-line))
       (beginning-of-line)
       (forward-char end-col)
