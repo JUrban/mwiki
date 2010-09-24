@@ -147,7 +147,7 @@
       (goto-char (point-min))
       (forward-line (1- line-number))
       (forward-char column-number)
-      (setf end-position (1+ (point)))
+      (setf end-position (point))
       (while (null keyword-begin)
 	(setf prev-keyword (re-search-backward begin-keyword-regexp nil t))
 	(unless (within-comment)
@@ -166,6 +166,9 @@
 (defun definition-before-position (line column)
   (princ (keyword-before-position "definition" line column)))
 
+(defun scheme-before-position (line column)
+  (princ (keyword-before-position "scheme" line column)))
+
 (defun extract-region (beg-line beg-col end-line end-col)
   (let (beg end)
     (save-excursion
@@ -173,7 +176,8 @@
       (forward-line (1- beg-line))
       (forward-char beg-col)
       (setf beg (point))
-      (forward-line (- end-line beg-line))
+      (goto-char (point-min))
+      (forward-line (1- end-line))
       (beginning-of-line)
       (forward-char end-col)
       (setf end (point)))

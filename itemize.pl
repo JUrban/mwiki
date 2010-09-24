@@ -1,40 +1,86 @@
 #!/usr/bin/perl -w
 
-# stolen from mizp.pl
+sub usage {
+  print <<'END_USAGE';
+Usage: itemize.pl ARTICLE
 
-# TODO
+ARTICLE should be the name of an article that exists in the current
+directory.  If it ends with ".miz", then the part of the article
+before the ".miz" will be treated as the name of the article.
+
+A directory called ARTICLE will be created in the current directory.
+Upon termination, the directory ARTICLE will be a mizar "working
+directory" containing subdirectories "dict", "prel", and "text".
+Inside the "text" subdirectory there will be as many new mizar
+articles as there are items in ARTICLE.  The "dict" subdirectory will
+likewise contain as vocabulary files as there are items in ARTICLE.
+The "prel" subdirectory will contain the results of calling miz2prel
+on each of the standalone articles.
+
+END_USAGE
+}
 
 use XML::LibXML;
 
 my $article_name = $ARGV[0];
 my $article_miz = $article_name . '.miz';
 my $article_lsp = $article_name . '.lsp';
-my $article_xml = $article_name . '.xml1';
+my $article_xml = $article_name . '.xml';
+my $article_xml_absrefs = $article_name . '.xml1';
 my $article_idx = $article_name . '.idx';
-my $article_work_dir = $article_name . '-items';
+my $article_tmp = $article_name . '.$-$';
+my $article_work_dir = $article_name;
+my $article_dict_dir = $article_name . '/' . 'dict';
+my $article_prel_dir = $article_name . '/' . 'prel';
+my $article_text_dir = $article_name . '/' . 'text';
 
 unless (-e "$article_name.miz") {
   die "Mizar source $article_miz does not exist in the current directory";
 }
 
 unless (-e "$article_xml") {
-  die "XML file for article $article_name does not exist in the current directory.";
+  warn "XML file for article $article_name does not exist in the current directory.  Creating it";
+  system ("accom -q -s -l $article_miz > /dev/null 2> /dev/null");
+  unless ($? == 0) {
+    die ("Something went wrong when calling the accomodator on $article_name: the error was\n\n$!");
+  }
+  system ("verifier -q -s -l $article_miz > /dev/null 2> /dev/null");
+  unless ($? == 0) {
+    die ("Something went wrong when calling the verifier on $article_name: the error was\n\n$!");
+  }
 }
 
-if (-e $article_work_dir) {
-  if (-d $article_work_dir) {
-    my @workdirs = `find . -type d -name $article_work_dir -empty`;
-    if (scalar (@workdirs) == 0) {
-      die "Unable to proceed: the working directory for $article_name already exists in this directory but it is not empty; refusing to (potentially) overwrite its contents.";
+my $absrefs_stylesheet = '/Users/alama/sources/mizar/xsl4mizar/addabsrefs.xsl';
+unless (-e "$article_xml_absrefs") {
+  warn "Absolute reference version of the the XML file for article $article_name does not exist in the current directory.  Creating it";
+  unless (-e $absrefs_stylesheet) {
+    die ("No absrefs stylesheet at $absrefs_stylesheet; cannot continue.");
+  }
+  system ("xsltproc $absrefs_stylesheet $article_xml 2> /dev/null > $article_xml_absrefs");
+  unless ($? == 0) {
+    die ("Something went wrong when creating the absolute reference XML: the error was\n\n$!");
+  }
+}
+
+sub make_miz_dir {
+  if (-e $article_work_dir) {
+    if (-d $article_work_dir) {
+      my @workdirs = `find . -type d -name $article_work_dir -empty`;
+      if (scalar (@workdirs) == 0) {
+	die "Unable to proceed: the working directory for $article_name already exists in this directory but it is not empty; refusing to (potentially) overwrite its contents.";
+      } else {
+	warn "Warning: the working directory for $article_name already exists in the current directory, but it is empty.  Populating it...";
+      }
     } else {
-      warn "Warning: the working directory for $article_name already exists in the current directory, but it is empty.  Populating it...";
+      die ("Unable to proceed: a non-directory with the same name as the working directory for $article_name already exists in the current directory.")
     }
   } else {
-    die ("Unable to proceed: a non-directory with the same name as the working directory for $article_name already exists in the current directory.")
+    warn "Warning: the working directory for $article_name doesn't yet exist in the current directory; creating it...";
+    mkdir ($article_work_dir);
+    mkdir ($article_dict_dir);
+    mkdir ($article_prel_dir);
+    mkdir ($article_text_dir);
   }
-} else {
-  warn "Warning: the working directory for $article_name doesn't yet exist in the current directory; creating it...";
-  mkdir ($article_work_dir);
 }
 
 # the XPath expression for proofs that are not inside other proof
@@ -59,7 +105,7 @@ sub read_miz_file {
 
 sub miz_xml {
   my $parser = XML::LibXML->new();
-  return ($parser->parse_file($article_xml));
+  return ($parser->parse_file($article_xml_absrefs));
 }
 
 sub miz_idx {
@@ -127,61 +173,99 @@ sub init_vid_table {
 }
 
 sub split_reservations {
-  my $tokens_ref = tokens ();
-  my @tokens = @{$tokens_ref};
-  my @reservations = ();
-  my $reservation = "";
-  my $scanning_identifiers = 0;
-  my $scanning_reservation_block = 0;
-  for (my $i = 0, $i++, ) {
-    my $token = $tokens[$i];
-    if ($token eq 'reserve') {
-      $scanning_identifiers = 1;
-      $scanning_reservation_block = 1;
-    } elsif ($scanning_identifiers) {
-      $reservation .= $token;
-    } elsif ($token eq 'for') {
-      $scanning_identifiers = 0;
-      $reservations .= $token;
-    } elsif ($scanning_reservation_block) {
-      my $next = $tokens[$i + 1];
-      $reservations .= $next;
-      if ($next eq ';') {
-	push (@reservations, $reservation);
-	$reservation = '';
-	$scanning_reservation_block = 0;
-      } elsif ($next eq 'of' or $next eq 'over') {
-	my $after_next = $tokens[$i + 2];
-	until ($after_next eq ';' or $after_next eq 'for') {
-	  $reservation .= $token;
-	  $i++;
-	  $token = $tokens[$i];
-	  $next = $tokens[$i + 1];
-	  $after_next = $tokens[$i + 2];
-	}
-	if ($after_next eq ';') {
-	  $scanning_reservation_block = 0;
-	}
-      }
-    }
+  system ("accom -q -s -l $article_miz > /dev/null 2> /dev/null");
+  unless ($? == 0) {
+    die ("Something went wrong when calling the accomodator on $article_name: the error was\n\n$!");
   }
-  return (\@reservations);
+  system ("JA $article_miz > /dev/null 2> /dev/null");
+  unless ($? == 0) {
+    die ("Something went wrong when calling the JA tool on $article_name: the error was\n\n$!");
+  }
+  system ("edtfile $article_name > /dev/null 2> /dev/null");
+  unless ($? == 0) {
+    die ("Something went wrong when calling edtfile on $article_name: the error was\n\n$!");
+  }
+  system ('mv', $article_tmp, $article_miz);
+  unless ($? == 0) {
+    die ("Something went wrong when overwriting the original .miz file by one whose reservations are split up by the JA tool: the error was\n\n$!");
+  }
+  # Done.  We shouldn't need to call the accomodator and the verifier
+  # on the new .miz, right, since it's "the same" as the old,
+  # non-split one?  Right?  (This is not the case for the JA1 tool,
+  # since that one will have a slightly different XML representation:
+  # no Reservation element will have more than one Ident child.)
 }
 
-sub prepare_work_dirs {
-  my $theorems_dir = $article_work_dir . '/' . 'theorems';
-  my $schemes_dir = $article_work_dir . '/' . 'schemes';
-  my $definitions_dir = $article_work_dir . '/' . 'definitions';
-  mkdir ($theorems_dir);
-  mkdir ($definitions_dir);
-  return;
-}
+# sub split_reservations {
+#   my $tokens_ref = tokens ();
+#   my @tokens = @{$tokens_ref};
+#   my @reservations = ();
+#   my $reservation = "";
+#   my $scanning_identifiers = 0;
+#   my $scanning_reservation_block = 0;
+#   for (my $i = 0, $i++, ) {
+#     my $token = $tokens[$i];
+#     if ($token eq 'reserve') {
+#       $scanning_identifiers = 1;
+#       $scanning_reservation_block = 1;
+#     } elsif ($scanning_identifiers) {
+#       $reservation .= $token;
+#     } elsif ($token eq 'for') {
+#       $scanning_identifiers = 0;
+#       $reservations .= $token;
+#     } elsif ($scanning_reservation_block) {
+#       my $next = $tokens[$i + 1];
+#       $reservations .= $next;
+#       if ($next eq ';') {
+# 	push (@reservations, $reservation);
+# 	$reservation = '';
+# 	$scanning_reservation_block = 0;
+#       } elsif ($next eq 'of' or $next eq 'over') {
+# 	my $after_next = $tokens[$i + 2];
+# 	until ($after_next eq ';' or $after_next eq 'for') {
+# 	  $reservation .= $token;
+# 	  $i++;
+# 	  $token = $tokens[$i];
+# 	  $next = $tokens[$i + 1];
+# 	  $after_next = $tokens[$i + 2];
+# 	}
+# 	if ($after_next eq ';') {
+# 	  $scanning_reservation_block = 0;
+# 	}
+#       }
+#     }
+#   }
+#   return (\@reservations);
+# }
+
+# sub prepare_work_dirs {
+#   my $theorems_dir = $article_work_dir . '/' . 'theorems';
+#   my $schemes_dir = $article_work_dir . '/' . 'schemes';
+#   my $definitions_dir = $article_work_dir . '/' . 'definitions';
+#   mkdir ($theorems_dir);
+#   mkdir ($definitions_dir);
+#   return;
+# }
+
+# sub load_environment {
+#   # We could load this information at once, but to be safe let's use the evl.
+#   my @vocabularies = `env.pl Vocabularies $article_base`;
+#   my @notations = `env.pl Notations $article_base`;
+#   my @constructors = `env.pl Constructors $article_base`;
+#   my @registrations = `env.pl Registrations $article_base`;
+#   my @requirements = `env.pl Requirements $article_base`;
+#   my @definitions = `env.pl Definitions $article_base`;
+#   my @theorems = `env.pl Theorems $article_base`;
+#   my @schemes = `env.pl Schemes $article_base`;
+# }
 
 sub load_environment {
   my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --funcall article-environment`;
   unless ($? == 0) {
     die ("Weird: emacs didn't exit cleanly: $!");
   }
+  # can't we just turn this list of strings into a single string,
+  # using a builtin command?  this looks so primitive
   my $environment = '';		# empty string
   foreach my $line (@output) {
     chomp ($line);
@@ -208,6 +292,22 @@ sub reservations_before_line {
     }
   }
   return (\@reservations);
+}
+
+sub scheme_before_position {
+  my $line = shift;
+  my $col = shift;
+  my $scheme = '';		# empty string
+  # DEBUG
+  my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --eval '(scheme-before-position $line $col)'`;
+  unless ($? == 0) {
+    die ("Weird: emacs died: $!");
+  }
+  foreach $out_line (@output) {
+    chomp ($out_line);
+    $scheme .= "$out_line\n";
+  }
+  return ($scheme);
 }
 
 sub theorem_before_position {
@@ -259,7 +359,8 @@ sub extract_article_region {
   return ($region);
 }
 
-prepare_work_dirs ();
+# prepare_work_dirs ();
+split_reservations ();
 init_reservation_table ();
 my $environment = load_environment ();
 my $miz_lines_ref = read_miz_file ();
@@ -291,229 +392,155 @@ sub article_local_references_from_nodes {
   return (keys (%local_refs));
 }
 
-sub scan_vids {
-  my $doc = miz_xml ();
-  # my @tpnodes = ();
-  # my @theorem_nodes = $doc->findnodes ('//JustifiedTheorem');
-  # push (@tpnodes, @theorem_nodes);
-  # my @lemma_nodes = $doc->findnodes ('//Proposition[(name(..)="Article")]');
-  # push (@tpnodes, @lemma_nodes);
-  # my @definition_block_nodes = $doc->findnodes ('//DefinitionBlock');
-  # push (@tpnodes, @definition_block_nodes);
-  # my @scheme_block_nodes = $doc->findnodes ('//SchemeBlock');
-  # push (@tpnodes, @scheme_block_nodes);
-  @tpnodes = $doc->findnodes ('//JustifiedTheorem | //Proposition[(name(..)="Article")] | //DefinitionBlock | //SchemeBlock');
-  my $definition_blocks = 0;
-  my $diffuse_lemmas = 0;
-  my $justified_theorems = 0;
-  my $scheme_blocks = 0;
-  foreach my $node (@tpnodes) {
-    my $node_name = $node->nodeName;
-    if ($node_name eq "JustifiedTheorem" || $node_name eq "Proposition") {
-      my $proposition_node;
-      if ($node_name eq "Proposition") {
-	$proposition_node = $node;
-	warn ("a diffuse proposition!");
-	$diffuse_lemmas++;
-      } else {
-	($proposition_node) = $node->findnodes ('Proposition');
-	$justified_theorems++;
-      }
-      if (defined ($proposition_node)) {
-	my $vid = $proposition_node->findvalue ('@vid');
-	if (defined ($vid)) {
-	  if ($vid eq '') {
-	    if ($node_name eq 'JustifiedTheorem') {
-	      warn ("weird: justifiedtheorem $justified_theorems has an empty value for its VID attribute\n");
-	    } else {
-	      warn ("weird: diffuse lemma $diffuse_lemmas has an empty value for its VID attribute\n");
-	    }
-	  } else {
-	    if ($node_name eq 'JustifiedTheorem') {
-	      warn ("setting vid of theorem $justified_theorems to $vid\n");
-	      $vid_to_theorem_num{$vid} = $justified_theorems;
-	      $theorem_num_to_vid{$justified_theorems} = $vid;
-	    } else {
-	      warn ("setting vid of diffuse lemma $diffuse_lemmas to $vid");
-	      $vid_to_diffuse_lemma_num{$vid} = $diffuse_lemmas;
-	      $diffuse_lemmas_to_vid{$diffuse_lemmas} = $vid;
-	    }
-	  }
-	} else {
-	  warn ("weird: the Proposition node of theorem $i lacks a value for its VID attribute\n");
-	}
-      } else {
-	warn ("weird: theorem $i is a JustifiedTheorem, but it lacks a Proposition child element\n");
-      }
-    } elsif ($node_name eq 'DefinitionBlock') {
-      warn ("Don't know how to deal with DefinitionBlocks yet...\n");
-      $definition_blocks++;
-    } elsif ($node_name eq 'SchemeBlock') {
-      warn ("Don't know how to deal with SchemeBlocks yet...\n");
-      $scheme_blocks++;
-    }
+sub line_and_column {
+  my $node = shift;
+
+  my ($line,$col);
+
+  if ($node->exists ('@line')) {
+    $line = $node->findvalue ('@line');
+  } else {
+    die ("Node lacks a line attribute");
   }
+
+  if ($node->exists ('@col')) {
+    $col = $node->findvalue ('@col');
+  } else {
+    die ("Node lacks a col attribute");
+  }
+
+  return ($line,$col);
 }
 
-sub separate_theorems {
+sub pretext_from_item_type_and_beginning {
+  my $item_type = shift;
+  my $begin_line = shift;
+  my $begin_col = shift;
+  my $pretext;
+  if ($item_type eq 'JustifiedTheorem') {
+    $pretext = theorem_before_position ($begin_line, $begin_col);
+  } elsif ($item_type eq 'SchemeBlock') {
+    $pretext = scheme_before_position ($begin_line, $begin_col);
+  } elsif ($item_type eq 'NotationBlock') {
+    $pretext = "notation\n";
+  } elsif ($item_type eq 'DefinitionBlock') {
+    $pretext = "definition\n";
+  } elsif ($item_type eq 'RegistrationBlock') {
+    $pretext = "registration\n";
+  } elsif ($item_type eq 'Proposition') {
+    $pretext = ":: Don't know how to handle diffuse lemmas\n";
+  } else {
+    $pretext = '';
+  }
+  return ($pretext);
+}
+
+sub itemize {
   my $doc = miz_xml ();
-  # my @tpnodes = ();
-  # my @justified_theorem_nodes = $doc->findnodes('//JustifiedTheorem');
-  # my @lemma_nodes = $doc->findnodes ('//Proposition[(name(..)="Article")]');
-  # push (@tpnodes, @justified_theorem_nodes);
-  # push (@tpnodes, @lemma_nodes);
-  @tpnodes = $doc->findnodes ('//JustifiedTheorem | //Proposition[(name(..)="Article")] | //DefinitionBlock | //SchemeBlock');
-  my $definition_blocks = 0;
-  my $diffuse_lemmas = 0;
-  my $justified_theorems = 0;
-  my $scheme_blocks = 0;
-  foreach my $node (@tpnodes) {
+  @tpnodes = $doc->findnodes ('//JustifiedTheorem | //Proposition[(name(..)="Article")] | //DefinitionBlock | //SchemeBlock | //RegistrationBlock | //NotationBlock');
+  my $i;
+  foreach my $i (0 .. $#tpnodes) {
+    my $node = $tpnodes[$i];
     my $node_name = $node->nodeName;
 
-    # counting
+    # find the beginning
+    my ($begin_line, $begin_col);
+    if ($node_name eq 'DefinitionBlock' ||
+	$node_name eq 'SchemeBlock' ||
+        $node_name eq 'RegistrationBlock' ||
+	$node_name eq 'NotationBlock' ||
+        $node_name eq 'Proposition') {
+
+      ($begin_line,$begin_col) = line_and_column ($node);
+
+    } else { # JustifiedTheorem
+      my ($theorem_proposition) = $node->findnodes ('Proposition[position()=1]');
+      unless (defined ($theorem_proposition)) {
+	die ("Weird: node $i, a JustifiedTheorem, lacks a Proposition child element");
+      }
+      ($begin_line, $begin_col) = line_and_column ($theorem_proposition);
+    }
+
+    # now find the end
+    my ($end_line, $end_col);
+    my $last_endposition_child;
+
+    # we need to look at its proof
+    if ($node_name eq 'Proposition') {
+      my $next = $node->nextNonBlankSibling ();
+      unless (defined ($next)) {
+	die ("Weird: node $i, a Proposition, is not followed by a sibling!");
+      }
+      my $next_name = $next->nodeName ();
+      unless ($next_name eq 'Proof') {
+	die ("Weird: the next sibling of node $i, a Proposition, is not a Proof element! It is a $next_name element, somehow");
+      }
+      ($last_endposition_child)
+	= $next->findnodes ('EndPosition[position()=last()]');
+    } elsif ($node_name eq 'JustifiedTheorem') {
+      my ($proof) = $node->findnodes ('Proof');
+      my ($by_or_from) = $node->findnodes ('By | From');
+      if (defined ($proof)) {
+	($last_endposition_child)
+	  = $proof->findnodes ('EndPosition[position()=last()]');
+      } elsif (defined ($by_or_from)) {
+	my ($last_ref) = $by_or_from->findnodes ('Ref[position()=last()]');
+	if (defined ($last_ref)) {
+	  $last_endposition_child = $last_ref;
+	} else {
+	  die ("Node $i, a JustifiedTheorem, is immediately justified, but no statements are mentioned after the by/from keyword!");
+	}
+      } else {
+	die ("Node $i, a JustifiedTheorem, lacks a Proof, nor is it immediately justified by a By or From statement");
+      }
+    } else {
+      ($last_endposition_child)
+	= $node->findnodes ('EndPosition[position()=last()]');
+    }
+
+    unless (defined ($last_endposition_child)) {
+      die ("Weird: node $i (a $node_name) lacks an EndPosition child element");
+    }
+    ($end_line,$end_col) = line_and_column ($last_endposition_child);
+
+    # kludge: EndPosition information for Schemes differs from all
+    # other elements: it is off by one: it includes the final
+    # semicolon of the "end;", whereas other elements end at "end".
+    if ($node_name eq 'SchemeBlock') {
+      $end_col--;
+    }
+
+    # kludge: the end column information for theorems is off by three.
+    # Sometimes.  (!)
     if ($node_name eq 'JustifiedTheorem') {
-      $justified_theorems++;
-    } elsif ($node_name eq 'Proposition') {
-      $diffuse_lemmas++;
-    } elsif ($node_name eq 'DefinitionBlock') {
-      $definition_blocks++;
-    } else {
-      $scheme_blocks++;
+      $begin_col = $begin_col + 3;
     }
 
-    if ($node->exists ('SkippedProof')) {
-      warn ("Skipping over a cancelled proof...\n");
-    } else {
-      # first, gather the references (bys and froms)
-      my %local_refs = ();
-      my @by_nodes = $node->findnodes ('.//By'); # note xpath magic './/'
-      my @from_nodes = $node->findnodes ('.//From'); # note xpath magic './/'
-      my @by_refs = article_local_references_from_nodes (\@by_nodes);
-      my @from_refs = article_local_references_from_nodes (\@from_nodes);
+    # extract appropriate reservations
+    # my @reservations = @{reservations_before_line ($begin_line)};
 
-      # DEBUG
-      foreach my $ref (@by_refs) {
-	if ($node_name eq 'JustifiedTheorem') {
-	  warn ("by reference in the proof of justifiedtheorem $justified_theorems to thing $ref\n");
-	} elsif ($node_name eq 'Proposition') {
-	  warn ("diffuse lemma $diffuse_lemmas refers to thing $ref\n");
-	} elsif ($node_name eq 'DefinitionBlock') {
-	  warn ("definition block $definition_blocks refers to thing $ref\n");
-	} else {
-	  warn ("scheme $scheme_blocks refers to thing $ref");
-	}
-      }
-      # DEBUG
-      foreach my $ref (@by_refs) {
-	if ($node_name eq 'JustifiedTheorem') {
-	  warn ("by reference in the proof of justifiedtheorem $justified_theorems to thing $ref\n");
-	} elsif ($node_name eq 'Proposition') {
-	  warn ("diffuse lemma $diffuse_lemmas refers to thing $ref\n");
-	} elsif ($node_name eq 'DefinitionBlock') {
-	  warn ("definition block $definition_blocks refers to thing $ref\n");
-	} else {
-	  warn ("scheme $scheme_blocks refers to thing $ref");
-	}
-      }  
+    # compute any lost "pretext" information
+    my $pretext
+      = pretext_from_item_type_and_beginning ($node_name, $begin_line, $begin_col);
 
-      if ($node->nodeName eq "DefinitionBlock") {
-	warn ("Ignoring DefinitionBlock..");
-      } elsif ($node_name eq 'SchemeBlock') {
-	warn ("Ignoring SchemeBlock...\n");
-      } else { # we handle only JustifiedTheorems and toplevel Propositions now
-	my ($proof_node) = $node->findnodes ('Proof');
-	if (defined ($proof_node)) {
-	  my ($endpos) = $proof_node->findnodes('EndPosition[position()=last()]');
-	  my ($bl,$bc,$el,$ec) = ($proof_node->findvalue('@line'),
-				  $proof_node->findvalue('@col'),
-				  $endpos->findvalue('@line'),
-				  $endpos->findvalue('@col'));
-	  my $res = reservations_before_line ($el);
-	  my @reservations_in_force = @{$res};
-	  my $theorem = theorem_before_position ($bl, $bc);
-	  my $theorem_dir
-	    = $article_work_dir . '/' . 'theorems' . '/' . "$i";
-	  my $theorem_miz = $theorem_dir . "/" . "theorem$i.miz";
-	  mkdir ($theorem_dir);
-	  open (THEOREM_MIZ, q{>}, $theorem_miz)
-	    or die ("Couldn't open an output filehandle to $theorem_miz");
-	  print THEOREM_MIZ ("environ\n");
-	  print THEOREM_MIZ ("$environment\n");
-	  print THEOREM_MIZ ("begin\n");
-	  foreach my $reservation (reverse @reservations_in_force) {
-	    print THEOREM_MIZ ("reserve $reservation\n");
-	  }
-	  print THEOREM_MIZ ("$theorem");
-	  # now print the proof
-	  my $miz_line = $mizfile_lines[$bl-1];
-	  if ($bl == $el) {	# weird: entire proof is on one line
-	    print THEOREM_MIZ (substr ($miz_line, $bc, $ec-$bc));
-	  } else { # more typical: the proof does not begin and end on the same line
-	    my $first_line_remainder = substr($miz_line, $bc);
-	    print THEOREM_MIZ ($first_line_remainder);
-	    for (my $line = $bl; $line < $el; $line++) {
-	      print THEOREM_MIZ ($mizfile_lines[$line]);
-	      print THEOREM_MIZ ("\n");
-	    }
-	    print THEOREM_MIZ (substr ($mizfile_lines[$el],0,$ec));
-	  }
-	  close (THEOREM_MIZ)
-	    or die ("Unable to close the output filehandle for $theorem_miz");
-	} else {
-	  warn ("this node (for theorem $i) does not have a proof; looking for By\n");
-	  my ($by_node) = $node->findnodes('By');
-	  if (defined ($by_node)) {
-	    my ($by_line,$by_column) = ($by_node->findvalue ('@line'),
-					$by_node->findvalue ('@col'));
-	    warn ("by_line = $by_line and by_column = $by_column\n");
-	    my ($first_ref_node) = $by_node->findnodes ('Ref');
-	    my ($last_ref_node) = $by_node->findnodes ('Ref[position()=last()]');
-	    my ($first_ref_line,$first_ref_column)
-	      = ($first_ref_node->findvalue ('@line'),
-		 $first_ref_node->findvalue ('@col'));
-	    my ($last_ref_line,$last_ref_column)
-	      = ($last_ref_node->findvalue ('@line'),
-		 $last_ref_node->findvalue ('@col'));
-	    my $res = reservations_before_line ($last_ref_line);
-	    my @reservations_in_force = @{$res};
-	    my $theorem = theorem_before_position ($by_line, $by_column - 3);
-	    chomp ($theorem);
-	    my $theorem_by_refs = extract_article_region ($by_line,
-							  $by_column + 1,
-							  $last_ref_line,
-							  $last_ref_column);
-	    chomp ($theorem_by_refs);
-	    my $theorem_dir = $article_work_dir . '/' . 'theorems' . '/' . "$i";
-	    my $theorem_miz = $theorem_dir . "/" . "theorem$i.miz";
-	    mkdir ($theorem_dir);
-	    open (THEOREM_MIZ, q{>}, $theorem_miz)
-	      or die ("Couldn't open an output filehandle to $theorem_miz");
-	    print THEOREM_MIZ ("environ\n");
-	    print THEOREM_MIZ ("$environment\n");
-	    print THEOREM_MIZ ("begin\n");
-	    foreach my $reservation (reverse @reservations_in_force) {
-	      print THEOREM_MIZ ("reserve $reservation\n");
-	    }
-	    print THEOREM_MIZ ("$theorem");
-	    print THEOREM_MIZ " by ";
-	    print THEOREM_MIZ ("$theorem_by_refs;");
-	    close (THEOREM_MIZ)
-	      or die ("Unable to close the output filehandle for $theorem_miz");
-	  }
-	}
-      }
-    }
+    my $text = extract_article_region ($begin_line, $begin_col, $end_line, $end_col);
+    chomp ($text);
+    print ("Item $i: $node_name: ($begin_line,$begin_col)-($end_line,$end_col)\n");
+    print ("======================================================================\n");
+    print ("$pretext");
+    print ("$text");
+    print (";\n");
+    print ("======================================================================\n");
   }
-  return;
 }
 
-# scan_vids ();
+itemize ();
 
 # separate_theorems ();
 
 
-my $reservations_ref = split_reservations ();
-my @reservations = @{$reservations_ref};
-foreach my $reservation (@reservations) {
-  print "$reservation\n";
-}
+# my $reservations_ref = split_reservations ();
+# my @reservations = @{$reservations_ref};
+# foreach my $reservation (@reservations) {
+#   print "$reservation\n";
+# }
