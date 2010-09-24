@@ -20,6 +20,10 @@ on each of the standalone articles.
 END_USAGE
 }
 
+# TODO
+#
+# * rewrite article-local labels
+
 use XML::LibXML;
 
 my $article_name = $ARGV[0];
