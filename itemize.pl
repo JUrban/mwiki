@@ -428,7 +428,7 @@ sub pretext_from_item_type_and_beginning {
   } elsif ($item_type eq 'RegistrationBlock') {
     $pretext = "registration\n";
   } elsif ($item_type eq 'Proposition') {
-    $pretext = ":: Don't know how to handle diffuse lemmas\n";
+    $pretext = "Lemma: not contradiction; :: don't know how to handle diffuse lemmas\n";
   } else {
     $pretext = '';
   }
