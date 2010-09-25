@@ -14,14 +14,14 @@ fi
 
 mkdir $1
 cd $1
-wget http://coq.inria.fr/distrib/V8.2pl2/files/coq-8.2pl2.tar.gz
-tar xzf coq-8.2pl2.tar.gz
-cd coq-8.2pl2
+wget http://coq.inria.fr/distrib/v8.2/files/coq-8.2.tar.gz
+tar xzf coq-8.2.tar.gz
+cd coq-8.2
 ./configure -local
 time make -j12 world  # quite fast
-export PATH=$1/coq-8.2pl2/bin:$PATH
+export PATH=$1/coq-8.2/bin:$PATH
 cd $1
 git clone http://www.fnds.cs.ru.nl/git/CoRN.git
 cd CoRN
-export COQTOP=$1/coq-8.2pl2
+export COQTOP=$1/coq-8.2
 time make -j12   # will take 37 min - low parallelization
