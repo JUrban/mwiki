@@ -1,0 +1,36 @@
+# -*- mode: makefile; -*-
+
+## assumes that we are always called from top directory
+
+##TODO: The include Makefiles are automatically re-made and
+#       re-included, so make deps is not needed; use this for mizar
+#       too
+
+export SHELL=/bin/bash
+ECHO = /bin/echo
+COQSOURCES=$(shell find -name *.v)
+COQDEPEND := $(COQSOURCES:.v=.d)
+COQOBJECTS := $(COQSOURCES:.v=.vo)
+
+COQMAP=$(shell ls -d */ | sed -e 's/\(.*\)\//-R \1 \1 /')
+
+dep-tag = "    DEP "
+verify-tag = "    COQ "
+html-tag   = "    HTM "
+
+
+deps: $(COQDEPEND)
+allvo: $(COQOBJECTS)
+
+%.d: %.v
+	@$(ECHO) $(dep-tag) $<
+	@coqdep $(COQMAP) $< > $*.d
+
+%.vo %.glob : %.v  %.d
+	@set -e; \
+	$(ECHO) $(verify-tag) $<; \
+	GLOB="$(<:.v=.glob)"; \
+	coqc  -dump-glob "$${GLOB}" $(COQMAP) $<
+
+
+-include $(COQDEPEND)
