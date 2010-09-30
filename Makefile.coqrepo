@@ -12,23 +12,32 @@ ECHO = /bin/echo
 # anything matching .v has to compile;
 # if you do not want it to compile, rename it to .broken, or whatever
 # there might be more liberal repo policies
-COQSOURCES=$(shell find -name "*.v")
+COQSOURCES=$(shell find -name "*.v" | sed -e 's/\.\///')
 #                      ======><==><===== the quotes are needed!
 #                      see end of man page for 'find' (NON-BUGS - without quote the glob gets expanded)
+# the sed is used to remove initial "./" in output of find: needed for later name translation in coqdoc output hacking
 COQDEPEND := $(COQSOURCES:.v=.d)
 COQOBJECTS := $(COQSOURCES:.v=.vo)
 COQGLOBS := $(COQSOURCES:.v=.glob)
+COQBARE:= $(COQSOURCES:.v=)
+
+# address of the corn/coq wiki cgi
+CWIKICGIURL="http://mws.cs.ru.nl/cgi-bin/cwiki/cwiki.cgi"
 
 # File where coqc stores the references to global symbols
 GLOBFILE = $(SRCDIR)/.glob
 
 
 # the crazy -R directive: we have to collect all toplevel directories - that seems to be enough
+# TODO: possibly collecte only those that have .v files in them
 COQMAP=$(shell ls -d */ | sed -e 's/\(.*\)\//-R \1 \1 /')
 
 dep-tag = "    DEP "
 verify-tag = "    COQ "
 html-tag   = "    HTM "
+
+all:
+	echo $(COQBARE)
 
 
 deps: $(COQDEPEND)
@@ -52,6 +61,14 @@ allvo: $(COQOBJECTS)
 allhtml :  $(COQGLOBS)
 	mkdir -p doc/html
 	@coqdoc -utf8 --toc -s -t "C-CoRN Documentation" $(COQMAP) --multi-index  -d doc/html $(COQSOURCES) 
+	@set -e; \
+	for path in $(COQBARE); do \
+	name=`tr \/ \.`; \
+	htmlname=doc/name/$$name.html; \
+	sed -e 's/##FILENAME##/$$name/g; s/##FILEPATH##/$$path/g; s/##CWIKICGIURL##/$$CWIKICGIURL/g;' .coqheader | \
+	cat - $$htmlname .coqfooter > $$htmlname.new; \
+	mv $$htmlname.new $$htmlname; \
+	done
 
 clean : depclean objclean globclean
 
