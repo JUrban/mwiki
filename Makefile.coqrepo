@@ -12,7 +12,9 @@ ECHO = /bin/echo
 # anything matching .v has to compile;
 # if you do not want it to compile, rename it to .broken, or whatever
 # there might be more liberal repo policies
-COQSOURCES=$(shell find -name *.v)
+COQSOURCES=$(shell find -name "*.v")
+#                      ======><==><===== the quotes are needed!
+#                      see end of man page for 'find' (NON-BUGS - without quote the glob gets expanded)
 COQDEPEND := $(COQSOURCES:.v=.d)
 COQOBJECTS := $(COQSOURCES:.v=.vo)
 COQGLOBS := $(COQSOURCES:.v=.glob)
