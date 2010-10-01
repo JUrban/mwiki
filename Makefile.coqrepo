@@ -58,14 +58,14 @@ allvo: $(COQOBJECTS)
 ##      files have to be processed at once (otherwise we do not trust
 ##      that they exist and don't link to them), using Hugo's patch
 ##      (switch to newer Coq probably needed for this)
-allhtml :  $(COQGLOBS)
+allhtml :  
 	mkdir -p doc/html
-	@coqdoc -utf8 --toc -s -t "C-CoRN Documentation" $(COQMAP) --multi-index  -d doc/html $(COQSOURCES) 
-	@set -e; \
+	@coqdoc --body-only -utf8 --toc -s -t "C-CoRN Documentation" $(COQMAP) --multi-index  -d doc/html $(COQSOURCES) 
+	set -e; \
 	for path in $(COQBARE); do \
-	name=`tr \/ \.`; \
-	htmlname=doc/name/$$name.html; \
-	sed -e 's/##FILENAME##/$$name/g; s/##FILEPATH##/$$path/g; s/##CWIKICGIURL##/$$CWIKICGIURL/g;' .coqheader | \
+	name=`echo $$path | tr \/ \.`; \
+	htmlname=doc/html/$$name.html; \
+	sed -e "s/##FILENAME##/$$name/g; s/##FILEPATH##/$$path/g; s/##CWIKICGIURL##/$(CWIKICGIURL)/g;" .coqheader | \
 	cat - $$htmlname .coqfooter > $$htmlname.new; \
 	mv $$htmlname.new $$htmlname; \
 	done
