@@ -65,7 +65,7 @@ allhtml :
 	for path in $(COQBARE); do \
 	name=`echo $$path | tr \/ \.`; \
 	htmlname=doc/html/$$name.html; \
-	sed -e "s/##FILENAME##/$$name/g; s/##FILEPATH##/$$path/g; s/##CWIKICGIURL##/$(CWIKICGIURL)/g;" .coqheader | \
+	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##FILENAME##/$$ARGV[1]/g; s/##FILEPATH##/$$ARGV[2]/g; s/##CWIKICGIURL##/$$ARGV[3]/g; print }' .coqheader $$name $$path $(CWIKICGIURL) | \
 	cat - $$htmlname .coqfooter > $$htmlname.new; \
 	mv $$htmlname.new $$htmlname; \
 	done
