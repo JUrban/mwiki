@@ -23,8 +23,10 @@ COQBARE:= $(COQSOURCES:.v=)
 
 # address of the host
 WIKIHOST=mws.cs.ru.nl
+# name of the wiki cgi
+CGI_NAME=cwiki.cgi
 # address of the corn/coq wiki cgi
-CWIKICGIURL="http://$(WIKIHOST)/cgi-bin/cwiki/cwiki.cgi"
+CWIKICGIURL="http://$(WIKIHOST)/cgi-bin/mwiki/$(CGI_NAME)"
 
 # File where coqc stores the references to global symbols
 GLOBFILE = $(SRCDIR)/.glob
@@ -67,8 +69,8 @@ allhtml :
 	for path in $(COQBARE); do \
 	name=`echo $$path | tr \/ \.`; \
 	htmlname=doc/html/$$name.html; \
-	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##FILENAME##/$$ARGV[1]/g; s/##FILEPATH##/$$ARGV[2]/g; s/##CWIKICGIURL##/$$ARGV[3]/g; print }' .coqheader $$name $$path $(CWIKICGIURL) | \
-	cat - $$htmlname .coqfooter > $$htmlname.new; \
+	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##FILENAME##/$$ARGV[1]/g; s/##FILEPATH##/$$ARGV[2]/g; s/##CWIKICGIURL##/$$ARGV[3]/g; print }' doc/.coqheader $$name $$path $(CWIKICGIURL) | \
+	cat - $$htmlname doc/.coqfooter > $$htmlname.new; \
 	mv $$htmlname.new $$htmlname; \
 	done
 
