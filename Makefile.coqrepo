@@ -12,7 +12,7 @@ ECHO = /bin/echo
 # anything matching .v has to compile;
 # if you do not want it to compile, rename it to .broken, or whatever
 # there might be more liberal repo policies
-COQSOURCES=$(shell find -name "*.v" | sed -e 's/\.\///')
+COQSOURCES=$(shell find -name "*.v" -not -name 'Transparent_*' -not -name 'Opaque_*' | sed -e 's/\.\///')
 #                      ======><==><===== the quotes are needed!
 #                      see end of man page for 'find' (NON-BUGS - without quote the glob gets expanded)
 # the sed is used to remove initial "./" in output of find: needed for later name translation in coqdoc output hacking
@@ -69,8 +69,8 @@ allhtml :
 	for path in $(COQBARE); do \
 	name=`echo $$path | tr \/ \.`; \
 	htmlname=doc/html/$$name.html; \
-	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##FILENAME##/$$ARGV[1]/g; s/##FILEPATH##/$$ARGV[2]/g; s/##CWIKICGIURL##/$$ARGV[3]/g; print }' doc/.coqheader $$name $$path $(CWIKICGIURL) | \
-	cat - $$htmlname doc/.coqfooter > $$htmlname.new; \
+	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##FILENAME##/$$ARGV[1]/g; s/##FILEPATH##/$$ARGV[2]/g; s/##CWIKICGIURL##/$$ARGV[3]/g; print }' doc/coqheader.in $$name $$path $(CWIKICGIURL) | \
+	cat - $$htmlname doc/coqfooter.in > $$htmlname.new; \
 	mv $$htmlname.new $$htmlname; \
 	done
 
