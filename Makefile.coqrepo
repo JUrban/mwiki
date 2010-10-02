@@ -21,8 +21,10 @@ COQOBJECTS := $(COQSOURCES:.v=.vo)
 COQGLOBS := $(COQSOURCES:.v=.glob)
 COQBARE:= $(COQSOURCES:.v=)
 
+# address of the host
+WIKIHOST=mws.cs.ru.nl
 # address of the corn/coq wiki cgi
-CWIKICGIURL="http://mws.cs.ru.nl/cgi-bin/cwiki/cwiki.cgi"
+CWIKICGIURL="http://$(WIKIHOST)/cgi-bin/cwiki/cwiki.cgi"
 
 # File where coqc stores the references to global symbols
 GLOBFILE = $(SRCDIR)/.glob
