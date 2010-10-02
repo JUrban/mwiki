@@ -39,6 +39,7 @@
 # - HEAD: default /usr/bin/head.  See description of INSTALL variable.
 
 REPO_NAME=mwiki
+REPO_DIR_INDEX=00INDEX.html
 SCRATCH_BASE=$(REPOS_BASE)/scratch
 PUBLIC_REPOS_BASE=$(REPOS_BASE)/public
 PUBLIC_REPO=$(REPOS_BASE)/public/$(REPO_NAME)
@@ -214,18 +215,22 @@ gitweb: public-repo-export
 	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/$(REPO_NAME).git
 	$(INSTALL) -m 644 gitweb $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
-	  && ln -s ../sites-available/gitweb gitweb
+	  && ln -f -s ../sites-available/gitweb gitweb
 	apache2ctl restart
 
-mwiki: public-repos
+apacheconf:
+	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##REPO_NAME##/$$ARGV[1]/g; s/##PUBLIC_COMPILED_REPO##/$$ARGV[2]/g; s/##REPO_DIR_INDEX##/$$ARGV[3]/g; print }' \
+          apacheconf.in $(REPO_NAME) $(PUBLIC_COMPILED_REPO) $(REPO_DIR_INDEX) > \
+          $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME) \
+          && chmod 644 $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME)
+
+mwiki: public-repos apacheconf
 	mkdir -p $(CGILIB)/mwiki
 	$(INSTALL) -m 755 \
            --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) mwiki.cgi \
 	  $(CGILIB)/mwiki/mwiki.cgi
-	$(INSTALL) -m 644 $(REPO_NAME).apacheconf \
-	  $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME)
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
-	  && ln -s ../sites-available/$(REPO_NAME) $(REPO_NAME)
+	  && ln -f -s ../sites-available/$(REPO_NAME) $(REPO_NAME)
 	apache2ctl restart
 
 clean:
