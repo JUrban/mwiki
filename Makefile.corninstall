@@ -23,8 +23,8 @@
 # - MAKEJOBS: default 1.  The degree of parallelization used by make
 #   when computing the initial HTML-ized presentation of the LIB
 #
-# - NUM_ARTICLES: default 10.  The length of the initial segment of
-#   .doclist (taken from LIBFILES).  Set it to a big value to ensure
+# - NUM_ARTICLES: default 0.  The length of the initial segment of
+#   cornlist (taken from LIBFILES).  Set it to 0 to ensure
 #   that the whole library is used; set it to a low-value for
 #   debugging purposes.
 #
@@ -54,10 +54,9 @@ JAVASCRIPT=article
 PERLSCRIPTS=
 PERLMODULES=
 GITWEB_ROOT=/var/cache/git
-NUM_ARTICLES=10
+NUM_ARTICLES=0
 HEAD=/usr/bin/head
 INSTALL=/usr/bin/install
-INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(LIBFILES)/.doclist)
 
 # this should be passed as arg - e.g. mws.cs.ru.nl
 WIKIHOST=localhost
@@ -73,7 +72,7 @@ PUBLIC_MWIKI_USER=mwiki
 
 COQBINARIES=coqc coqc.opt coqdep coqdoc
 
-COQDOCFILES=.coqheader .coqfooter
+COQDOCFILES=coqheader.in coqfooter.in
 
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
@@ -90,8 +89,10 @@ scratch-directories:
 scratch-libfiles: scratch-directories
 	# .miz
 	cp -a $(LIBFILES)/* $(SCRATCH_BASE)
-	cd $(SCRATCH_BASE) && mkdir bin .perl doc
-	head -n $(NUM_ARTICLES) $(LIBFILES)/.doclist > $(SCRATCH_BASE)/.doclist
+	cd $(SCRATCH_BASE) && mkdir bin .perl 
+	head -n $(NUM_ARTICLES) cornlist > $(SCRATCH_BASE)/.doclist && sort $(SCRATCH_BASE)/.doclist > $(SCRATCH_BASE)/.docsorted
+	cd $(SCRATCH_BASE) && find -name "*.v" -not -name 'Transparent_*' -not -name 'Opaque_*' | \
+           sed -e 's/\.\///' > .alllist && sort .alllist > .allsorted && rm `comm -1 -3 .docsorted .allsorted` 
 	# bin
 	for binary in $(COQBINARIES); do \
 	  $(INSTALL) --mode 755 $(COQBIN)/$$binary $(SCRATCH_BASE)/bin/$$binary; \
