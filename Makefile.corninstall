@@ -71,9 +71,9 @@ PUBLIC_MWIKI_USER=mwiki
 
 # .PHONY: all repo sandbox deps xml repo-miz repo-prel repo-perl repo-bin repo-xsl repo-export repo-gitinit repo-makefiles
 
-COQBINARIES=coqc coqdoc
+COQBINARIES=coqc coqc.opt coqdep coqdoc
 
-MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
+COQDOCFILES=.coqheader .coqfooter
 
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
@@ -90,11 +90,15 @@ scratch-directories:
 scratch-libfiles: scratch-directories
 	# .miz
 	cp -a $(LIBFILES)/* $(SCRATCH_BASE)
-	cd $(SCRATCH_BASE) && mkdir bin .perl
+	cd $(SCRATCH_BASE) && mkdir bin .perl doc
 	head -n $(NUM_ARTICLES) $(LIBFILES)/.doclist > $(SCRATCH_BASE)/.doclist
 	# bin
 	for binary in $(COQBINARIES); do \
 	  $(INSTALL) --mode 755 $(COQBIN)/$$binary $(SCRATCH_BASE)/bin/$$binary; \
+	done
+	# doc
+	for doc in $(COQDOCFILES); do \
+	  $(INSTALL) --mode 755 $$doc $(SCRATCH_BASE)/doc/$$doc; \
 	done
 	# perl
 	for perlfile in $(PERLMODULES); do \
