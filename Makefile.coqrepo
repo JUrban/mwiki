@@ -29,6 +29,9 @@ CGI_NAME=cwiki.cgi
 CWIKICGIURL="http://$(WIKIHOST)/cgi-bin/mwiki/$(CGI_NAME)"
 # name of the html index file
 REPO_DIR_INDEX=index.html
+# name of the html contents file
+REPO_DIR_CONTENTS=toc.html
+
 
 # File where coqc stores the references to global symbols
 GLOBFILE = $(SRCDIR)/.glob
@@ -67,14 +70,20 @@ allvo: $(COQOBJECTS)
 allhtml :  allvo
 	@$(ECHO) $(html-tag)
 	@mkdir -p doc/html
-	@coqdoc --body-only -utf8 --toc -s -t "C-CoRN Documentation" $(COQMAP) --multi-index  -d doc/html $(COQSOURCES) 
+	@coqdoc --body-only -utf8 --toc -s $(COQMAP) --multi-index  -d doc/html $(COQSOURCES) 
 	@set -e; \
 	for path in $(COQBARE); do \
 	name=`echo $$path | tr \/ \.`; \
 	htmlname=doc/html/$$name.html; \
-	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##FILENAME##/$$ARGV[1]/g; s/##FILEPATH##/$$ARGV[2]/g; s/##CWIKICGIURL##/$$ARGV[3]/g; s/##INDEX##/$$ARGV[4]/g; print }' doc/coqheader.in $$name $$path.v $(CWIKICGIURL) $(REPO_DIR_INDEX) | \
+	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##FILENAME##/$$ARGV[1]/g; s/##FILEPATH##/$$ARGV[2]/g; s/##CWIKICGIURL##/$$ARGV[3]/g; s/##INDEX##/$$ARGV[4]/g; s/##CONTENTS##/$$ARGV[5]/g; print }' doc/coqheader.in $$name $$path.v $(CWIKICGIURL) $(REPO_DIR_INDEX) $(REPO_DIR_CONTENTS) | \
 	cat - $$htmlname doc/coqfooter.in > $$htmlname.new; \
 	mv $$htmlname.new $$htmlname; \
+	done
+	@set -e; \
+	for i in doc/html/toc.html doc/html/index.html doc/html/index_*; do \
+	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##CWIKICGIURL##/$$ARGV[1]/g; s/##INDEX##/$$ARGV[2]/g; s/##CONTENTS##/$$ARGV[3]/g; print }' doc/coqindexheader.in $(CWIKICGIURL) $(REPO_DIR_INDEX) $(REPO_DIR_CONTENTS) | \
+	cat - $$i doc/coqfooter.in > $$i.new; \
+	mv $$i.new $$i; \
 	done
 
 clean : depclean objclean globclean
