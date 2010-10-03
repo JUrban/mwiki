@@ -65,9 +65,10 @@ allvo: $(COQOBJECTS)
 ##      that they exist and don't link to them), using Hugo's patch
 ##      (switch to newer Coq probably needed for this)
 allhtml :  allvo
-	mkdir -p doc/html
+	@$(ECHO) $(html-tag)
+	@mkdir -p doc/html
 	@coqdoc --body-only -utf8 --toc -s -t "C-CoRN Documentation" $(COQMAP) --multi-index  -d doc/html $(COQSOURCES) 
-	set -e; \
+	@set -e; \
 	for path in $(COQBARE); do \
 	name=`echo $$path | tr \/ \.`; \
 	htmlname=doc/html/$$name.html; \
