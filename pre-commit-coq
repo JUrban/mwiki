@@ -278,7 +278,7 @@ my $coq_skip_proof_regexp = '\bAdmit\(ted\)\b';
 my $skip_proof_regexp = $coq_skip_proof_regexp;
 
 ## TODO: this does not work for Coq because of Coq comments
-if ($allow_skipped_proofs == 1)
+if ($allow_skipped_proofs == 0)
 {
     chdir ($sandbox);
     foreach my $article_full (@lib_changed) 
