@@ -30,6 +30,9 @@ sub pc_print {
 
 my $wikilock;
 
+# maximal number of changes in one commit/push
+my $MAX_CHANGED_NBR = 10000;
+
 sub pc_die
 {
     pc_print(@_);
@@ -63,10 +66,15 @@ my @art_changed
 my @non_art_changed 
   = `git diff-index --cached HEAD | cut -f 2 | grep --invert-match '\.$article_ext\$'`;
 
-unless (scalar (@non_art_changed) == 0) {
+if(scalar (@non_art_changed) > 0) {
   pc_print ("Only .$article_ext files are permitted to be committed: \"$non_art_changed[0]\"  Sorry.");
   exit (1)
 }
+elsif($#art_changed > $MAX_CHANGED_NBR) {
+  pc_print ("Only $MAX_CHANGED_NBR files are permitted to be changed in one commit/push: $#art_changed  Sorry.");
+  exit (1)
+}
+
 
 # The changed articles inside the "lib" directory
 my @lib_changed = ();
@@ -130,6 +138,10 @@ sub copy_new_articles_to_sandbox {
     chomp($real_article_path);
     my $sandbox_article_path = "$sandbox/$article";
     chomp($sandbox_article_path);
+    ($article =~ /^([A-Za-z0-9_]+\/([A-Za-z0-9_\/]+\/)*)[A-Za-z0-9_]+[.]$article_ext$/) or
+      die("Wrong file name: $article");
+    my $possibly_new_dir_path = $1;
+    `mkdir -p $sandbox/$possibly_new_dir_path`;
     copy ($real_article_path, $sandbox_article_path)
       or die ("You can't copy $real_article_path to $sandbox_article_path!");
   }
