@@ -114,7 +114,7 @@ scratch-libfiles: scratch-directories
 scratch-deps: scratch-libfiles
 
 scratch-html: scratch-deps
-	@$(MAKE) -C $(SCRATCH_BASE) -j $(MAKEJOBS) allvo allhtml LIBFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH) WIKIHOST=$(WIKIHOST) CGI_NAME=$(CGI_NAME) GITPROJECT=$(REPO_NAME).git
+	@$(MAKE) -C $(SCRATCH_BASE) -j $(MAKEJOBS) allvo allhtml LIBFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH) WIKIHOST=$(WIKIHOST) CGI_NAME=$(CGI_NAME) GITPROJECT=$(REPO_NAME).git REPO_DIR_INDEX=$(REPO_DIR_INDEX)
 
 scratch: scratch-html
 
@@ -130,7 +130,7 @@ public-repo-init: scratch
 	$(INSTALL) \
 	  --mode 644 \
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
-	  mml-gitignore $(PUBLIC_REPO)/.gitignore
+	  corn-gitignore $(PUBLIC_REPO)/.gitignore
 	$(INSTALL) \
 	  --mode 644 \
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
@@ -140,11 +140,12 @@ public-repo-init: scratch
            && git config mwiki.makejobs $(MAKEJOBS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(REPO_NAME)
 
+	for i in pre-commit post-commit; do \
 	$(INSTALL) \
 	  --mode 755 \
 	  --owner=$(PUBLIC_MWIKI_USER) \
 	  --group=$(PUBLIC_MWIKI_USER) \
-	  pre-commit post-commit $(PUBLIC_REPO)/.git/hooks
+	  $$i-coq $(PUBLIC_REPO)/.git/hooks/$$i; done
 
 
 public-mwiki-user:
