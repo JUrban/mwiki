@@ -1,0 +1,65 @@
+#!/usr/bin/perl -w
+
+use strict;
+use warnings;
+use Carp;
+use File::Spec;
+use Cwd;
+
+sub pc_pad {
+  my $str = shift;
+  chomp $str;
+  return ("[post-commit] $str\n");
+}
+
+# I think there's a slicker way to do this, using output filters, but
+# for now let's just do this as a subroutine.
+sub pc_print {
+  my $str = shift;
+  chomp ($str); # in case it already had some extra whitespace at the end
+  print (pc_pad ($str . "\n"));
+}
+
+# Move changes from the sandbox, where we just successfully
+# verified/compiled a bunch of changes to the MML.
+
+my $cwd = getcwd ();
+
+my $makejobs = 1;
+if (defined ($ENV{"MAKEJOBS"})) {
+  $makejobs = $ENV{"MAKEJOBS"};
+}
+else {
+    $makejobs = `git config mwiki.makejobs`;
+    chomp($makejobs);
+}
+
+my @repo_path_dirs = File::Spec->splitdir ($cwd);
+my $repo_name = $repo_path_dirs[$#repo_path_dirs];
+my $compiled = $cwd . "/" . "../compiled";
+my $sandbox = $cwd . "/" . "../sandbox";
+
+my $wikihost=`git config mwiki.wikihost`;
+chomp($wikihost);
+
+# Set up PATH and COQBIN
+if (!defined ($ENV{"COQBIN"}) or -z $ENV{"COQBIN"}) {
+  $ENV{"COQBIN"} = $sandbox . "/bin";
+}
+$ENV{"PATH"} = $ENV{"COQBIN"} . ":" . $ENV{"PATH"};
+
+## TODO: add cgi_name and repo_dir_index as git config variables
+
+chdir($sandbox);
+system ("make --jobs $makejobs allhtml WIKIHOST=$wikihost GITPROJECT=$repo_name.git 2> make-htmls-err | tee make-htmls-out");
+
+#chdir ($sandbox_mml);
+#`../.perl/mkmmlindex.pl -ghttp://$wikihost:1234/ -p$repo_name.git *.hdr > ../html/index.html`;
+#chdir ($cwd);
+
+# Copy the sandbox: force compiled to be a copy of the known compiled MML.
+# We are hoping that this is fairly fast.
+`rsync -a --del $sandbox/ $compiled`;
+# note the slash   ===> ^ <===  see the rsync man page to learn why
+
+exit 0;
