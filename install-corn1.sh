@@ -3,7 +3,7 @@
 repos_base=/var/cache/cwiki
 libfiles=/home/urban/ec/CoRN
 coqbin=/home/urban/ec/coq-8.2/bin
-num_articles=5
+num_articles=10
 
 
 if test -z "$1"; then
