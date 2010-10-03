@@ -1,0 +1,321 @@
+#!/usr/bin/perl -w
+
+use strict;
+use warnings;
+use File::Temp qw/ tempdir /;
+use Carp;
+use Cwd;
+
+sub pr_pad {
+  my $str = shift;
+  return ("[pre-receive] $str");
+}
+
+# I think there's a slicker way to do this, using output filters, but
+# for now let's just do this as a subroutine.
+sub pr_print {
+  my $str = shift;
+  chomp ($str); # in case it already had some extra whitespace at the end
+  print (pr_pad ($str . "\n"));
+  return;
+}
+
+sub pr_die {
+  pr_print(@_);
+  exit 1;
+}
+
+# There should be exactly one line given to this script by git.
+my $first_line = <>;
+my $second_line = <>;
+unless (defined $first_line) {
+  pr_print ('Standard input was empty!  How is that possible?');
+  exit 1;
+}
+if (defined $second_line) {
+  pr_print ('We currently handle pushes to only one refspec (namely, the master branch)');
+  exit 1;
+}
+
+# Ensure that the line we've received has the right form, as specified
+# in the git man page githooks:
+#
+# <old-value> SP <new-value> SP <ref-name> LF
+chomp $first_line;
+my ($old_sha, $new_sha, $refspec) = split (/\ /x, $first_line);
+unless (defined $old_sha && defined $new_sha && defined $refspec) {
+  pr_print ('The given line does not match the format specified in the githooks(5) man page');
+  exit 1;
+}
+
+# Check for sane SHA1 values
+unless ($old_sha =~ /[a-z0-9]{40}/x && $new_sha =~ /[a-z0-9]{40}/x) {
+  pr_print ('Suspicious SHA1 values given');
+  exit 1;
+}
+
+# Ensure that the new SHA1 and the old SHA1 are the names of commit
+# objects.
+my $old_sha_type = `git cat-file -t $old_sha`;
+my $new_sha_type = `git cat-file -t $new_sha`;
+chomp $old_sha_type;
+chomp $new_sha_type;
+unless ($old_sha_type eq 'commit') {
+  pr_print ("The old object with the name,");
+  pr_print ("  $old_sha");
+  pr_print ("is not a commit; unable to proceed.");
+  exit 1;
+}
+unless ($new_sha_type eq 'commit') {
+  pr_print ("The new object with the name,");
+  pr_print ("  $new_sha");
+  pr_print ("is not a commit; unable to proceed.");
+  exit 1;
+}
+
+# We permit pushes only to the refpsec "refs/heads/master".
+unless ($refspec eq 'refs/heads/master') {
+  pr_print ('We permit pushes only to the master branch');
+  exit 1;
+}
+
+# Now that we know that the SHA1 object names being pushed are
+# commits, find their associated trees
+my $old_commit_tree = `git cat-file commit $old_sha | grep ^tree | cut -f 2 -d ' '`;
+my $new_commit_tree = `git cat-file commit $new_sha | grep ^tree | cut -f 2 -d ' '`;
+chomp $old_commit_tree;
+chomp $new_commit_tree;
+
+my $mizar_article_ext = 'miz';
+my $coq_article_ext = 'v';
+my $article_ext = $coq_article_ext;
+my $article_regexp = '\.$article_ext\$';
+
+# Ensure that no non-mizar code is being pushed
+my @non_lib_files 
+  = `git show --pretty=oneline --name-only $new_sha | tail -n -1 | grep --invert-match '\.$article_ext\$'`;
+unless (scalar @non_lib_files == 0) {
+  pr_print ("Only .$article_ext files are permitted to be committed: \"$non_lib_files[0]\"  Sorry.");
+  exit 1;
+}
+
+# Ensure that all .miz files satisfy these conditions:
+#
+# 1 they are under the mml subdirectory
+# 2 they are actually files, i.e., blobs in git terminology
+# 3 their size is less than, say, one megabyte;
+# 4 they have mode 644 ("should never happen", given condition #2)
+my @lib_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | grep "\.$article_ext\$"`;
+for my $lib_file (@lib_files) {
+  chomp $lib_file;
+  if ($lib_file !~ /^(([A-Za-z0-9_]+\/[A-Za-z0-9_\/]+)[.]$article_ext)$/) {
+    pr_print ("Suspicious: file is not under a local subdirectory");
+    pr_print ("The path is $lib_file");
+    exit 1;
+  }
+  my $lib_file_size = `git cat-file -s $new_sha:$lib_file`;
+  chomp $lib_file_size;
+  if ($lib_file_size > 1000000) {
+    pr_print ("Suspicious: the file $lib_file is bigger than one megabyte");
+    exit 1;
+  }
+  my $mode = `git ls-tree -r $new_commit_tree $lib_file | cut -f 1 -d ' '`;
+  chomp $mode;
+  unless ($mode eq '100644') {
+    pr_print ("Suspicious: a file is being commited with mode $mode; we permit only mode 100644");
+    exit 1;
+  }
+  my $lib_file_type = `git ls-tree -r $new_commit_tree $lib_file | cut -f 2 -d ' '`;
+  chomp $lib_file_type;
+  unless ($lib_file_type eq 'blob') {
+    pr_print ("The file $lib_file is somehow not a git blob object");
+    exit 1;
+  }
+}
+
+# Now let's try to commit these files to the backend repo.  First, we
+# need to store them somewhere.  They are already on the server as
+# objects.  I suppose we could just directly copy the files, using the
+# SHA1 object names.  But just for the sake of simplicity, let's first
+# use git show to do the job for us.
+#
+# How will we deal with the problem of possibly bad files?  We shall
+# first copy the files in the backend repo that are supposed to be
+# updated; these are known to be safe.  Then, we'll add the new .miz
+# files to the backend repo, and call git add there on them.  Then
+# we'll call git commit in the backend repo.  If this works, then we
+# don't have anything else to do; we can delete the copies of the
+# known safe .miz files that we made earlier.  IF something goes wrong
+# with the pre-commit hook, then we move the known safe mizar files
+# back into their original place.
+
+my $backend_repo_path = '@@BACKEND@@';
+
+my $wikilock;
+
+# locking taken from ikiwiki
+sub lockwiki () {
+	# Take an exclusive lock on the wiki to prevent multiple concurrent
+	# run issues. The lock will be dropped on program exit.
+	open($wikilock, '>', $backend_repo_path . "/" . ".wikilock") ||
+	    pr_die ("The wiki cannot write to the lock file $backend_repo_path/.wikilock: $!");
+	if (! flock($wikilock, 2|4)) { # LOCK_EX | LOCK_NB
+		pr_die("The wiki is being used for another commit, try again in a minute: failed to get lock");
+	}
+	return 1;
+}
+
+sub unlockwiki () {
+	return close($wikilock) if $wikilock;
+	return;
+}
+
+
+
+# Separate the old miz files -- the ones that already exist in the
+# backend repo -- from the new miz files -- the genuinely new
+# contributions.  To determine whether something is old/already
+# exists, we'll use the old SHA1 that was given to this script as
+# input.  It should point to a commit object (and hence, indirectly,
+# to a tree object) that already exists on in the frontend repo.
+
+my @new_lib_files = ();
+my @updated_lib_files = ();
+
+pr_print ("Here is the list of all received files: @lib_files");
+
+foreach my $received_lib_file (@lib_files) {
+  chomp $received_lib_file; # looks like "mml/<something>"
+  `git cat-file -e $old_commit_tree:$received_lib_file 2> /dev/null`;
+  my $git_cat_file_exit_code = ($? >> 8);
+  if ($git_cat_file_exit_code == 0) {
+    push @updated_lib_files, $received_lib_file;
+  } else {
+    push @new_lib_files, $received_lib_file;
+  }
+}
+
+pr_print ("brand new files: ");
+if (scalar @new_lib_files == 0) {
+  pr_print ("(none)");
+} else {
+  pr_print ("@new_lib_files");
+}
+pr_print ("files to be updated: ");
+if (scalar @updated_lib_files == 0) {
+  pr_print ("(none)");
+} else {
+  pr_print ("@updated_lib_files");
+}
+
+# NOTE: this should be killed completely after testing the git reset HEAD and git checkout -- technique
+
+# Copy the files that already exist in the backend repo to a temporary
+# location.  If things work, these will simply be deleted.  Otherwise,
+# they will be resurrected and put back into the backend repo.
+# my $purgatory = tempdir ();
+# my $purgatory_mml = $purgatory . "/" . "mml";
+# mkdir $purgatory_mml;
+
+# Move the already existing mizar files to the backend repo
+# foreach my $updated_miz_file (@updated_miz_files) {
+#   chomp $updated_miz_file;
+#   my $article_filename = strip_initial_mml ($updated_miz_file);
+#   my $purgatory_path = $purgatory_mml . "/" . $article_filename;
+#   `git show $old_commit_tree:$updated_miz_file > $purgatory_path`;
+# }
+
+
+lockwiki();
+
+# Now that we've moved the files that are updated in this
+# proposed commit to a safe purgatory, copy the contents of the new
+# new files to the backend repo.
+foreach my $received_file (@lib_files) {
+  chomp $received_file;
+  my $received_path = $backend_repo_path . "/" . $received_file;
+  `git cat-file blob $new_commit_tree:$received_file > $received_path`;
+  unless (-e $received_path) {
+    croak ("We didn't output anything to $received_path");
+  }
+}
+
+sub ensure_directory {
+  my $maybe_dir = shift;
+  if (-d $maybe_dir) {
+    return $maybe_dir;
+  } else {
+    croak ("The given directory, $maybe_dir, is not actually a directory");
+  }
+}
+
+sub move_all_files_from_to {
+  my $source_dir = ensure_directory (shift);
+  my $target_dir = ensure_directory (shift);
+  `find $source_dir -type f -depth 0 -exec mv {} $target_dir ";"`;
+  my $find_exit_status = ($? >> 8);
+  if ($find_exit_status == 0) {
+    return;
+  } else {
+    croak ("Error copying the files from $source_dir to $target_dir!");
+  }
+}
+
+## TODO: The current way of doing this is bad when the commit/add fails:
+##    When we modify a file, and call git add, its current content is staged.
+##    When the commit fails, and we copy over it the old version, the
+##    modified version is still staged - this is bad. We need to undo
+##    the staging too. Perhaps there is a pre-staging hook? Or it is
+##    easy to undo the last staging?
+##
+##    Here is the answer: http://learn.github.com/p/undoing.html
+##    we can use:
+##    git reset HEAD
+##    and
+##    git checkout --
+##    to unstage and unmodify
+##
+## NOTE: if we do things this way, we should not need the copying of
+## the old files to tempdir.
+##
+## NOTE: we should also think of this in pre-commit
+
+
+# All newly received mizar files are now in sitting in the backend
+# repo.  Now we add them.
+local $ENV{GIT_DIR} 
+  = $backend_repo_path . "/" . ".git"; # GIT_DIR is set to "." by git
+
+chdir $backend_repo_path;              # before executing this hook!
+system ("git add @lib_files 2>&1");
+my $git_add_exit_code = ($? >> 8);
+unless ($git_add_exit_code == 0) {
+  pr_print ("Error adding the new files to the backend repository:");
+  pr_print ("The exit code was $git_add_exit_code");
+
+  system ("git reset --hard 2>&1");
+#  move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
+
+  exit 1;
+}
+
+# We've successful added new files to the repo -- let's commit!
+my $git_commit_output 
+  = system ("git commit -m 'Anonymous push' 2>&1");
+my $git_commit_exit_code = ($? >> 8);
+unless ($git_commit_exit_code == 0) {
+  pr_print ("Error commiting to the backend repository:");
+  pr_print ("The exit code was $git_commit_exit_code");
+
+  system ("git reset --hard 2>&1");
+
+  # The commit failed, so we need to resurrect the files in purgatory
+#  move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
+
+  exit 1;
+}
+
+unlockwiki();
+
+# If we made it this far, then we deserve a break.
+exit 0;
