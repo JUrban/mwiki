@@ -233,6 +233,10 @@ lockwiki();
 # new files to the backend repo.
 foreach my $received_file (@lib_files) {
   chomp $received_file;
+  ($received_file =~ /^([A-Za-z0-9_]+\/([A-Za-z0-9_\/]+\/)*)[A-Za-z0-9_]+[.]$article_ext$/) or
+      pr_die("Wrong file name: $received_file");
+  my $possibly_new_dir_path = $1;
+  `mkdir -p $backend_repo_path/$possibly_new_dir_path`;
   my $received_path = $backend_repo_path . "/" . $received_file;
   `git cat-file blob $new_commit_tree:$received_file > $received_path`;
   unless (-e $received_path) {
