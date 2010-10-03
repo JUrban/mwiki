@@ -31,6 +31,8 @@ my $input_file	  = $query->param('f');
 my $action	  = $query->param('a');
 my $git_project	  = $query->param('p');
 
+chomp($input_file);
+
 # these exist only when commiting
 my $ProblemSource = $query->param('ProblemSource');
 my $input_article = $query->param('Formula');
@@ -94,7 +96,7 @@ my $article_regexp = '\.$article_ext\$';
 
 if ((defined $input_file) && ($input_file =~ /^(([A-Za-z0-9_]+\/[A-Za-z0-9_\/]+)[.]$article_ext)$/))
 {
-    ($input_file, $aname) = ($1, $2);
+    $aname = $2;
     $aname =~ tr/\//./;
 }
 elsif ($action =~ /^(gitweb)$/) { $aname=""; }
@@ -336,26 +338,23 @@ if($action eq "history")
 }
 
 my $article_template=<<AEND
-:: Article Title
-::  by Article Author
-::
-::
-:: Copyright (c) Article Author
-
-environ
-
- vocabularies TARSKI, XBOOLE_0;
- notations TARSKI, XBOOLE_0;
- constructors TARSKI, XBOOLE_0;
- definitions TARSKI, XBOOLE_0;
- theorems TARSKI, XBOOLE_0, XBOOLE_1;
- schemes XBOOLE_0;
-
-begin
-
-reserve x,x1,x2 for set;
-
-theorem Foo: x=x;
+(* Copyright (C) 2010
+ * Unknown Author
+ * 
+ * This work is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This work is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with this work; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *) 
 AEND
 ;
 
