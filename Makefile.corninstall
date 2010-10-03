@@ -40,6 +40,7 @@
 REPO_NAME=cwiki
 CGI_NAME=cwiki.cgi
 REPO_DIR_INDEX=index.html
+REPO_DIR_CONTENTS=toc.html
 SCRATCH_BASE=$(REPOS_BASE)/scratch
 PUBLIC_REPOS_BASE=$(REPOS_BASE)/public
 PUBLIC_REPO=$(REPOS_BASE)/public/$(REPO_NAME)
@@ -72,7 +73,7 @@ PUBLIC_MWIKI_USER=mwiki
 
 COQBINARIES=coqc coqc.opt coqdep coqdoc
 
-COQDOCFILES=coqheader.in coqfooter.in
+COQDOCFILES=coqheader.in coqfooter.in coqindexheader.in
 
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
@@ -89,10 +90,17 @@ scratch-directories:
 scratch-libfiles: scratch-directories
 	# articles
 	cp -a $(LIBFILES)/* $(SCRATCH_BASE)
-	cd $(SCRATCH_BASE) && mkdir bin .perl 
-	head -n $(NUM_ARTICLES) cornlist > $(SCRATCH_BASE)/.doclist && sort $(SCRATCH_BASE)/.doclist > $(SCRATCH_BASE)/.docsorted
-	cd $(SCRATCH_BASE) && find -name "*.v" -not -name 'Transparent_*' -not -name 'Opaque_*' | \
-           sed -e 's/\.\///' > .alllist && sort .alllist > .allsorted && rm `comm -1 -3 .docsorted .allsorted` 
+	cd $(SCRATCH_BASE) && mkdir bin .perl && mv Makefile Makefile.original
+	# when only initial segment used (testing)
+	if (test 0 -ne $(NUM_ARTICLES)); then \
+	  head -n $(NUM_ARTICLES) cornlist > $(SCRATCH_BASE)/.doclist && \
+	  cd $(SCRATCH_BASE) && \
+          sort .doclist > .docsorted && \
+	  find -name "*.v" -not -name 'Transparent_*' -not -name 'Opaque_*' | sed -e 's/\.\///' > .alllist && \
+          sort .alllist > .allsorted && \
+          rm `comm -1 -3 .docsorted .allsorted` && \
+          rm .doclist .docsorted .alllist .allsorted; \
+        fi 
 	# bin
 	for binary in $(COQBINARIES); do \
 	  $(INSTALL) --mode 755 $(COQBIN)/$$binary $(SCRATCH_BASE)/bin/$$binary; \
