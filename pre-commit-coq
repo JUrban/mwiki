@@ -59,12 +59,12 @@ my $article_regexp = '\.$article_ext\$';
 # Articles changed.
 # We do not check if they are inside the "lib" directory here yet.
 my @art_changed 
-  = `git diff-index --cached HEAD | cut -f 2 | grep '$article_regexp'`;
+  = `git diff-index --cached HEAD | cut -f 2 | grep '\.$article_ext\$'`;
 my @non_art_changed 
-  = `git diff-index --cached HEAD | cut -f 2 | grep --invert-match '$article_regexp'`;
+  = `git diff-index --cached HEAD | cut -f 2 | grep --invert-match '\.$article_ext\$'`;
 
 unless (scalar (@non_art_changed) == 0) {
-  pc_print ("Only .$article_ext files are permitted to be committed.  Sorry.");
+  pc_print ("Only .$article_ext files are permitted to be committed: \"$non_art_changed[0]\"  Sorry.");
   exit (1)
 }
 
@@ -127,7 +127,9 @@ sub clean_the_dirty_sandbox {
 sub copy_new_articles_to_sandbox {
   foreach my $article (@lib_changed) {
     my $real_article_path = "$cwd/$article";
+    chomp($real_article_path);
     my $sandbox_article_path = "$sandbox/$article";
+    chomp($sandbox_article_path);
     copy ($real_article_path, $sandbox_article_path)
       or die ("You can't copy $real_article_path to $sandbox_article_path!");
   }
