@@ -27,6 +27,8 @@ WIKIHOST=mws.cs.ru.nl
 CGI_NAME=cwiki.cgi
 # address of the corn/coq wiki cgi
 CWIKICGIURL="http://$(WIKIHOST)/cgi-bin/mwiki/$(CGI_NAME)"
+# name of the html index file
+REPO_DIR_INDEX=index.html
 
 # File where coqc stores the references to global symbols
 GLOBFILE = $(SRCDIR)/.glob
@@ -62,14 +64,14 @@ allvo: $(COQOBJECTS)
 ##      files have to be processed at once (otherwise we do not trust
 ##      that they exist and don't link to them), using Hugo's patch
 ##      (switch to newer Coq probably needed for this)
-allhtml :  
+allhtml :  allvo
 	mkdir -p doc/html
 	@coqdoc --body-only -utf8 --toc -s -t "C-CoRN Documentation" $(COQMAP) --multi-index  -d doc/html $(COQSOURCES) 
 	set -e; \
 	for path in $(COQBARE); do \
 	name=`echo $$path | tr \/ \.`; \
 	htmlname=doc/html/$$name.html; \
-	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##FILENAME##/$$ARGV[1]/g; s/##FILEPATH##/$$ARGV[2]/g; s/##CWIKICGIURL##/$$ARGV[3]/g; print }' doc/coqheader.in $$name $$path $(CWIKICGIURL) | \
+	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##FILENAME##/$$ARGV[1]/g; s/##FILEPATH##/$$ARGV[2]/g; s/##CWIKICGIURL##/$$ARGV[3]/g; s/##INDEX##/$$ARGV[4]/g; print }' doc/coqheader.in $$name $$path.v $(CWIKICGIURL) $(REPO_DIR_INDEX) | \
 	cat - $$htmlname doc/coqfooter.in > $$htmlname.new; \
 	mv $$htmlname.new $$htmlname; \
 	done
