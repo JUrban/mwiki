@@ -39,7 +39,7 @@
 
 REPO_NAME=cwiki
 CGI_NAME=cwiki.cgi
-REPO_DIR_INDEX=00INDEX.html
+REPO_DIR_INDEX=index.html
 SCRATCH_BASE=$(REPOS_BASE)/scratch
 PUBLIC_REPOS_BASE=$(REPOS_BASE)/public
 PUBLIC_REPO=$(REPOS_BASE)/public/$(REPO_NAME)
@@ -118,7 +118,8 @@ scratch-html: scratch-deps
 
 scratch: scratch-html
 
-public-repo-init: public-mwiki-user scratch
+# public-repo-init: public-mwiki-user scratch
+public-repo-init: scratch
 	mkdir -p $(PUBLIC_REPO)
 	cp -R $(SCRATCH_BASE)/* $(PUBLIC_REPO)
 	cp -R $(SCRATCH_BASE)/.perl $(PUBLIC_REPO)
