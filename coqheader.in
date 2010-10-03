@@ -24,6 +24,7 @@ body {font-family: monospace; margin: 0px;}
 <li><a href="##CWIKICGIURL##?p=cwiki.git;a=history;f=##FILEPATH##">History</a></li> 
 <li><a href="##CWIKICGIURL##?p=cwiki.git;a=blob_plain;f=##FILEPATH##" rel="nofollow">Raw</a></li> 
 <li><a href="##INDEX##">Index</a></li> 
+<li><a href="##CONTENTS##">Contents</a></li> 
 <li><a href="##CWIKICGIURL##?p=cwiki.git;a=gitweb">Gitweb</a></li>
 </ul>
 </div>
