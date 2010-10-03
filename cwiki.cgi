@@ -244,6 +244,10 @@ if($action eq "commit")
     lockwiki();
 
     # Copy the contents of the new file to the backend repo.
+    ($input_file =~ /^([A-Za-z0-9_]+\/([A-Za-z0-9_\/]+\/)*)[A-Za-z0-9_]+[.]$article_ext$/) or
+	pr_die("Wrong file name: $input_file");
+    my $possibly_new_dir_path = $1;
+    `mkdir -p $backend_repo_path$possibly_new_dir_path`;
     my $received_path = $backend_repo_path . $input_file;
     open(PFH, ">$received_path") or pr_die "$received_path not writable";
     printf(PFH "%s",$input_article);
