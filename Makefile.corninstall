@@ -87,7 +87,7 @@ scratch-directories:
 
 
 scratch-libfiles: scratch-directories
-	# .miz
+	# articles
 	cp -a $(LIBFILES)/* $(SCRATCH_BASE)
 	cd $(SCRATCH_BASE) && mkdir bin .perl 
 	head -n $(NUM_ARTICLES) cornlist > $(SCRATCH_BASE)/.doclist && sort $(SCRATCH_BASE)/.doclist > $(SCRATCH_BASE)/.docsorted
@@ -118,8 +118,8 @@ scratch-html: scratch-deps
 
 scratch: scratch-html
 
-# public-repo-init: public-mwiki-user scratch
-public-repo-init: scratch
+public-repo-init: public-mwiki-user scratch
+#public-repo-init: scratch
 	mkdir -p $(PUBLIC_REPO)
 	cp -R $(SCRATCH_BASE)/* $(PUBLIC_REPO)
 	cp -R $(SCRATCH_BASE)/.perl $(PUBLIC_REPO)
@@ -156,7 +156,7 @@ public-mwiki-user:
 	#     || echo "$(PUBLIC_MWIKI_USER) already exists"
 	sv down git-daemon
 	mv /etc/sv/git-daemon/run /etc/sv/git-daemon/run.original
-	install -m 755 mwiki-gitdaemon.run /etc/sv/git-daemon/run
+	install -m 755 cwiki-gitdaemon.run /etc/sv/git-daemon/run
 	sv up git-daemon
 
 public-compiled: scratch
@@ -176,8 +176,8 @@ public-repo-export: public-repo-init
 	$(INSTALL) \
 	  --mode=644 \
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
-	  public-repo-description $(BARE_PUBLIC_REPO)/description
-	sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g" < pre-receive.in \
+	  corn-public-repo-description $(BARE_PUBLIC_REPO)/description
+	sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g" < pre-receive-coq.in \
 	  > $(BARE_PUBLIC_REPO)/hooks/pre-receive
 	chmod 755 $(BARE_PUBLIC_REPO)/hooks/pre-receive
 	chown $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
