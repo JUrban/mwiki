@@ -1,4 +1,4 @@
-Alias /##REPO_NAME## "##PUBLIC_COMPILED_REPO##/html"
+Alias /##REPO_NAME## "##PUBLIC_COMPILED_REPO##/doc/html"
 <Directory /##REPO_NAME##>
   Options Indexes FollowSymLinks MultiViews
   DirectoryIndex ##REPO_DIR_INDEX##
