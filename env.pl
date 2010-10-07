@@ -43,13 +43,10 @@ my $article_base = $ARGV[1];
 my $article_miz = $article_base . '.miz';
 my $article_evl = $article_base . '.evl';
 
-unless (-e $article_evl) {
-  warn ("evl file for $article_base does not exist; creating it...");
-  system ("makeenv $article_miz > /dev/null 2> /dev/null");
-  unless ($? == 0) {
-    die ("Something went wrong when calling makeenv on $article_base.\nThe error was:\n\n  $!");
-  }
-}
+system ("envget $article_base > /dev/null 2> /dev/null");
+# unless ($? == 0) {
+#   die ("Something went wrong when calling envget on $article_base.\nThe error was\n\n  $!");
+# }
 
 # cheap approach: take advantage of the fact the the Directives in the
 # EVL file all begin at the beginning of the line
