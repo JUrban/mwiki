@@ -119,6 +119,23 @@ chomp (@schemes);
 
 my %item_kinds = (); # maps natural numbers to constant strings: 'notation', 'definition', 'registration', 'theorem', 'scheme' etc.
 
+my @mml_lar = ();
+
+sub read_mml_lar {
+  open (MML_LAR, q{<}, '/sw/share/mizar/mml.lar')
+    or die ("mml.lar cannot be opened: $!");
+  my $line;
+  while (defined ($line = <MML_LAR>)) {
+    chomp $line;
+    push (@mml_lar, $line);
+  }
+  close (MML_LAR)
+    or die ("Can't close read-only filehandle for mml.lar: $!");
+  return;
+}
+
+read_mml_lar ();
+
 sub export_item {
   my $number = shift;
   my $begin_line = shift;
@@ -140,8 +157,7 @@ sub export_item {
   foreach my $i (1 .. $number - 1) {
     my $earlier_item_kind = $item_kinds{$i-1};
     if ($earlier_item_kind eq 'notation'
-	|| $earlier_item_kind eq 'definiens definition'
-	|| $earlier_item_kind eq 'non-definiens definition') {
+	|| $earlier_item_kind eq 'definition') {
       push (@this_item_notations, "ITEM$i");
     }
   }
@@ -154,7 +170,7 @@ sub export_item {
   my @this_item_constructors = @constructors;
   foreach my $i (1 .. $number - 1) {
     my $earlier_item_kind = $item_kinds{$i-1};
-    if ($earlier_item_kind eq 'definiens definition') {
+    if ($earlier_item_kind eq 'definition') {
       push (@this_item_constructors, "ITEM$i");
     }
   }
@@ -187,7 +203,7 @@ sub export_item {
   my @this_item_definitions = @definitions;
   foreach my $i (1 .. $number - 1) {
     my $earlier_item_kind = $item_kinds{$i-1};
-    if ($earlier_item_kind eq 'definiens definition') {
+    if ($earlier_item_kind eq 'definition') {
       push (@this_item_definitions, "ITEM$i");
     }
   }
@@ -200,8 +216,10 @@ sub export_item {
   my @this_item_theorems = @theorems;
   foreach my $i (1 .. $number - 1) {
     my $earlier_item_kind = $item_kinds{$i-1};
+    # DEBUG
+    # warn ("earlier item $i is type $earlier_item_kind");
     if ($earlier_item_kind eq 'theorem'
-	|| $earlier_item_kind eq 'definiens definition') {
+	|| $earlier_item_kind eq 'definition') {
       push (@this_item_theorems, "ITEM$i");
     }
   }
@@ -752,17 +770,7 @@ sub itemize {
 
     # register this in the item kind table
     if ($node_name eq 'DefinitionBlock') {
-      my $next = $node->nextNonBlankSibling ();
-      if (defined $next) {
-	if ($next->nodeName () eq 'Definiens') {
-	  $item_kinds{$i-1} = 'definiens definition';
-	} else {
-	  $item_kinds{$i-1} = 'non-definiens definition';
-	}
-      } else {
-	$item_kinds{$i-1} = 'non-definiens definition';
-      }
-
+      $item_kinds{$i-1} = 'definition';
     } elsif ($node_name eq 'SchemeBlock') {
       $item_kinds{$i-1} = 'scheme';
     } elsif ($node_name eq 'RegistrationBlock') {
@@ -780,6 +788,9 @@ sub itemize {
     } else {
       die ("Unable to register node $i: unknown type $node_name");
     }
+
+    # DEBUG
+    warn ("This is item $i, and we just set its type to " . $item_kinds{$i-1} . "...so there");
 
     # register a scheme, if necessary
     if ($node_name eq 'SchemeBlock') {
