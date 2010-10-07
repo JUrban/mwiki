@@ -87,6 +87,159 @@ sub make_miz_dir {
   }
 }
 
+my @items = ();
+
+make_miz_dir ();
+
+# article environment
+my @vocabularies = `/Users/alama/sources/mizar/mwiki/env.pl Vocabularies $article_name`;
+chomp (@vocabularies);
+@vocabularies = grep (!/^HIDDEN$/, @vocabularies);
+my @notations = `/Users/alama/sources/mizar/mwiki/env.pl Notations $article_name`;
+chomp (@notations);
+@notations = grep (!/^HIDDEN$/, @notations);
+my @constructors = `/Users/alama/sources/mizar/mwiki/env.pl Constructors $article_name`;
+chomp (@constructors);
+@constructors = grep (!/^HIDDEN$/, @constructors);
+my @registrations = `/Users/alama/sources/mizar/mwiki/env.pl Registrations $article_name`;
+chomp (@registrations);
+@registrations = grep (!/^HIDDEN$/, @registrations);
+my @requirements = `/Users/alama/sources/mizar/mwiki/env.pl Requirements $article_name`;
+chomp (@requirements);
+@requirements = grep (!/^HIDDEN$/, @requirements);
+my @definitions = `/Users/alama/sources/mizar/mwiki/env.pl Definitions $article_name`;
+chomp (@definitions);
+@definitions = grep (!/^HIDDEN$/, @definitions);
+my @theorems = `/Users/alama/sources/mizar/mwiki/env.pl Theorems $article_name`;
+chomp (@theorems);
+@theorems = grep (!/^HIDDEN$/, @theorems);
+my @schemes = `/Users/alama/sources/mizar/mwiki/env.pl Schemes $article_name`;
+chomp (@schemes);
+@schemes = grep (!/^HIDDEN$/, @schemes);
+
+my %item_kinds = (); # maps natural numbers to constant strings: 'notation', 'definition', 'registration', 'theorem', 'scheme' etc.
+
+sub export_item {
+  my $number = shift;
+  my $begin_line = shift;
+  my $text = shift;
+
+  my $item_path = $article_text_dir . '/' . "ITEM$number.miz";
+  open (ITEM_MIZ, q{>}, $item_path) or die ("Unable to open an output filehandle at $item_path");
+  print ITEM_MIZ ("environ\n");
+
+  # vocabularies are easy
+  my @this_item_vocabularies = @vocabularies;
+  unless (scalar (@this_item_vocabularies) == 0) {
+    print ITEM_MIZ ("vocabularies " . join (', ', @this_item_vocabularies) . ";");
+    print ITEM_MIZ ("\n");
+  }
+
+  # notations
+  my @this_item_notations = @notations;
+  foreach my $i (1 .. $number - 1) {
+    my $earlier_item_kind = $item_kinds{$i-1};
+    if ($earlier_item_kind eq 'notation'
+	|| $earlier_item_kind eq 'definiens definition'
+	|| $earlier_item_kind eq 'non-definiens definition') {
+      push (@this_item_notations, "ITEM$i");
+    }
+  }
+  unless (scalar (@this_item_notations) == 0) {
+    print ITEM_MIZ ("notations " . join (', ', @this_item_notations) . ";");
+    print ITEM_MIZ ("\n");
+  }
+
+  # constructors
+  my @this_item_constructors = @constructors;
+  foreach my $i (1 .. $number - 1) {
+    my $earlier_item_kind = $item_kinds{$i-1};
+    if ($earlier_item_kind eq 'definiens definition') {
+      push (@this_item_constructors, "ITEM$i");
+    }
+  }
+  unless (scalar (@this_item_constructors) == 0) {
+    print ITEM_MIZ ("constructors " . join (', ', @this_item_constructors) . ";");
+    print ITEM_MIZ ("\n");
+  }
+
+  # registrations
+  my @this_item_registrations = @registrations;
+  foreach my $i (1 .. $number - 1) {
+    my $earlier_item_kind = $item_kinds{$i-1};
+    if ($earlier_item_kind eq 'registration') {
+      push (@this_item_registrations, "ITEM$i");
+    }
+  }
+  unless (scalar (@this_item_registrations) == 0) {
+    print ITEM_MIZ ("registrations " . join (', ', @this_item_registrations) . ";");
+    print ITEM_MIZ ("\n");
+  }
+
+  # requirements is "easy"
+  my @this_item_requirements = @requirements;
+  unless (scalar (@this_item_requirements) == 0) {
+    print ITEM_MIZ ("requirements " . join (', ', @this_item_requirements) . ";");
+    print ITEM_MIZ ("\n");
+  }
+
+  # handle the definitions directive just like the constructors directive
+  my @this_item_definitions = @definitions;
+  foreach my $i (1 .. $number - 1) {
+    my $earlier_item_kind = $item_kinds{$i-1};
+    if ($earlier_item_kind eq 'definiens definition') {
+      push (@this_item_definitions, "ITEM$i");
+    }
+  }
+  unless (scalar (@this_item_definitions) == 0) {
+    print ITEM_MIZ ("definitions " . join (', ', @this_item_definitions) . ";");
+    print ITEM_MIZ ("\n");
+  }
+
+  # theorems
+  my @this_item_theorems = @theorems;
+  foreach my $i (1 .. $number - 1) {
+    my $earlier_item_kind = $item_kinds{$i-1};
+    if ($earlier_item_kind eq 'theorem'
+	|| $earlier_item_kind eq 'definiens definition') {
+      push (@this_item_theorems, "ITEM$i");
+    }
+  }
+  unless (scalar (@this_item_theorems) == 0) {
+    print ITEM_MIZ ("theorems " . join (', ', @this_item_theorems) . ";");
+    print ITEM_MIZ ("\n");
+  }
+
+  # schemes
+  my @this_item_schemes = @schemes;
+  foreach my $i (1 .. $number - 1) {
+    my $earlier_item_kind = $item_kinds{$i-1};
+    if ($earlier_item_kind eq 'scheme') {
+      push (@this_item_schemes, "ITEM$i");
+    }
+  }
+  unless (scalar (@this_item_schemes) == 0) {
+    print ITEM_MIZ ("schemes " . join (', ', @this_item_schemes) . ";");
+    print ITEM_MIZ ("\n");
+  }
+
+  print ITEM_MIZ ("\n");
+  print ITEM_MIZ ("begin\n");
+
+  # reservations
+  my @reservations = @{reservations_before_line ($begin_line)};
+  foreach my $reservation (@reservations) {
+    print ITEM_MIZ ("reserve $reservation\n");
+  }
+
+  # the item proper
+  print ITEM_MIZ ("$text;");
+
+  print ITEM_MIZ ("\n");
+
+  close (ITEM_MIZ) or die ("Unable to close the filehandle for the path $item_path");
+}
+
 # the XPath expression for proofs that are not inside other proof
 my $top_proof_xpath = '//Proof[not((name(..)="Proof") 
           or (name(..)="Now") or (name(..)="Hereby")
@@ -168,15 +321,25 @@ my %vid_table = ();
 
 sub init_vid_table {
   my $doc = miz_idx ();
-  my @symbols = $doc->findnodes ('/Symbol');
+  my @symbols = $doc->findnodes ('//Symbol');
   foreach my $symbol (@symbols) {
     my $vid = $symbol->findvalue ('@nr');
     my $name = $symbol->findvalue ('@name');
+    # DEBUG
+    warn ("setting vid $vid to label $name...");
     $vid_table{$vid} = $name;
   }
 }
 
+init_vid_table ();
+
 sub split_reservations {
+  # ugh -- the JA tool screws up line numbering when comments are present!  we need to strip comments first.
+  my $sed_command = "sed -e 's/\\ *::.*//' < $article_miz > $article_miz-no-comments";
+  # DEBUG
+  warn ("about to execute this sed command: $sed_command");
+  system ($sed_command);
+  system ('mv', "$article_miz-no-comments", "$article_miz");
   system ("accom -q -s -l $article_miz > /dev/null 2> /dev/null");
   unless ($? == 0) {
     die ("Something went wrong when calling the accomodator on $article_name: the error was\n\n$!");
@@ -252,31 +415,19 @@ sub split_reservations {
 # }
 
 # sub load_environment {
-#   # We could load this information at once, but to be safe let's use the evl.
-#   my @vocabularies = `env.pl Vocabularies $article_base`;
-#   my @notations = `env.pl Notations $article_base`;
-#   my @constructors = `env.pl Constructors $article_base`;
-#   my @registrations = `env.pl Registrations $article_base`;
-#   my @requirements = `env.pl Requirements $article_base`;
-#   my @definitions = `env.pl Definitions $article_base`;
-#   my @theorems = `env.pl Theorems $article_base`;
-#   my @schemes = `env.pl Schemes $article_base`;
+#   my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --funcall article-environment`;
+#   unless ($? == 0) {
+#     die ("Weird: emacs didn't exit cleanly: $!");
+#   }
+#   # can't we just turn this list of strings into a single string,
+#   # using a builtin command?  this looks so primitive
+#   my $environment = '';		# empty string
+#   foreach my $line (@output) {
+#     chomp ($line);
+#     $environment .= "$line\n";
+#   }
+#   return ($environment);
 # }
-
-sub load_environment {
-  my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --funcall article-environment`;
-  unless ($? == 0) {
-    die ("Weird: emacs didn't exit cleanly: $!");
-  }
-  # can't we just turn this list of strings into a single string,
-  # using a builtin command?  this looks so primitive
-  my $environment = '';		# empty string
-  foreach my $line (@output) {
-    chomp ($line);
-    $environment .= "$line\n";
-  }
-  return ($environment);
-}
 
 sub print_reservation_table {
   foreach my $key (keys (%reservation_table)) {
@@ -307,9 +458,15 @@ sub scheme_before_position {
   unless ($? == 0) {
     die ("Weird: emacs died: $!");
   }
-  foreach $out_line (@output) {
-    chomp ($out_line);
-    $scheme .= "$out_line\n";
+  chomp (@output);
+  foreach my $i (0 .. scalar (@output) - 1) {
+    my $out_line = $output[$i];
+    $scheme .= $out_line;
+    if ($i == scalar (@output) - 1) {
+      $scheme .= " ";
+    } else {
+      $scheme .= "\n";
+    }
   }
   return ($scheme);
 }
@@ -346,13 +503,60 @@ sub definition_before_position {
   return ($definition);
 }
 
-sub extract_article_region {
+sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
+  my $item_kind = shift;
+  my $label = shift;
   my $bl = shift;
   my $bc = shift;
   my $el = shift;
   my $ec = shift;
+  my $schemes_ref = shift;
+  my $definitions_ref = shift;
+  my $theorems_ref = shift;
+  my @schemes = @{$schemes_ref};
+  my @definitions = @{$definitions_ref};
+  my @theorems = @{$theorems_ref};
+
+  my $emacs_command;
+  if (scalar (@schemes) == 0 && scalar (@definitions) == 0 && scalar (@theorems) == 0) {
+    $emacs_command = "emacs23 --quick --batch --load reservations.elc --visit $article_miz --eval \"(extract-region-replacing-schemes-and-definitions-and-theorems '$item_kind \\\"$label\\\" $bl $bc $el $ec)\"";
+  } else {
+    # build the last argument to the EXTRACT-REGION-REPLACING-SCHEMES function
+    my $instructions = '';
+    foreach my $scheme_triple_ref (@schemes) {
+      my @scheme_triple = @{$scheme_triple_ref};
+      my $scheme_line = $scheme_triple[0];
+      my $scheme_col = $scheme_triple[1];
+      my $scheme_abs_num = $scheme_triple[2];
+      $instructions .= "'(scheme $scheme_line $scheme_col $scheme_abs_num)";
+      $instructions .= " ";
+    }
+    foreach my $definition_info_ref (@definitions) {
+      my @definition_info = @{$definition_info_ref};
+      my $def_line = $definition_info[0];
+      my $def_col = $definition_info[1];
+      my $def_abs_num = $definition_info[2];
+      my $def_def_num = $definition_info[3];
+      $instructions .= "'(definition $def_line $def_col $def_abs_num $def_def_num)";
+      $instructions .= " ";
+    }
+    foreach my $theorem_triple_ref (@theorems) {
+      my @theorem_triple = @{$theorem_triple_ref};
+      my $theorem_line = $theorem_triple[0];
+      my $theorem_col = $theorem_triple[1];
+      my $theorem_abs_num = $theorem_triple[2];
+      $instructions .= "'(theorem $theorem_line $theorem_col $theorem_abs_num)";
+      $instructions .= " ";
+    }
+
+    $emacs_command = "emacs23 --quick --batch --load reservations.elc --visit $article_miz --eval \"(extract-region-replacing-schemes-and-definitions-and-theorems '$item_kind \\\"$label\\\" $bl $bc $el $ec $instructions)\"";
+  }
+
   my $region = ''; # empty string
-  my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --eval '(extract-region $bl $bc $el $ec)'`;
+
+  # DEBUG
+  warn ("emacs command:\n\n  $emacs_command");
+  my @output = `$emacs_command`;
   unless ($? == 0) {
     die ("Weird: emacs died: $!");
   }
@@ -366,7 +570,7 @@ sub extract_article_region {
 # prepare_work_dirs ();
 split_reservations ();
 init_reservation_table ();
-my $environment = load_environment ();
+# load_environment ();
 my $miz_lines_ref = read_miz_file ();
 my @mizfile_lines = @{$miz_lines_ref};
 
@@ -416,36 +620,230 @@ sub line_and_column {
   return ($line,$col);
 }
 
+
+
+sub extract_toplevel_unexported_theorem_with_label {
+  my $end_line = shift;
+  my $end_col = shift;
+  my $label = shift;
+  my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --eval '(toplevel-unexported-theorem-before-position-with-label $end_line $end_col \"$label\")'`;
+  unless ($? == 0) {
+    die ("Weird: emacs died extracting the unexported theorem with label $label before position ($end_line,$end_col): the error was: $!");
+  }
+  chomp (@output);
+  my $result = '';
+  foreach my $line (@output) {
+    $result .= $line;
+  }
+  return $result;
+}
+
 sub pretext_from_item_type_and_beginning {
   my $item_type = shift;
   my $begin_line = shift;
   my $begin_col = shift;
+  my $item_node = shift;
   my $pretext;
   if ($item_type eq 'JustifiedTheorem') {
     $pretext = theorem_before_position ($begin_line, $begin_col);
+  } elsif ($item_type eq 'Proposition') {
+    my $vid = $item_node->findvalue ('@vid');
+    # DEBUG
+    warn ("unexported toplevel theorem with vid $vid...");
+    my $prop_label = $vid_table{$vid};
+    # DEBUG
+    warn ("unexported toplevel theorem has label $prop_label...");
+    my $theorem = extract_toplevel_unexported_theorem_with_label ($begin_line, $begin_col, $prop_label);
+    $pretext = "theorem $theorem\n";
   } elsif ($item_type eq 'SchemeBlock') {
     $pretext = scheme_before_position ($begin_line, $begin_col);
+    # DEBUG
+    warn ("we're dealing with a scheme, and the pretext is $pretext\n");
   } elsif ($item_type eq 'NotationBlock') {
     $pretext = "notation\n";
   } elsif ($item_type eq 'DefinitionBlock') {
     $pretext = "definition\n";
   } elsif ($item_type eq 'RegistrationBlock') {
     $pretext = "registration\n";
-  } elsif ($item_type eq 'Proposition') {
-    $pretext = "Lemma: not contradiction; :: don't know how to handle diffuse lemmas\n";
   } else {
     $pretext = '';
   }
   return ($pretext);
 }
 
+my %scheme_num_to_abs_num = ();
+my %definition_nr_to_absnum = ();
+my %definition_vid_to_absnum = ();
+my %definition_vid_to_thmnum = ();
+my %theorem_nr_to_absnum = ();
+my %theorem_vid_to_absnum = ();
+
+sub position_of_theorem_keyword_before_pos {
+  my $line = shift;
+  my $col = shift;
+  my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --funcall (position-of-theorem-keyword-before-position)`;
+}
+
+sub is_exported_deftheorem {
+  my $deftheorem_node = shift;
+  my $node_name = $deftheorem_node->nodeName ();
+  unless ($node_name eq 'DefTheorem') {
+    die ('This is not even a DefTheorem node!');
+  }
+  my ($prop_node) = $deftheorem_node->findnodes ('Proposition');
+  unless (defined $prop_node) {
+    die "Weird: a DefTheorem node lacks a Proposition child element";
+  }
+  return $prop_node->exists ('@vid');
+}
+
 sub itemize {
   my $doc = miz_xml ();
+
+  my @final_deftheorem_nodes = $doc->findnodes ('//Article/DefTheorem[name(following-sibling::*) != "DefTheorem"]');
+  # DEBUG
+  warn ("There are " . scalar (@final_deftheorem_nodes) . " final DefTheorem nodes to consider");
+  foreach my $i (1 .. scalar (@final_deftheorem_nodes)) {
+    my $final_deftheorem_node = $final_deftheorem_nodes[$i-1];
+
+
+    # find the first DefTheorem after this definitionblock
+    # DefinitionBlock that give rise to exported theorems
+    my $current_node = $final_deftheorem_node;
+    while ($current_node->nodeName () eq 'DefTheorem') {
+      $current_node = $current_node->previousNonBlankSibling ();
+    }
+
+    # now that we know how many exported DefTheorems this
+    # DefinitionBlock gave rise to, we need to harvest the vid's of
+    # the Proposition child elements of such DefTheorems; these are
+    # the vid's that we'll need later.
+
+    # reuse $current_node from the previous loop -- it is the last
+    # DefTheorem node generated by the DefinitionBlock.  We need to go
+    # *forward* now to ensure that items getting the same label (i.e.,
+    # the same vid) are mapped to their *last* (re)definition.
+    $current_node = $current_node->nextNonBlankSibling ();
+    my $num_exported_theorems = 1;
+    while ($current_node->nodeName () eq 'DefTheorem') {
+      if (is_exported_deftheorem ($current_node)) {
+	my ($prop_node) = $current_node->findnodes ('Proposition');
+	my $vid = $prop_node->findvalue ('@vid');
+	# DEBUG
+	$definition_vid_to_thmnum{$vid} = $num_exported_theorems;
+	# DEBUG
+	warn ("We just assigned vid $vid to exported thereom number $num_exported_theorems of this definition block (we don't know yet what the absolute number of this definitionblock is)");
+      }
+      $current_node = $current_node->nextNonBlankSibling ();
+      $num_exported_theorems++;
+    }
+
+    # DEBUG
+    warn ("final deftheorem number $i generated $num_exported_theorems exported theorems");
+  }
+
   @tpnodes = $doc->findnodes ('//JustifiedTheorem | //Proposition[(name(..)="Article")] | //DefinitionBlock | //SchemeBlock | //RegistrationBlock | //NotationBlock');
-  my $i;
-  foreach my $i (0 .. $#tpnodes) {
-    my $node = $tpnodes[$i];
+  my $scheme_num = 0;
+  # DEBUG
+  warn ("we have to consider " . scalar (@tpnodes) . " nodes");
+  foreach my $i (1 .. scalar (@tpnodes)) {
+    my $node = $tpnodes[$i-1];
     my $node_name = $node->nodeName;
+
+    # register this in the item kind table
+    if ($node_name eq 'DefinitionBlock') {
+      my $next = $node->nextNonBlankSibling ();
+      if (defined $next) {
+	if ($next->nodeName () eq 'Definiens') {
+	  $item_kinds{$i-1} = 'definiens definition';
+	} else {
+	  $item_kinds{$i-1} = 'non-definiens definition';
+	}
+      } else {
+	$item_kinds{$i-1} = 'non-definiens definition';
+      }
+
+    } elsif ($node_name eq 'SchemeBlock') {
+      $item_kinds{$i-1} = 'scheme';
+    } elsif ($node_name eq 'RegistrationBlock') {
+      $item_kinds{$i-1} = 'registration';
+    } elsif ($node_name eq 'NotationBlock') {
+      $item_kinds{$i-1} = 'notation';
+    } elsif ($node_name eq 'JustifiedTheorem') {
+      $item_kinds{$i-1} = 'theorem';
+    } elsif ($node_name eq 'Proposition') {
+      $item_kinds{$i-1} = 'theorem';
+    } elsif ($node_name eq 'DefTheorem') {
+      # DEBUG
+      warn ('We just encountered a DefTheorem node');
+      $item_kinds{$i-1} = 'deftheorem';
+    } else {
+      die ("Unable to register node $i: unknown type $node_name");
+    }
+
+    # register a scheme, if necessary
+    if ($node_name eq 'SchemeBlock') {
+      $scheme_num++;
+      $scheme_num_to_abs_num{$scheme_num} = $i;
+      # DEBUG
+      warn ("declaring that scheme $scheme_num is absolute item number $i...");
+    }
+
+    # register definitions, making sure to count the ones that
+    # generate DefTheorems
+    if ($node_name eq 'DefinitionBlock') {
+      my @local_definition_nodes = $node->findnodes ('.//Definition');
+      # DEBUG
+      warn ("This node has " . scalar (@local_definition_nodes) . " Definition child elements");
+      foreach my $local_definition_node (@local_definition_nodes) {
+	# my $nr = $local_definition_node->findvalue ('@nr');
+	my $vid = $local_definition_node->findvalue ('@vid');
+	# search for the Definiens following this node, if any
+	my $next = $node->nextNonBlankSibling ();
+	# $definition_nr_to_absnum{$nr} = $i;
+	$definition_vid_to_absnum{$vid} = $i;
+	# $definition_vid_to_thmnum{$vid} = 0;
+      }
+    }
+
+    # deal with Definiens elements corresponding to Definition
+    # elements that we've already seen -- record their relative ordering
+    if ($node_name eq 'DefTheorem') {
+      my ($prop_node) = $node->findnodes ('Proposition');
+      unless (defined $prop_node) {
+	die "Weird: a DefTheorem node (item $i) lacks a Proposition child element";
+      }
+      if ($prop_node->exists ('@vid')) {
+	my $vid = $prop_node->findvalue ('@vid');
+	# ensure that we really have seen this before
+	unless (defined $definition_vid_to_absnum{$vid}) {
+	  die "DefTheorem/Proposition with vid = $vid has not been previously registered!";
+	}
+      }
+    }
+
+    # register theorems that get referred to later in the article
+    if ($node_name eq 'JustifiedTheorem' or $node_name eq 'Proposition') {
+      my $proposition_node;
+      if ($node_name eq 'JustifiedTheorem') {
+	($proposition_node) = $node->findnodes ('Proposition[position()=1]');
+      } else {
+	$proposition_node = $node;
+      }
+
+      if (defined $proposition_node) {
+	if ($proposition_node->exists ('@nr') && $proposition_node->exists ('@vid')) {
+	  my $nr = $proposition_node->findvalue ('@nr');
+	  my $vid = $proposition_node->findvalue ('@vid');
+	  # DEBUG
+	  warn ("we found a theorem that gets referred to later! its nr is $nr and its vid is $vid");
+	  $theorem_nr_to_absnum{$nr} = $i;
+	  $theorem_vid_to_absnum{$vid} = $i;	
+	}
+      } else {
+	die "Weird: a JustiiedTheorem without a Proposition child element? Why?";
+      }
+    }
 
     # find the beginning
     my ($begin_line, $begin_col);
@@ -465,76 +863,212 @@ sub itemize {
       ($begin_line, $begin_col) = line_and_column ($theorem_proposition);
     }
 
-    # now find the end
-    my ($end_line, $end_col);
-    my $last_endposition_child;
+    # now find the end, if there is such a thing in the text
+    unless ($node_name eq 'DefTheorem') {
+      my ($end_line, $end_col);
+      my $last_endposition_child;
 
-    # we need to look at its proof
-    if ($node_name eq 'Proposition') {
-      my $next = $node->nextNonBlankSibling ();
-      unless (defined ($next)) {
-	die ("Weird: node $i, a Proposition, is not followed by a sibling!");
-      }
-      my $next_name = $next->nodeName ();
-      unless ($next_name eq 'Proof') {
-	die ("Weird: the next sibling of node $i, a Proposition, is not a Proof element! It is a $next_name element, somehow");
-      }
-      ($last_endposition_child)
-	= $next->findnodes ('EndPosition[position()=last()]');
-    } elsif ($node_name eq 'JustifiedTheorem') {
-      my ($proof) = $node->findnodes ('Proof');
-      my ($by_or_from) = $node->findnodes ('By | From');
-      if (defined ($proof)) {
+      # we need to look at its proof
+      if ($node_name eq 'Proposition') {
+	my $next = $node->nextNonBlankSibling ();
+	unless (defined ($next)) {
+	  die ("Weird: node $i, a Proposition, is not followed by a sibling!");
+	}
+	my $next_name = $next->nodeName ();
+	unless ($next_name eq 'Proof') {
+	  die ("Weird: the next sibling of node $i, a Proposition, is not a Proof element! It is a $next_name element, somehow");
+	}
 	($last_endposition_child)
-	  = $proof->findnodes ('EndPosition[position()=last()]');
-      } elsif (defined ($by_or_from)) {
-	my ($last_ref) = $by_or_from->findnodes ('Ref[position()=last()]');
-	if (defined ($last_ref)) {
-	  $last_endposition_child = $last_ref;
+	  = $next->findnodes ('EndPosition[position()=last()]');
+      } elsif ($node_name eq 'JustifiedTheorem') {
+	my ($proof) = $node->findnodes ('Proof');
+	my ($by_or_from) = $node->findnodes ('By | From');
+	if (defined ($proof)) {
+	  ($last_endposition_child)
+	    = $proof->findnodes ('EndPosition[position()=last()]');
+	} elsif (defined ($by_or_from)) {
+	  my ($last_ref) = $by_or_from->findnodes ('Ref[position()=last()]');
+	  if (defined ($last_ref)) {
+	    $last_endposition_child = $last_ref;
+	  } else {
+	    $last_endposition_child = $by_or_from;
+	    # die ("Node $i, a JustifiedTheorem, is immediately justified, but no statements are mentioned after the by/from keyword!");
+	  }
 	} else {
-	  die ("Node $i, a JustifiedTheorem, is immediately justified, but no statements are mentioned after the by/from keyword!");
+	  # this is the case of cancelled theorems
+	  if ($node->exists ('SkippedProof')) { # toplevel skipped proof
+	    my ($prop_node) = $node->findnodes ('Proposition');
+	    $last_endposition_child = $prop_node;
+	  } else {
+	    die ("Node $i, a JustifiedTheorem, lacks a Proof as well as a SkippedProof, nor is it immediately justified by a By or From statement");
+	  }
 	}
       } else {
-	die ("Node $i, a JustifiedTheorem, lacks a Proof, nor is it immediately justified by a By or From statement");
+	($last_endposition_child)
+	  = $node->findnodes ('EndPosition[position()=last()]');
       }
-    } else {
-      ($last_endposition_child)
-	= $node->findnodes ('EndPosition[position()=last()]');
+
+      unless (defined ($last_endposition_child)) {
+	die ("Weird: node $i (a $node_name) lacks an EndPosition child element");
+      }
+      ($end_line,$end_col) = line_and_column ($last_endposition_child);
+
+      # kludge: EndPosition information for Schemes differs from all
+      # other elements: it is off by one: it includes the final
+      # semicolon of the "end;", whereas other elements end at "end".
+      if ($node_name eq 'SchemeBlock') {
+	$end_col--;
+      }
+
+      # kludge: the end column information for theorems is off by three.
+      # Sometimes.  (!)
+      # if ($node_name eq 'JustifiedTheorem') {
+      #   $begin_col = $begin_col + 3;
+      #   # $begin_col = position_of_theorem_keyword_before_pos ($begin_line, $begin_col);
+      # }
+
+      # look into the node to find references that might need to be
+      # rewritten.  First, distinguish between unexported toplevel
+      # theorems and the rest; for the former, the references to be
+      # gathered are *not* contained within the $node, but rather in its
+      # following sibling.
+      my $ref_containing_node;
+      if ($node_name eq 'Proposition') {
+	my $next = $node->nextNonBlankSibling ();
+	my $next_name = $next->nodeName ();
+	if ($next_name eq 'Proof') {
+	  $ref_containing_node = $next;
+	} else {
+	  $ref_containing_node = $node; # there's no following proof; there's no need to rewrite references
+	}
+      } else {
+	$ref_containing_node = $node;
+      }
+
+      # gather all local schemes
+      my @local_schemes = ();
+      my @local_scheme_nodes = $ref_containing_node->findnodes ('.//From');
+      # DEBUG
+      warn ("this node has " . scalar (@local_scheme_nodes) . " local scheme nodes");
+      foreach my $local_scheme_node (@local_scheme_nodes) {
+	my $articlenr = $local_scheme_node->findvalue ('@articlenr');
+	# DEBUG
+	warn ("articlenr of this From node is $articlenr");
+	if ($articlenr == 0) {
+	  my $local_scheme_line = $local_scheme_node->findvalue ('@line');
+	  my $local_scheme_col = $local_scheme_node->findvalue ('@col');
+	  my $local_scheme_sch_num = $local_scheme_node->findvalue ('@absnr');
+	  my $local_scheme_abs_num = $scheme_num_to_abs_num{$local_scheme_sch_num};
+	  my @local_scheme_triple = ($local_scheme_line, $local_scheme_col, $local_scheme_abs_num);
+	  push (@local_schemes, \@local_scheme_triple);
+	  # DEBUG
+	  warn ("we found a scheme use starting at line $local_scheme_line and column $local_scheme_col, scheme $local_scheme_sch_num in the article, which is item number $local_scheme_abs_num");
+	}
+      }
+
+      my @local_definitions = ();
+      my @local_ref_nodes = $ref_containing_node->findnodes ('.//Ref');
+      # DEBUG
+      warn ("this node has " . scalar (@local_ref_nodes) . " Ref elements");
+      foreach my $ref_node (@local_ref_nodes) {
+	if ($ref_node->exists ('@aid')) {
+	  # DEBUG
+	  warn ("This ref node points to something outside the current article");
+	} else {
+	  # DEBUG
+	  warn ("This ref node points to something in the current article");
+	  my $vid = $ref_node->findvalue ('@vid');
+	  my $absnum = $definition_vid_to_absnum{$vid};
+	  my $thm_num = $definition_vid_to_thmnum{$vid};
+	  if (defined ($absnum) && defined ($thm_num)) {
+	    # DEBUG
+	    warn ("this article-internal ref points to absolute item $absnum and theorem $thm_num of whatever definitionblock introduced it");
+	    my $line = $ref_node->findvalue ('@line');
+	    my $col = $ref_node->findvalue ('@col');
+	    my @local_definition_info = ($line,$col,$absnum,$thm_num);
+	    push (@local_definitions, \@local_definition_info);
+	  }
+	}
+      }
+
+      my @local_theorems = ();
+      @local_ref_nodes = $ref_containing_node->findnodes ('.//Ref');
+      # DEBUG
+      warn ("searching for theorem references; this node has " . scalar (@local_ref_nodes) . " Ref elements");
+      foreach my $ref_node (@local_ref_nodes) {
+	if ($ref_node->exists ('@aid')) {
+	  # DEBUG
+	  warn ("This ref node points to something outside the current article");
+	} else {
+	  # DEBUG
+	  warn ("This ref node points to something in the current article");
+	  my $nr = $ref_node->findvalue ('@nr');
+	  my $vid = $ref_node->findvalue ('@vid');
+	  my $theorem_nr_absnum = $theorem_nr_to_absnum{$nr};
+	  my $theorem_vid_absnum = $theorem_vid_to_absnum{$vid};
+	  if (defined ($theorem_nr_absnum) && defined ($theorem_vid_absnum)) { # this Ref points to an article-local theorem
+	    # DEBUG
+	    warn ("wow");
+	    warn ("this article-internal ref points to theorem_nr_absnum $theorem_nr_absnum and theorem_vid_absnum $theorem_vid_absnum");
+	    if ($theorem_nr_absnum == $theorem_vid_absnum) { # sanity check
+	      my $line = $ref_node->findvalue ('@line');
+	      my $col = $ref_node->findvalue ('@col');
+	      my @local_theorem_triple = ($line,$col,$theorem_nr_absnum);
+	      push (@local_theorems, \@local_theorem_triple);
+	    }
+	  }
+	}
+      }
+
+      # compute any lost "pretext" information
+      # my $pretext
+      #   = pretext_from_item_type_and_beginning ($node_name, $begin_line, $begin_col, $node);
+
+      # check for whether we're dealing with one of those annoying unexported toplevel theorems, for which we need to know its label
+      my $label;
+      if ($node_name eq 'Proposition') {
+	my $vid = $node->findvalue ('@vid');
+	# DEBUG
+	warn ("unexported toplevel theorem with vid $vid...");
+	$label = $vid_table{$vid};
+	# DEBUG
+	warn ("unexported toplevel theorem has label $label...");
+      } else {
+	$label = '';
+      }
+
+      my $node_keyword;
+      if ($node_name eq 'JustifiedTheorem') {
+	if ($node->exists ('SkippedProof')) {
+	  $node_keyword = 'canceled';
+	} else {
+	  $node_keyword = 'theorem';	
+	}
+      } elsif ($node_name eq 'Proposition') {
+	$node_keyword = 'proposition';
+      } elsif ($node_name eq 'SchemeBlock') {
+	$node_keyword = 'scheme';
+      } elsif ($node_name eq 'RegistrationBlock') {
+	$node_keyword = 'registration';
+      } elsif ($node_name eq 'DefinitionBlock') {
+	$node_keyword = 'definition';
+      } elsif ($node_name eq 'NotationBlock') {
+	$node_keyword = 'notation';
+      }
+
+      my $text
+	= extract_article_region_replacing_schemes_and_definitions_and_theorems ($node_keyword, $label, $begin_line, $begin_col, $end_line, $end_col, \@local_schemes, \@local_definitions, \@local_theorems);
+      chomp ($text);
+      print ("Item $i: $node_name: ($begin_line,$begin_col)-($end_line,$end_col)\n");
+      print ("======================================================================\n");
+      print ("$text");
+      print (";\n");
+      print ("======================================================================\n");
+
+      # DEBUG
+      warn ("Exporting...");
+      export_item ($i, $begin_line, $text); # don't start at 0
     }
-
-    unless (defined ($last_endposition_child)) {
-      die ("Weird: node $i (a $node_name) lacks an EndPosition child element");
-    }
-    ($end_line,$end_col) = line_and_column ($last_endposition_child);
-
-    # kludge: EndPosition information for Schemes differs from all
-    # other elements: it is off by one: it includes the final
-    # semicolon of the "end;", whereas other elements end at "end".
-    if ($node_name eq 'SchemeBlock') {
-      $end_col--;
-    }
-
-    # kludge: the end column information for theorems is off by three.
-    # Sometimes.  (!)
-    if ($node_name eq 'JustifiedTheorem') {
-      $begin_col = $begin_col + 3;
-    }
-
-    # extract appropriate reservations
-    # my @reservations = @{reservations_before_line ($begin_line)};
-
-    # compute any lost "pretext" information
-    my $pretext
-      = pretext_from_item_type_and_beginning ($node_name, $begin_line, $begin_col);
-
-    my $text = extract_article_region ($begin_line, $begin_col, $end_line, $end_col);
-    chomp ($text);
-    print ("Item $i: $node_name: ($begin_line,$begin_col)-($end_line,$end_col)\n");
-    print ("======================================================================\n");
-    print ("$pretext");
-    print ("$text");
-    print (";\n");
-    print ("======================================================================\n");
   }
 }
 
