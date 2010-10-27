@@ -57,16 +57,23 @@ my $coq_article_ext = 'v';
 my $article_ext = $mizar_article_ext;
 my $article_regexp = '\.$article_ext\$';
 
+# Other file extensions that we have to allow.
+my $mizar_special_ext = 'voc';
+my $special_ext = $mizar_special_ext;
+my $special_regexp = '\.$special_ext\$';
 
 # Articles changed.
 # We do not check if they are inside the "lib" directory here yet.
 my @art_changed 
   = `git diff-index --cached HEAD | cut -f 2 | grep '\.$article_ext\$'`;
+my @special_changed 
+  = `git diff-index --cached HEAD | cut -f 2 | grep '\.$special_ext\$'`;
 my @non_art_changed 
-  = `git diff-index --cached HEAD | cut -f 2 | grep --invert-match '\.$article_ext\$'`;
+  = `git diff-index --cached HEAD | cut -f 2 | grep --invert-match '\.$article_ext\$' | grep --invert-match '\.$special_ext\$'`;
+
 
 unless (scalar (@non_art_changed) == 0) {
-  pc_print ("Only .$article_ext files are permitted to be committed: \"$non_art_changed[0]\"  Sorry.");
+    pc_print ("Only .$article_ext and .$special_ext files are permitted to be committed: \"$non_art_changed[0]\"  Sorry.");
   exit (1)
 }
 
