@@ -203,7 +203,7 @@ sub unlockwiki () {
 my @new_lib_files = ();
 my @updated_lib_files = ();
 
-pr_print ("Here is the list of all received mml mizar files: @lib_files");
+pr_print ("Here is the list of all received files: @lib_files");
 
 foreach my $received_lib_file (@lib_files) {
   chomp $received_lib_file; # looks like "mml/<something>"
@@ -216,22 +216,13 @@ foreach my $received_lib_file (@lib_files) {
   }
 }
 
-sub strip_initial_mml {
-  my $path = shift;
-  if ($path =~ /\A mml \/ ([a-z0-9_]+\.miz) \z /xm) {
-    return $1;
-  } else {
-    croak ("Something went wrong when stripping the \"mml/\" from \"$path\"");
-  }
-}
-
-pr_print ("brand new mizar files: ");
+pr_print ("brand new files: ");
 if (scalar @new_lib_files == 0) {
   pr_print ("(none)");
 } else {
   pr_print ("@new_lib_files");
 }
-pr_print ("mizar files to be updated: ");
+pr_print ("files to be updated: ");
 if (scalar @updated_lib_files == 0) {
   pr_print ("(none)");
 } else {
@@ -261,11 +252,14 @@ lockwiki();
 # Now that we've moved the mizar files that are updated in this
 # proposed commit to a safe purgatory, copy the contents of the new
 # new files to the backend repo.
-foreach my $received_mml_lib_file (@lib_files) {
-  chomp $received_mml_lib_file;
-  my $article_filename = strip_initial_mml ($received_mml_lib_file);
-  my $received_path = $backend_repo_mml . "/" . $article_filename;
-  `git cat-file blob $new_commit_tree:$received_mml_lib_file > $received_path`;
+foreach my $received_file (@lib_files) {
+  chomp $received_file;
+  ($received_file =~ /^(mml|dict)\/[a-z0-9_]+[.]($article_ext|$special_ext)$/) or
+    pr_die("Wrong file name: $received_file");
+  my $possibly_new_dir_path = $1;
+  `mkdir -p $backend_repo_path/$possibly_new_dir_path`;
+  my $received_path = $backend_repo_path . "/" . $received_file;
+  `git cat-file blob $new_commit_tree:$received_file > $received_path`;
   unless (-e $received_path) {
     croak ("We didn't output anything to $received_path");
   }
