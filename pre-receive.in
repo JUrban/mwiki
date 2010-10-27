@@ -110,44 +110,44 @@ unless (scalar @non_lib_files == 0) {
 # 2 they are actually files, i.e., blobs in git terminology
 # 3 their size is less than, say, one megabyte;
 # 4 they have mode 644 ("should never happen", given condition #2)
-my @miz_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | grep "\.miz\$"`;
-for my $miz_file (@miz_files) {
-  chomp $miz_file;
-  if ($miz_file !~ /\A mml \/ ([a-z0-9_]+\.miz) \z/xm) { # strip "mml/" prefix
+my @lib_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | grep "\.$article_ext\$"`;
+for my $lib_file (@lib_files) {
+  chomp $lib_file;
+  if ($lib_file !~ /\A mml \/ ([a-z0-9_]+\.miz) \z/xm) { # strip "mml/" prefix
     pr_print ("Suspicious: .miz file is not under the mml subdirectory");
-    pr_print ("The path is $miz_file");
+    pr_print ("The path is $lib_file");
     exit 1;
   }
 }
 
-my @dict_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | grep "\.voc\$"`;
-for my $miz_file (@dict_files) {
-  chomp $miz_file;
-  if ($miz_file !~ /\A dict \/ ([a-z0-9_]+\.voc) \z/xm) { # strip "mml/" prefix
+my @dict_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | grep "\.$special_ext\$"`;
+for my $lib_file (@dict_files) {
+  chomp $lib_file;
+  if ($lib_file !~ /\A dict \/ ([a-z0-9_]+\.voc) \z/xm) { # strip "mml/" prefix
     pr_print ("Suspicious: .voc file is not under the dict subdirectory");
-    pr_print ("The path is $miz_file");
+    pr_print ("The path is $lib_file");
     exit 1;
   }
 }
 
-for my $miz_file (@miz_files @dict_files) {
-  chomp $miz_file;
-  my $miz_file_size = `git cat-file -s $new_sha:$miz_file`;
-  chomp $miz_file_size;
-  if ($miz_file_size > 1000000) {
-    pr_print ("Suspicious: the file $miz_file is bigger than one megabyte");
+for my $lib_file (@lib_files @dict_files) {
+  chomp $lib_file;
+  my $lib_file_size = `git cat-file -s $new_sha:$lib_file`;
+  chomp $lib_file_size;
+  if ($lib_file_size > 1000000) {
+    pr_print ("Suspicious: the file $lib_file is bigger than one megabyte");
     exit 1;
   }
-  my $mode = `git ls-tree -r $new_commit_tree $miz_file | cut -f 1 -d ' '`;
+  my $mode = `git ls-tree -r $new_commit_tree $lib_file | cut -f 1 -d ' '`;
   chomp $mode;
   unless ($mode eq '100644') {
-    pr_print ("Suspicious: a file $miz_file is being commited with mode $mode; we permit only mode 100644");
+    pr_print ("Suspicious: a file $lib_file is being commited with mode $mode; we permit only mode 100644");
     exit 1;
   }
-  my $miz_file_type = `git ls-tree -r $new_commit_tree $miz_file | cut -f 2 -d ' '`;
-  chomp $miz_file_type;
-  unless ($miz_file_type eq 'blob') {
-    pr_print ("The file $miz_file is somehow not a git blob object");
+  my $lib_file_type = `git ls-tree -r $new_commit_tree $lib_file | cut -f 2 -d ' '`;
+  chomp $lib_file_type;
+  unless ($lib_file_type eq 'blob') {
+    pr_print ("The file $lib_file is somehow not a git blob object");
     exit 1;
   }
 }
@@ -200,21 +200,19 @@ sub unlockwiki () {
 # input.  It should point to a commit object (and hence, indirectly,
 # to a tree object) that already exists on in the frontend repo.
 
-my @new_miz_files = ();
-my @updated_miz_files = ();
-my @received_mml_miz_files 
-  = `git ls-tree -r $new_commit_tree mml/ | cut -f 2`; # a list of "mml/<something>" items
+my @new_lib_files = ();
+my @updated_lib_files = ();
 
-pr_print ("Here is the list of all received mml mizar files: @miz_files");
+pr_print ("Here is the list of all received mml mizar files: @lib_files");
 
-foreach my $received_miz_file (@miz_files) {
-  chomp $received_miz_file; # looks like "mml/<something>"
-  `git cat-file -e $old_commit_tree:$received_miz_file 2> /dev/null`;
+foreach my $received_lib_file (@lib_files) {
+  chomp $received_lib_file; # looks like "mml/<something>"
+  `git cat-file -e $old_commit_tree:$received_lib_file 2> /dev/null`;
   my $git_cat_file_exit_code = ($? >> 8);
   if ($git_cat_file_exit_code == 0) {
-    push @updated_miz_files, $received_miz_file;
+    push @updated_lib_files, $received_lib_file;
   } else {
-    push @new_miz_files, $received_miz_file;
+    push @new_lib_files, $received_lib_file;
   }
 }
 
@@ -228,16 +226,16 @@ sub strip_initial_mml {
 }
 
 pr_print ("brand new mizar files: ");
-if (scalar @new_miz_files == 0) {
+if (scalar @new_lib_files == 0) {
   pr_print ("(none)");
 } else {
-  pr_print ("@new_miz_files");
+  pr_print ("@new_lib_files");
 }
 pr_print ("mizar files to be updated: ");
-if (scalar @updated_miz_files == 0) {
+if (scalar @updated_lib_files == 0) {
   pr_print ("(none)");
 } else {
-  pr_print ("@updated_miz_files");
+  pr_print ("@updated_lib_files");
 }
 
 # NOTE: this should be killed completely after testing the git reset HEAD and git checkout -- technique
@@ -250,11 +248,11 @@ if (scalar @updated_miz_files == 0) {
 # mkdir $purgatory_mml;
 
 # Move the already existing mizar files to the backend repo
-# foreach my $updated_miz_file (@updated_miz_files) {
-#   chomp $updated_miz_file;
-#   my $article_filename = strip_initial_mml ($updated_miz_file);
+# foreach my $updated_lib_file (@updated_lib_files) {
+#   chomp $updated_lib_file;
+#   my $article_filename = strip_initial_mml ($updated_lib_file);
 #   my $purgatory_path = $purgatory_mml . "/" . $article_filename;
-#   `git show $old_commit_tree:$updated_miz_file > $purgatory_path`;
+#   `git show $old_commit_tree:$updated_lib_file > $purgatory_path`;
 # }
 
 
@@ -263,11 +261,11 @@ lockwiki();
 # Now that we've moved the mizar files that are updated in this
 # proposed commit to a safe purgatory, copy the contents of the new
 # new files to the backend repo.
-foreach my $received_mml_miz_file (@miz_files) {
-  chomp $received_mml_miz_file;
-  my $article_filename = strip_initial_mml ($received_mml_miz_file);
+foreach my $received_mml_lib_file (@lib_files) {
+  chomp $received_mml_lib_file;
+  my $article_filename = strip_initial_mml ($received_mml_lib_file);
   my $received_path = $backend_repo_mml . "/" . $article_filename;
-  `git cat-file blob $new_commit_tree:$received_mml_miz_file > $received_path`;
+  `git cat-file blob $new_commit_tree:$received_mml_lib_file > $received_path`;
   unless (-e $received_path) {
     croak ("We didn't output anything to $received_path");
   }
@@ -320,7 +318,7 @@ local $ENV{GIT_DIR}
   = $backend_repo_path . "/" . ".git"; # GIT_DIR is set to "." by git
 
 chdir $backend_repo_path;              # before executing this hook!
-system ("git add @miz_files 2>&1");
+system ("git add @lib_files 2>&1");
 my $git_add_exit_code = ($? >> 8);
 unless ($git_add_exit_code == 0) {
   pr_print ("Error adding the new mizar files to the backend repository:");
