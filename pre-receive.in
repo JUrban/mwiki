@@ -114,7 +114,7 @@ my @lib_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | g
 for my $lib_file (@lib_files) {
   chomp $lib_file;
   if ($lib_file !~ /\A mml \/ ([a-z0-9_]+\.miz) \z/xm) { # strip "mml/" prefix
-    pr_print ("Suspicious: .miz file is not under the mml subdirectory");
+    pr_print ("Suspicious: .$article_ext file is not under the mml subdirectory");
     pr_print ("The path is $lib_file");
     exit 1;
   }
@@ -124,7 +124,7 @@ my @dict_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | 
 for my $lib_file (@dict_files) {
   chomp $lib_file;
   if ($lib_file !~ /\A dict \/ ([a-z0-9_]+\.voc) \z/xm) { # strip "mml/" prefix
-    pr_print ("Suspicious: .voc file is not under the dict subdirectory");
+    pr_print ("Suspicious: .$special_ext file is not under the dict subdirectory");
     pr_print ("The path is $lib_file");
     exit 1;
   }
