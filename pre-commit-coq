@@ -45,8 +45,8 @@ my $cwd = getcwd ();
 # untaint 
 if($cwd =~ /(.*)/) { $cwd = $1; }  
 
-# Compute list of mizar/coq files that belong to the index (i.e., the
-# coq files that are about to be committed). git diff-index will
+# Compute list of itp files that belong to the index (i.e., the
+# itp files that are about to be committed). git diff-index will
 # give a list of changed files.  We compare the index to HEAD, the
 # most recent commit known to be valid/coherent.  The actual file name
 # is the second field of the line (where the field separator is tab),
