@@ -86,11 +86,21 @@ my $new_commit_tree = `git cat-file commit $new_sha | grep ^tree | cut -f 2 -d '
 chomp $old_commit_tree;
 chomp $new_commit_tree;
 
+my $mizar_article_ext = 'miz';
+my $coq_article_ext = 'v';
+my $article_ext = $coq_article_ext;
+my $article_regexp = '\.$article_ext\$';
+
+# Other file extensions that we have to allow.
+my $mizar_special_ext = 'voc';
+my $special_ext = $mizar_special_ext;
+my $special_regexp = '\.$special_ext\$';
+
 # Ensure that no non-mizar code is being pushed
-my @non_miz_files 
-  = `git show --pretty=oneline --name-only $new_sha | tail -n -1 | grep --invert-match ".miz"`;
-unless (scalar @non_miz_files == 0) {
-  pr_print ('We do not currently support pushing non-.miz files to our repository');
+my @non_lib_files 
+    = `git show --pretty=oneline --name-only $new_sha | tail -n -1 | grep --invert-match '\.$article_ext\$' | grep --invert-match '\.$special_ext\$`;
+unless (scalar @non_lib_files == 0) {
+    pr_print ("Only .$article_ext and .$special_ext files are permitted to be committed: \"$non_lib_changed[0]\"  Sorry.");
   exit 1;
 }
 
@@ -104,26 +114,40 @@ my @miz_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | g
 for my $miz_file (@miz_files) {
   chomp $miz_file;
   if ($miz_file !~ /\A mml \/ ([a-z0-9_]+\.miz) \z/xm) { # strip "mml/" prefix
-    pr_print ("Suspcious: .miz file is not under the mml subdirectory");
+    pr_print ("Suspicious: .miz file is not under the mml subdirectory");
     pr_print ("The path is $miz_file");
     exit 1;
   }
+}
+
+my @dict_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | grep "\.voc\$"`;
+for my $miz_file (@dict_files) {
+  chomp $miz_file;
+  if ($miz_file !~ /\A dict \/ ([a-z0-9_]+\.voc) \z/xm) { # strip "mml/" prefix
+    pr_print ("Suspicious: .voc file is not under the dict subdirectory");
+    pr_print ("The path is $miz_file");
+    exit 1;
+  }
+}
+
+for my $miz_file (@miz_files @dict_files) {
+  chomp $miz_file;
   my $miz_file_size = `git cat-file -s $new_sha:$miz_file`;
   chomp $miz_file_size;
   if ($miz_file_size > 1000000) {
-    pr_print ("Suspicious: the .miz file $miz_file is bigger than one megabyte");
+    pr_print ("Suspicious: the file $miz_file is bigger than one megabyte");
     exit 1;
   }
   my $mode = `git ls-tree -r $new_commit_tree $miz_file | cut -f 1 -d ' '`;
   chomp $mode;
   unless ($mode eq '100644') {
-    pr_print ("Suspicious: a .miz file is being commited with mode $mode; we permit only mode 100644");
+    pr_print ("Suspicious: a file $miz_file is being commited with mode $mode; we permit only mode 100644");
     exit 1;
   }
   my $miz_file_type = `git ls-tree -r $new_commit_tree $miz_file | cut -f 2 -d ' '`;
   chomp $miz_file_type;
   unless ($miz_file_type eq 'blob') {
-    pr_print ("The .miz file $miz_file is somehow not a git blob object");
+    pr_print ("The file $miz_file is somehow not a git blob object");
     exit 1;
   }
 }
