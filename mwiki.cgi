@@ -225,7 +225,7 @@ if($action eq "commit")
 
     unless (length($input_article) < 1000000) 
     {
-	pr_die ("Suspicious: the .miz file $input_file is bigger than one megabyte");
+	pr_die ("Suspicious: the file $input_file is bigger than one megabyte");
     }
 
     my $backend_repo_mml = $backend_repo_path . "mml";
