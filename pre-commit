@@ -44,13 +44,13 @@ my $cwd = getcwd ();
 # untaint 
 if($cwd =~ /(.*)/) { $cwd = $1; }  
 
-# Compute list of mizar files that belong to the index (i.e., the
-# mizar files that are about to be committed). git diff-index will
+# Compute list of itp files that belong to the index (i.e., the
+# itp files that are about to be committed). git diff-index will
 # give a list of changed files.  We compare the index to HEAD, the
 # most recent commit known to be valid/coherent.  The actual file name
 # is the second field of the line (where the field separator is tab),
 # hence the first call to "cut -f 2".  The last cut gives us
-# "polyform" from "polyform.miz".
+# "semiring" from "semiring.v" and "polyform" from "polyform.miz".
 my @miz_changed 
   = `git diff-index --cached HEAD | cut -f 2 | grep '\.miz\$'`;
 my @non_miz_changed 
