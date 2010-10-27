@@ -51,18 +51,27 @@ if($cwd =~ /(.*)/) { $cwd = $1; }
 # is the second field of the line (where the field separator is tab),
 # hence the first call to "cut -f 2".  The last cut gives us
 # "semiring" from "semiring.v" and "polyform" from "polyform.miz".
-my @miz_changed 
-  = `git diff-index --cached HEAD | cut -f 2 | grep '\.miz\$'`;
-my @non_miz_changed 
-  = `git diff-index --cached HEAD | cut -f 2 | grep --invert-match '\.miz\$'`;
 
-unless (scalar (@non_miz_changed) == 0) {
-  pc_print ("Only .miz files are permitted to be committed.  Sorry dude.");
+my $mizar_article_ext = 'miz';
+my $coq_article_ext = 'v';
+my $article_ext = $mizar_article_ext;
+my $article_regexp = '\.$article_ext\$';
+
+
+# Articles changed.
+# We do not check if they are inside the "lib" directory here yet.
+my @art_changed 
+  = `git diff-index --cached HEAD | cut -f 2 | grep '\.$article_ext\$'`;
+my @non_art_changed 
+  = `git diff-index --cached HEAD | cut -f 2 | grep --invert-match '\.$article_ext\$'`;
+
+unless (scalar (@non_art_changed) == 0) {
+  pc_print ("Only .$article_ext files are permitted to be committed: \"$non_art_changed[0]\"  Sorry.");
   exit (1)
 }
 
-my @mml_changed = ();
-my @non_mml_changed = ();
+my @lib_changed = ();
+my @non_lib_changed = ();
 
 
 # MAKEJOBS: number of different make jobs to run simultaneously
@@ -98,11 +107,11 @@ sub clean_the_dirty_sandbox {
 }
 
 sub separate_mml_from_non_mml {
-  foreach my $edited (@miz_changed) {
+  foreach my $edited (@art_changed) {
     chomp ($edited);
     my ($name, $path, $extension) = fileparse ($edited, qr/\.[^.]+/);
     if ($path eq "mml/") {
-	push (@mml_changed, $name);
+	push (@lib_changed, $name);
     } else {
       pc_print ("You're committing a mizar file ($edited) outside the MML subdirectory; we don'handle this case yet");
       exit 1;
@@ -111,7 +120,7 @@ sub separate_mml_from_non_mml {
 }
 
 sub copy_new_articles_to_sandbox {
-  foreach my $article (@mml_changed) {
+  foreach my $article (@lib_changed) {
     my $real_article_path = "$cwd/mml/$article.miz";
     my $sandbox_article_path = "$sandbox_mml/$article.miz";
     copy ($real_article_path, $sandbox_article_path)
@@ -253,8 +262,8 @@ maybe_die_if_make_errors_in_dir ($sandbox_mml, "$sandbox/make-xml-err",
 
 # Ensure that the new articles do not have any "@proof" bits.
 chdir ($sandbox_mml);
-foreach my $mml_changed (@mml_changed) {
-  my $article_miz = $mml_changed . '.miz';
+foreach my $lib_changed (@lib_changed) {
+  my $article_miz = $lib_changed . '.miz';
   if (system ("grep '\@proof' $article_miz | grep --invert-match --max-count=1 '::'") == 0) {
     pc_print ("You are not allowed to omit proofs from articles in the MML.");
     exit 1;
