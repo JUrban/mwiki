@@ -130,7 +130,9 @@ for my $lib_file (@dict_files) {
   }
 }
 
-for my $lib_file (@lib_files @dict_files) {
+@lib_files = (@lib_files, @dict_files);
+
+for my $lib_file (@lib_files) {
   chomp $lib_file;
   my $lib_file_size = `git cat-file -s $new_sha:$lib_file`;
   chomp $lib_file_size;
@@ -169,8 +171,6 @@ for my $lib_file (@lib_files @dict_files) {
 # back into their original place.
 
 my $backend_repo_path = '@@BACKEND@@';
-my $backend_repo_mml = $backend_repo_path . "/" . "mml";
-
 
 my $wikilock;
 
@@ -249,7 +249,7 @@ if (scalar @updated_lib_files == 0) {
 
 lockwiki();
 
-# Now that we've moved the mizar files that are updated in this
+# Now that we've moved the files that are updated in this
 # proposed commit to a safe purgatory, copy the contents of the new
 # new files to the backend repo.
 foreach my $received_file (@lib_files) {
@@ -315,7 +315,7 @@ chdir $backend_repo_path;              # before executing this hook!
 system ("git add @lib_files 2>&1");
 my $git_add_exit_code = ($? >> 8);
 unless ($git_add_exit_code == 0) {
-  pr_print ("Error adding the new mizar files to the backend repository:");
+  pr_print ("Error adding the new files to the backend repository:");
   pr_print ("The exit code was $git_add_exit_code");
 
   system ("git reset --hard 2>&1");
