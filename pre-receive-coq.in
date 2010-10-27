@@ -122,7 +122,7 @@ for my $lib_file (@lib_files) {
   my $mode = `git ls-tree -r $new_commit_tree $lib_file | cut -f 1 -d ' '`;
   chomp $mode;
   unless ($mode eq '100644') {
-    pr_print ("Suspicious: a file is being commited with mode $mode; we permit only mode 100644");
+    pr_print ("Suspicious: a file $lib_file is being commited with mode $mode; we permit only mode 100644");
     exit 1;
   }
   my $lib_file_type = `git ls-tree -r $new_commit_tree $lib_file | cut -f 2 -d ' '`;
@@ -218,11 +218,11 @@ if (scalar @updated_lib_files == 0) {
 # mkdir $purgatory_mml;
 
 # Move the already existing mizar files to the backend repo
-# foreach my $updated_miz_file (@updated_miz_files) {
-#   chomp $updated_miz_file;
-#   my $article_filename = strip_initial_mml ($updated_miz_file);
+# foreach my $updated_lib_file (@updated_lib_files) {
+#   chomp $updated_lib_file;
+#   my $article_filename = strip_initial_mml ($updated_lib_file);
 #   my $purgatory_path = $purgatory_mml . "/" . $article_filename;
-#   `git show $old_commit_tree:$updated_miz_file > $purgatory_path`;
+#   `git show $old_commit_tree:$updated_lib_file > $purgatory_path`;
 # }
 
 
