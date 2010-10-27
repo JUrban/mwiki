@@ -78,7 +78,7 @@ unless (scalar (@non_art_changed) == 0) {
 }
 
 my @lib_changed = ();
-my @non_lib_changed = ();
+my @dict_changed = ();
 
 
 # MAKEJOBS: number of different make jobs to run simultaneously
@@ -117,10 +117,13 @@ sub separate_mml_from_non_mml {
   foreach my $edited (@art_changed) {
     chomp ($edited);
     my ($name, $path, $extension) = fileparse ($edited, qr/\.[^.]+/);
-    if ($path eq "mml/") {
+    if (($path eq "mml/") && ($extension eq $article_ext)) {
 	push (@lib_changed, $name);
+    }
+    elsif (($path eq "dict/") && ($extension eq $special_ext)) {
+	push (@dict_changed, $name);
     } else {
-      pc_print ("You're committing a mizar file ($edited) outside the MML subdirectory; we don'handle this case yet");
+      pc_print ("You're committing a file ($edited) outside the mml and dict subdirectory; we don'handle this case yet");
       exit 1;
     }
   }
@@ -130,6 +133,12 @@ sub copy_new_articles_to_sandbox {
   foreach my $article (@lib_changed) {
     my $real_article_path = "$cwd/mml/$article.miz";
     my $sandbox_article_path = "$sandbox_mml/$article.miz";
+    copy ($real_article_path, $sandbox_article_path)
+      or die ("You can't copy $real_article_path to $sandbox_article_path!");
+  }
+  foreach my $article (@dict_changed) {
+    my $real_article_path = "$cwd/dict/$article.voc";
+    my $sandbox_article_path = "$sandbox/dict/$article.voc";
     copy ($real_article_path, $sandbox_article_path)
       or die ("You can't copy $real_article_path to $sandbox_article_path!");
   }
