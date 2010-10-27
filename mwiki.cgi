@@ -69,7 +69,6 @@ sub pr_die
     exit;
 }
 
-my $article_filename = "";
 my $aname = "";
 
 # untaint the cgi params:
@@ -87,9 +86,21 @@ if ((defined $action)
 }
 else { pr_die("Unknown action \"$action\"."); }
 
-if ((defined $input_file) && ($input_file =~ /^(mml\/(([a-z0-9_]+)\.miz))$/))
+my $mizar_article_ext = 'miz';
+my $coq_article_ext = 'v';
+my $article_ext = $mizar_article_ext;
+my $article_regexp = '\.$article_ext\$';
+
+# Other file extensions that we have to allow.
+my $mizar_special_ext = 'voc';
+my $special_ext = $mizar_special_ext;
+my $special_regexp = '\.$special_ext\$';
+
+my $this_ext = "";
+
+if ((defined $input_file) && ($input_file =~ /^((mml|dict)\/([a-z0-9_]+)[.]($article_ext|$special_ext))$/))
 {
-    ($input_file, $article_filename, $aname) = ($1, $2, $3);
+    ($aname, $this_ext) = ($3, $4);
 }
 elsif ($action =~ /^(gitweb)$/) { $aname=""; }
 else { pr_die("The file name \"$input_file\" is not allowed"); }
@@ -144,12 +155,24 @@ sub printheader
 
     if(length($aname) > 0)
     {
+	if($this_ext eq $article_ext)
+	{
 	$viewlinks=<<VEND
          <li> <a href="$htmldir/$aname.html">View</a> </li>
          <li> <a href="?p=$git_project;a=edit;f=$input_file">Edit</a> </li>
          <li> <a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
          <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
 VEND
+	}
+	else  # no htmlization - present as raw
+	{
+	    	$viewlinks=<<REND
+         <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">View</a> </li>
+         <li> <a href="?p=$git_project;a=edit;f=$input_file">Edit</a> </li>
+         <li> <a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
+         <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
+REND
+	}
     }
 
     print<<END
@@ -228,8 +251,6 @@ if($action eq "commit")
 	pr_die ("Suspicious: the file $input_file is bigger than one megabyte");
     }
 
-    my $backend_repo_mml = $backend_repo_path . "mml";
-
     # remove the dos stuff
     $input_article =~ s/\r//g;
 
@@ -238,7 +259,11 @@ if($action eq "commit")
     lockwiki();
 
     # Copy the contents of the new file to the backend repo.
-    my $received_path = $backend_repo_mml . "/" . $article_filename;
+    ($input_file =~ /^(mml|dict)\/[a-z0-9_]+[.]($article_ext|$special_ext)$/) or
+	pr_die("Wrong file name: $input_file");
+    my $possibly_new_dir_path = $1;
+    `mkdir -p $backend_repo_path$possibly_new_dir_path`;
+    my $received_path = $backend_repo_path . $input_file;
     open(PFH, ">$received_path") or pr_die "$received_path not writable";
     printf(PFH "%s",$input_article);
     close(PFH);
@@ -275,7 +300,7 @@ if($action eq "commit")
     my $git_add_exit_code = ($? >> 8);
     unless ($git_add_exit_code == 0) 
     {
-	pr_print ("Error adding the new mizar files to the backend repository:");
+	pr_print ("Error adding the new files to the backend repository:");
 	pr_print ("The exit code was $git_add_exit_code");
 
 	system ("$git reset --hard 2>&1");
