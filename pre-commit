@@ -114,7 +114,7 @@ sub clean_the_dirty_sandbox {
 }
 
 sub separate_mml_from_non_mml {
-  foreach my $edited (@art_changed) {
+  foreach my $edited (@art_changed, @special_changed) {
     chomp ($edited);
     my ($name, $path, $extension) = fileparse ($edited, qr/\.[^.]+/);
     if (($path eq "mml/") && ($extension eq ".$article_ext")) {
