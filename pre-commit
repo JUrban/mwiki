@@ -117,13 +117,13 @@ sub separate_mml_from_non_mml {
   foreach my $edited (@art_changed) {
     chomp ($edited);
     my ($name, $path, $extension) = fileparse ($edited, qr/\.[^.]+/);
-    if (($path eq "mml/") && ($extension eq $article_ext)) {
+    if (($path eq "mml/") && ($extension eq ".$article_ext")) {
 	push (@lib_changed, $name);
     }
-    elsif (($path eq "dict/") && ($extension eq $special_ext)) {
+    elsif (($path eq "dict/") && ($extension eq ".$special_ext")) {
 	push (@dict_changed, $name);
     } else {
-      pc_print ("You're committing a file ($edited) outside the mml and dict subdirectory; we don'handle this case yet");
+      pc_print ("You are committing a file ($edited) outside the mml and dict subdirectory; we don't handle this case yet");
       exit 1;
     }
   }
