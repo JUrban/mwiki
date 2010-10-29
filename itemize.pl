@@ -596,6 +596,8 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
 # prepare_work_dirs ();
 split_reservations ();
 init_reservation_table ();
+# DEBUG
+print_reservation_table ();
 # load_environment ();
 my $miz_lines_ref = read_miz_file ();
 my @mizfile_lines = @{$miz_lines_ref};
@@ -751,7 +753,7 @@ sub itemize {
     # the same vid) are mapped to their *last* (re)definition.
     $current_node = $current_node->nextNonBlankSibling ();
     my $num_exported_theorems = 1;
-    while ($current_node->nodeName () eq 'DefTheorem') {
+    while ((defined $current_node) && $current_node->nodeName () eq 'DefTheorem') {
       if (is_exported_deftheorem ($current_node)) {
 	my ($prop_node) = $current_node->findnodes ('Proposition');
 	my $vid = $prop_node->findvalue ('@vid');
@@ -792,7 +794,7 @@ sub itemize {
     } elsif ($node_name eq 'DefTheorem') {
       # DEBUG
       warn ('We just encountered a DefTheorem node');
-      $item_kinds{$i-1} = 'deftheorem';
+      $item_kinds{$i-1} = 'theorem';
     } else {
       die ("Unable to register node $i: unknown type $node_name");
     }
