@@ -1,13 +1,14 @@
 #!/bin/sh
 
 repos_base=/var/cache/mwiki
-mizfiles=/home/mptp/mizwrk/7.11.05_4.133.1080
+#mizfiles=/home/mptp/mizwrk/7.11.05_4.133.1080
+mizfiles=/home/mptp/mizinst/7.11.06_4.150.1103
 xsl4miz=/home/mptp/gr/xsl4mizar
 num_articles=5
 
 
 if test -z "$1"; then
-    targets='public-repos'
+    targets='repos'
 else
     targets=$1
 fi
