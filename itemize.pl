@@ -467,7 +467,7 @@ sub print_reservation_table {
 sub reservations_before_line {
   my $line = shift;
   my @reservations = ();
-  foreach my $key (keys (%reservation_table)) {
+  foreach my $key (sort {$a <=> $b} keys %reservation_table) {
     if ($key < $line) {
       push (@reservations, $reservation_table{$key});
     }
