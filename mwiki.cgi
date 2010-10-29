@@ -356,6 +356,8 @@ if($action eq "history")
     print_iframe("$lgitwebcgi?p=$git_project;a=history;f=$input_file");
 }
 
+my $voc_template="K\n";
+
 my $article_template=<<AEND
 :: Article Title
 ::  by Article Author
@@ -392,9 +394,13 @@ if($action eq "edit")
 	$old_content = do { local $/; <FILEHANDLE> };
 	close(FILEHANDLE);
     }
-    else
+    elsif($this_ext eq $article_ext)
     {
 	$old_content = $article_template;
+    }
+    else
+    {
+	$old_content = $voc_template;
     }
 
     print<<END;
