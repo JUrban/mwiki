@@ -414,6 +414,12 @@ sub split_reservations {
   unless ($? == 0) {
     die ("Something went wrong when calling the verifier on $article_name: the error was\n\n$!");
   }
+  # DEBUG
+  warn "Regenerating the absolute reference XML (thanks, JA...)";
+  system ("xsltproc $absrefs_stylesheet $article_xml 2> /dev/null > $article_xml_absrefs");
+  unless ($? == 0) {
+    die ("Something went wrong when creating the absolute reference XML: the error was\n\n$!");
+  }
 }
 
 # sub split_reservations {
