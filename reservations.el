@@ -329,7 +329,7 @@ will be replaced by \"ITEM<ABSOLUTE-ITEM-NUMBER>:1\"."
     (let (real-beg-line real-beg-col what-we-are-looking-for)
       (if (eq item-keyword 'proposition)
 	  (setf what-we-are-looking-for (concat item-label ":[ \t\n]"))
-	(setf what-we-are-looking-for (format "%s" item-keyword)))
+	(setf what-we-are-looking-for (format "^%s[ \t\n]+\\|[ \t\n]%s[ \t\n]+" item-keyword item-keyword)))
       (save-excursion
 	(goto-char (point-min))
 	(forward-line (1- end-line))
