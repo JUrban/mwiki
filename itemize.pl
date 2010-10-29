@@ -941,7 +941,8 @@ sub itemize {
 	  if (defined ($last_ref)) {
 	    $last_endposition_child = $last_ref;
 	  } else {
-	    die ("Weird: node $i, a Proposition, is immediately justified, but the justification lacks a Ref child element!");
+	    # die ("Weird: node $i, a Proposition, is immediately justified, but the justification lacks a Ref child element!");
+	    $last_endposition_child = $next;
 	  }
 	}
       } elsif ($node_name eq 'JustifiedTheorem') {
