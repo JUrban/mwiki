@@ -43,7 +43,7 @@ my $article_base = $ARGV[1];
 my $article_miz = $article_base . '.miz';
 my $article_evl = $article_base . '.evl';
 
-system ("envget $article_base > /dev/null 2> /dev/null");
+system ("envget -l $article_base > /dev/null 2> /dev/null");
 # unless ($? == 0) {
 #   die ("Something went wrong when calling envget on $article_base.\nThe error was\n\n  $!");
 # }
