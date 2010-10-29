@@ -1,0 +1,52 @@
+#!/usr/bin/perl -w
+
+use strict;
+use warnings;
+use File::Temp qw/ tempdir /;
+use Carp;
+use Cwd;
+
+sub pr_pad {
+  my $str = shift;
+  return ("[pre-receive] $str");
+}
+
+# I think there's a slicker way to do this, using output filters, but
+# for now let's just do this as a subroutine.
+
+sub pr_print {
+  my $str = shift;
+  chomp ($str); # in case it already had some extra whitespace at the end
+  print (pr_pad ($str . "\n"));
+  return;
+}
+
+sub pr_die {
+  pr_print(@_);
+  exit 1;
+}
+
+
+my $backend_repo_path = '@@BACKEND@@';
+
+
+# All newly received mizar files are now in sitting in the backend
+# repo.  Now we add them.
+local $ENV{GIT_DIR}
+  = $backend_repo_path . "/" . ".git"; # GIT_DIR is set to "." by git
+
+chdir $backend_repo_path;              # before executing this hook!
+
+system ("git pull frontend master 2>&1");
+
+my $git_pull_exit_code = ($? >> 8);
+unless ($git_pull_exit_code == 0) {
+  pr_print ("Error merging the frontend with the backend repository:");
+  pr_print ("The exit code was $git_pull_exit_code");
+  pr_print ("The repositories are now out of sync and have to be fixed manually");
+
+  exit 1;
+}
+
+# If we made it this far, then we deserve a break.
+exit 0;

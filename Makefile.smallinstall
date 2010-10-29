@@ -196,11 +196,13 @@ public-repo-export: public-repo-init
 	  --mode=644 \
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
 	  public-repo-description $(BARE_PUBLIC_REPO)/description
-	sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g" < pre-receive.in \
-	  > $(BARE_PUBLIC_REPO)/hooks/pre-receive
-	chmod 755 $(BARE_PUBLIC_REPO)/hooks/pre-receive
-	chown $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
-	chgrp $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
+	for hookfile in pre-receive post-update; do \
+	  sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g" < $$hookfile.in \
+	    > $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
+	  chmod 755 $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
+	  chown $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
+	  chgrp $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
+	done
 	touch $(BARE_PUBLIC_REPO)/git-daemon-export-ok
 	cd $(BARE_PUBLIC_REPO) && git config core.sharedRepository true \
            && git config daemon.receivepack true \
@@ -212,7 +214,9 @@ public-repo-export: public-repo-init
 
 
 gitweb: public-repo-export 
-	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/$(REPO_NAME).git
+	if (test $(PUBLIC_REPOS_BASE) != $(GITWEB_ROOT)); then \
+	  ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/$(REPO_NAME).git; \
+	fi
 	$(INSTALL) -m 644 gitweb $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -f -s ../sites-available/gitweb gitweb
