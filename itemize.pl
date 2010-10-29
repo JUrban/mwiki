@@ -931,11 +931,19 @@ sub itemize {
 	  die ("Weird: node $i, a Proposition, is not followed by a sibling!");
 	}
 	my $next_name = $next->nodeName ();
-	unless ($next_name eq 'Proof') {
-	  die ("Weird: the next sibling of node $i, a Proposition, is not a Proof element! It is a $next_name element, somehow");
+	if ($next_name eq 'Proof') {
+	  ($last_endposition_child)
+	    = $next->findnodes ('EndPosition[position()=last()]');
+	  # die ("Weird: the next sibling of node $i, a Proposition, is not a Proof element! It is a $next_name element, somehow");
+	} elsif ($next_name eq 'By'
+		 || $next_name eq 'From') {
+	  my ($last_ref) = $next->findnodes ('Ref[position()=last()]');
+	  if (defined ($last_ref)) {
+	    $last_endposition_child = $last_ref;
+	  } else {
+	    die ("Weird: node $i, a Proposition, is immediately justified, but the justification lacks a Ref child element!");
+	  }
 	}
-	($last_endposition_child)
-	  = $next->findnodes ('EndPosition[position()=last()]');
       } elsif ($node_name eq 'JustifiedTheorem') {
 	my ($proof) = $node->findnodes ('Proof');
 	my ($by_or_from) = $node->findnodes ('By | From');
