@@ -88,7 +88,7 @@ chomp $new_commit_tree;
 
 my $mizar_article_ext = 'miz';
 my $coq_article_ext = 'v';
-my $article_ext = $coq_article_ext;
+my $article_ext = $mizar_article_ext;
 my $article_regexp = '\.$article_ext\$';
 
 # Other file extensions that we have to allow.
@@ -98,9 +98,9 @@ my $special_regexp = '\.$special_ext\$';
 
 # Ensure that no non-mizar code is being pushed
 my @non_lib_files 
-    = `git show --pretty=oneline --name-only $new_sha | tail -n -1 | grep --invert-match '\.$article_ext\$' | grep --invert-match '\.$special_ext\$`;
+    = `git show --pretty=oneline --name-only $new_sha | tail -n -1 | grep --invert-match '\.$article_ext\$' | grep --invert-match '\.$special_ext\$'`;
 unless (scalar @non_lib_files == 0) {
-    pr_print ("Only .$article_ext and .$special_ext files are permitted to be committed: \"$non_lib_changed[0]\"  Sorry.");
+    pr_print ("Only .$article_ext and .$special_ext files are permitted to be committed: \"$non_lib_files[0]\"  Sorry.");
   exit 1;
 }
 
