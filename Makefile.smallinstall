@@ -86,7 +86,7 @@ public-repos: public-repo-init public-sandbox public-compiled public-repo-export
 
 scratch-directories:
 	mkdir -p $(SCRATCH_BASE)
-	cd $(SCRATCH_BASE) && mkdir mml prel bin xsl html .perl
+	cd $(SCRATCH_BASE) && mkdir mml dict prel bin xsl html .perl
 
 scratch-mizfiles: scratch-directories
 	# .miz
