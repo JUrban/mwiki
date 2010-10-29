@@ -385,6 +385,35 @@ sub split_reservations {
   # non-split one?  Right?  (This is not the case for the JA1 tool,
   # since that one will have a slightly different XML representation:
   # no Reservation element will have more than one Ident child.)
+
+  # We are NOT done: JA might change line numbering:
+  #
+  # reserve A,B,C for Ordinal,
+  # X,X1,Y,Y1,Z,a,b,b1,b2,x,y,z for set,
+  # R for Relation
+  #  ,
+  # f,g,h for Function,
+  # k,m,n for natural number;
+  #
+  # gets sent by JA to
+  #
+  # reserve A,B,C for  Ordinal;
+  # reserve X,X1,Y,Y1,Z,a,b,b1,b2,x,y,z for  set;
+  # reserve R for  Relation;
+  # reserve f,g,h for  Function;
+  # reserve k,m,n for  natural number;
+  #
+  # The first bunch of reservations spans 6 lines, but the new one spans 5!
+  system ("accom -q -s -l $article_miz > /dev/null 2> /dev/null");
+  unless ($? == 0) {
+    die ("Something went wrong when calling the accomodator on $article_name: the error was\n\n$!");
+  }
+  # DEBUG
+  warn "Verifying again (thanks, JA...)";
+  system ("verifier -q -s -l $article_miz > /dev/null 2> /dev/null");
+  unless ($? == 0) {
+    die ("Something went wrong when calling the verifier on $article_name: the error was\n\n$!");
+  }
 }
 
 # sub split_reservations {
