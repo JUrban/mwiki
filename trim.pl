@@ -1,7 +1,60 @@
 #!/usr/bin/perl -w
 
-my $article = $ARGV[0];
-my $article_prel_dir = "/tmp/mml/subset_1/prel";
+sub usage {
+  print ("trim.pl BASE-DIRECTORY ARTICLE-NAME ITEM-NUMBER\n");
+}
+
+my $article_root = $ARGV[0];
+
+unless (defined $article_root) {
+  usage ();
+  exit 1;
+}
+
+unless (-e $article_root && -d $article_root) {
+  die ("Article root either does not exist or is not a directory");
+}
+
+my $article_source = $ARGV[1];
+
+unless (defined $article_source) {
+  usage ();
+  exit 1;
+}
+
+my $article_item_number = $ARGV[2];
+
+unless (defined $article_item_number) {
+  usage ();
+  exit 1;
+}
+
+my $article_source_dir = "$article_root/$article_source";
+
+unless (-e $article_source_dir && -d $article_source_dir) {
+  die ("$article_source_dir either does not exist or is not a directory");
+}
+
+my $article_prel_dir = "$article_source_dir/prel";
+
+unless (-e $article_prel_dir && -d $article_prel_dir) {
+  die ("The PREL database for $article_source either does not exist or is not a directory");
+}
+
+my $article_text_dir = "$article_source_dir/text";
+
+unless (-e $article_text_dir && -d $article_text_dir) {
+  die ("Article text directory $article_text_dir either does not exist or is not actually a directory");
+}
+
+my $article_fragment_path_sans_miz
+  = "$article_text_dir/ITEM$article_item_number";
+
+my $article_fragment_path = "$article_fragment_path_sans_miz.miz";
+
+unless (-e $article_fragment_path || -d $article_fragment_path) {
+  die ("No article at $article_fragment_path, or it is a directory");
+}
 
 my @mml_lar = ();
 
@@ -90,7 +143,7 @@ sub trim_theorems_directive {
   my @trimmed = ();
   foreach my $theorem (@theorems) {
     # DEBUG
-    warn ("Looking for $theorem in $article_prel_dir/$theorem.the...");
+    # warn ("Looking for $theorem in $article_prel_dir/$theorem.the...");
     if (grep (/^$theorem$/i, @mml_lar)) {
       push (@trimmed, $theorem);
     } elsif ($theorem eq 'TARSKI') {
@@ -119,14 +172,14 @@ sub trim_schemes_directive {
 }
 
 # article environment
-my @vocabularies = `/Users/alama/sources/mizar/mwiki/env.pl Vocabularies $article`;
-my @notations = `/Users/alama/sources/mizar/mwiki/env.pl Notations $article`;
-my @constructors = `/Users/alama/sources/mizar/mwiki/env.pl Constructors $article`;
-my @registrations = `/Users/alama/sources/mizar/mwiki/env.pl Registrations $article`;
-my @requirements = `/Users/alama/sources/mizar/mwiki/env.pl Requirements $article`;
-my @definitions = `/Users/alama/sources/mizar/mwiki/env.pl Definitions $article`;
-my @theorems = `/Users/alama/sources/mizar/mwiki/env.pl Theorems $article`;
-my @schemes = `/Users/alama/sources/mizar/mwiki/env.pl Schemes $article`;
+my @vocabularies = `/Users/alama/sources/mizar/mwiki/env.pl Vocabularies $article_fragment_path_sans_miz`;
+my @notations = `/Users/alama/sources/mizar/mwiki/env.pl Notations $article_fragment_path_sans_miz`;
+my @constructors = `/Users/alama/sources/mizar/mwiki/env.pl Constructors $article_fragment_path_sans_miz`;
+my @registrations = `/Users/alama/sources/mizar/mwiki/env.pl Registrations $article_fragment_path_sans_miz`;
+my @requirements = `/Users/alama/sources/mizar/mwiki/env.pl Requirements $article_fragment_path_sans_miz`;
+my @definitions = `/Users/alama/sources/mizar/mwiki/env.pl Definitions $article_fragment_path_sans_miz`;
+my @theorems = `/Users/alama/sources/mizar/mwiki/env.pl Theorems $article_fragment_path_sans_miz`;
+my @schemes = `/Users/alama/sources/mizar/mwiki/env.pl Schemes $article_fragment_path_sans_miz`;
 
 chomp (@vocabularies);
 @vocabularies = grep (!/^HIDDEN$/, @vocabularies);
@@ -146,10 +199,10 @@ chomp (@schemes);
 @schemes = grep (!/^HIDDEN$/, @schemes);
 
 # DEBUG
-warn ("Theorems:\n");
-foreach my $theorem (@theorems) {
-  print ("$theorem\n");
-}
+# warn ("Theorems:\n");
+# foreach my $theorem (@theorems) {
+#   print ("$theorem\n");
+# }
 
 my $trimmed_notations_ref = trim_notations_directive (\@notations);
 my $trimmed_constructors_ref = trim_constructors_directive (\@constructors);
@@ -165,8 +218,8 @@ my @trimmed_definitions = @{$trimmed_definitions_ref};
 my @trimmed_theorems = @{$trimmed_theorems_ref};
 my @trimmed_schemes = @{$trimmed_schemes_ref};
 
-open (MIZ, q{<}, "$article.miz")
-  or die ("Coudn't open read-only filehandle for $article.miz: $!");
+open (MIZ, q{<}, $article_fragment_path)
+  or die ("Coudn't open read-only filehandle for $article_fragment_path: $!");
 my $line;
 while (defined ($line = <MIZ>)) {
   chomp $line;
@@ -188,4 +241,9 @@ while (defined ($line = <MIZ>)) {
 }
 
 close (MIZ)
-  or die ("Couldn't close read-only filehandle for miz!")
+  or die ("Couldn't close read-only filehandle for miz!");
+
+exit 0;
+
+
+# trim.pl ends here
