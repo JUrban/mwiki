@@ -454,6 +454,8 @@ sub split_reservations {
 # }
 
 sub print_reservation_table {
+  # DEBUG
+  warn "Here is the reservation table:";
   foreach my $key (keys (%reservation_table)) {
     print "$key:\n";
     print ($reservation_table{$key});
