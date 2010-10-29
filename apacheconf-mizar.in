@@ -1,0 +1,8 @@
+Alias /##REPO_NAME## "##PUBLIC_COMPILED_REPO##/html"
+<Directory /##REPO_NAME##>
+  Options Indexes FollowSymLinks MultiViews
+  DirectoryIndex ##REPO_DIR_INDEX##
+  AllowOverride None
+  Order allow,deny
+  allow from all
+</Directory>
