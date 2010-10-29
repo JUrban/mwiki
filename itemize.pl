@@ -157,7 +157,8 @@ sub export_item {
   foreach my $i (1 .. $number - 1) {
     my $earlier_item_kind = $item_kinds{$i-1};
     if ($earlier_item_kind eq 'notation'
-	|| $earlier_item_kind eq 'definition') {
+	|| $earlier_item_kind eq 'definition'
+        || $earlier_item_kind eq 'registration') {
       push (@this_item_notations, "ITEM$i");
     }
   }
@@ -170,7 +171,9 @@ sub export_item {
   my @this_item_constructors = @constructors;
   foreach my $i (1 .. $number - 1) {
     my $earlier_item_kind = $item_kinds{$i-1};
-    if ($earlier_item_kind eq 'definition') {
+    if ($earlier_item_kind eq 'definition'
+	|| $earlier_item_kind eq 'registration'
+        || $earlier_item_kind eq 'notation') {
       push (@this_item_constructors, "ITEM$i");
     }
   }
@@ -203,7 +206,9 @@ sub export_item {
   my @this_item_definitions = @definitions;
   foreach my $i (1 .. $number - 1) {
     my $earlier_item_kind = $item_kinds{$i-1};
-    if ($earlier_item_kind eq 'definition') {
+    if ($earlier_item_kind eq 'definition'
+        || $earlier_item_kind eq 'notation'
+        || $earlier_item_kind eq 'registration') {
       push (@this_item_definitions, "ITEM$i");
     }
   }
@@ -219,7 +224,8 @@ sub export_item {
     # DEBUG
     # warn ("earlier item $i is type $earlier_item_kind");
     if ($earlier_item_kind eq 'theorem'
-	|| $earlier_item_kind eq 'definition') {
+	|| $earlier_item_kind eq 'definition'
+        || $earlier_item_kind eq 'notation') {
       push (@this_item_theorems, "ITEM$i");
     }
   }
