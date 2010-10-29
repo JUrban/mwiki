@@ -2,4 +2,4 @@
 exec 2>&1
 echo 'git-daemon starting.'
 exec chpst -uwww-data \
-  /usr/lib/git-core/git-daemon --verbose --base-path=/var/cache/mwiki/public /var/cache/mwiki/public
+  /usr/lib/git-core/git-daemon --verbose --base-path=/var/cache /var/cache
