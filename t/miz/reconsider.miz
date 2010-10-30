@@ -19,6 +19,116 @@ environ
 
 begin
 
+reserve x for set,
+  a,b for real number,
+  k,k1,l,l1 for Element of NAT,
+  m,m1,n, n1 for Integer;
+ 
+:: We define RAT as a set of real numbers, each of which can be expressed
+:: as a quotient of integer dividend and divisor (divisor is not equal
+:: to zero).
+reserve i1,j1 for Element of NAT;
+
+Lm1: omega c= ({[c,d] where c,d is Element of omega: c,d are_relative_prime &
+d <> {}} \ {[k,1] where k is Element of omega: not contradiction}) \/ omega by
+XBOOLE_1:7;
+
+Lm2: quotient(i1,j1) = i1/j1
+proof
+  set x = quotient(i1,j1);
+  per cases;
+  suppose
+A1: j1 = {};
+    hence x = {} by ARYTM_3:def 10
+      .= i1/j1 by A1;
+  end;
+  suppose
+A2: j1 <> 0;
+    +(0,opp 0) = 0 by ARYTM_0:def 4;
+    then
+A3: opp 0 = 0 by ARYTM_0:13;
+    j1 * j1" = 1 by A2,XCMPLX_0:def 7;
+    then consider x1,x2,y1,y2 being Real such that
+A4: j1 = [*x1,x2*] and
+A5: j1" = [*y1,y2*] and
+A6: 1 = [* +(*(x1,y1),opp*(x2,y2)), +(*(x1,y2),*(x2,y1)) *] by
+    XCMPLX_0:def 5;
+    +(*(x1,y2),*(x2,y1)) = 0 by A6,ARYTM_0:26;
+    then
+A7: 1 = +(*(x1,y1),opp*(x2,y2)) by A6,ARYTM_0:def 7
+      .= +(*(x1,y1),opp 0) by A4,ARYTM_0:14,26
+      .= *(x1,y1) by A3,ARYTM_0:13;
+    x2 = 0 by A4,ARYTM_0:26;
+    then
+A8: j1 = x1 by A4,ARYTM_0:def 7;
+    then x1 in omega;
+    then reconsider xx = x1 as Element of RAT+ by Lm1;
+    consider yy being Element of RAT+ such that
+A9: xx *' yy = one by A2,A8,ARYTM_3:60;
+A10: xx in RAT+;
+    yy in RAT+;
+    then reconsider xx1 = xx, yy1 = yy as Element of REAL+ by A10,ARYTM_2:1;
+A11: ex x9,y9 being Element of RAT+ st xx1 = x9 & yy1 = y9 & xx1 *' yy1 =
+    x9 *' y9 by ARYTM_2:22;
+    yy1 in REAL+;
+    then reconsider xx1, yy1 as Element of REAL by ARYTM_0:1;
+    ex x9,y9 being Element of REAL+ st xx1 = x9 & yy1 = y9 & *(xx1,yy1) =
+    x9 *' y9 by ARYTM_0:def 3;
+    then
+A12: yy = y1 by A2,A8,A7,A9,A11,ARYTM_0:20;
+    then
+A13: y1 in RAT+;
+    y2 = 0 by A5,ARYTM_0:26;
+    then
+A14: j1" = y1 by A5,ARYTM_0:def 7;
+A15: j1 in omega;
+    then reconsider a = x, b = j1 as Element of RAT+ by Lm1;
+    consider x91,x92,y91,y92 being Real such that
+A16: i1 = [*x91,x92*] and
+A17: j1" = [*y91,y92*] and
+A18: i1*j1" = [* +(*(x91,y91),opp*(x92,y92)), +(*(x91,y92),*(x92,y91))
+    *] by XCMPLX_0:def 5;
+A19: +(*(x91,y92),*(x92,y91)) = 0 by A18,ARYTM_0:26;
+    x1 in omega by A8;
+    then consider x19,y19 being Element of REAL+ such that
+A20: x1 = x19 and
+A21: y1 = y19 and
+A22: *(x1,y1) = x19 *' y19 by A13,ARYTM_0:def 3,ARYTM_2:1,2;
+A23: ex x199,y199 being Element of RAT+ st x19 = x199 & y19 = y199 & x19
+    *' y19 = x199 *' y199 by A8,A12,A15,A20,A21,Lm1,ARYTM_2:22;
+A24: y92 = 0 by A17,ARYTM_0:26;
+    then j1" = y91 by A17,ARYTM_0:def 7;
+    then
+A25: i1*j1" = +(*(x91,y1),opp*(x92,0)) by A14,A18,A24,A19,ARYTM_0:def
+    7
+      .= +(*(x91,y1),0) by A3,ARYTM_0:14
+      .= *(x91,y1) by ARYTM_0:13;
+    x92 = 0 by A16,ARYTM_0:26;
+    then
+A26: i1 = x91 by A16,ARYTM_0:def 7;
+    then
+A27: x91 in omega;
+    then x91 in RAT+ by Lm1;
+    then consider x9,y9 being Element of REAL+ such that
+A28: x91 = x9 and
+A29: y1 = y9 and
+A30: i1 * j1" = x9 *' y9 by A25,A13,ARYTM_0:def 3,ARYTM_2:1;
+    consider x99,y99 being Element of RAT+ such that
+A31: x9 = x99 and
+A32: y9 = y99 and
+A33: i1 * j1" = x99 *' y99 by A27,A12,A28,A29,A30,Lm1,ARYTM_2:22;
+    a *' b = quotient(i1,j1) *' quotient(j1,one) by ARYTM_3:46
+      .= quotient(i1*^j1,j1*^one) by ARYTM_3:55
+      .= quotient(i1,one) *' quotient(j1,j1) by ARYTM_3:55
+      .= quotient(i1,one) *' one by A2,ARYTM_3:47
+      .= quotient(i1,one) by ARYTM_3:59
+      .= i1 by ARYTM_3:46
+      .= x99 *' one by A26,A28,A31,ARYTM_3:59
+      .= x99 *' y99 *' b by A8,A7,A29,A32,A20,A21,A22,A23,ARYTM_3:58;
+    hence thesis by A2,A33,ARYTM_3:62;
+  end;
+end;
+
 0 in omega;
 
 then reconsider 09 = 0 as Element of REAL+ by ARYTM_2:2;
