@@ -1147,3 +1147,92 @@ itemize ();
 # foreach my $reservation (@reservations) {
 #   print "$reservation\n";
 # }
+
+=head1 NAME
+
+itemize – Decompose a mizar article into its constituent parts
+
+=head1 VERSION
+
+The initial template usually just has: This documentation refers to
+<application name> version 0.0.1.
+
+=head1 USAGE
+
+itemize.pl ARTICLE-NAME
+
+=head1 REQUIRED ARGUMENTS
+
+One needs to supply a single argument, ARTICLE-NAME, that names a
+mizar article.
+
+=head1 OPTIONS
+
+There are no options.
+
+=head1 DESCRIPTION
+
+This program divides a mizar article into its constituent pieces.
+
+=head1 DIAGNOSTICS
+
+Always returns 0, if it terminates cleanly at all.
+
+(Obviously, this is useless.  This will change in future versions as
+the program matures.)
+
+=head1 CONFIGURATION AND ENVIRONMENT
+
+Ignores MIZFILES.
+
+(This will change in future versions.)
+
+=head1 DEPENDENCIES
+
+=head2 Local modules
+
+* mizar.pm
+
+=head2 Non-standard modules
+
+Get these from CPAN:
+
+* Getopt-Eucid (>= 0.2.3)
+
+=head1 INCOMPATIBILITIES
+
+None are known.
+
+=head1 BUGS AND LIMITATIONS
+
+Breaking up article is very slow.  There are lots of opportunities for
+optimization.
+
+This module currently does not handle articles that have global set or
+reconsider statements.  If any article with such features is detected,
+further processing stops.
+
+Please report problems to Jesse Alama (jesse.alama@gmail.com). Patches
+are welcome.
+
+=head1 AUTHORS
+
+Jesse Alama (jesse.alama@gmail.com)
+
+=head1 ACKNOWLEDGEMENTS
+
+Thanks to Josef Urban, as always, for his mizar-ly support and advice
+and to Karol Pąk for his essential JA and JA1 mizar tools.
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright (c) 2010 Jesse Alama (jesse.alama@gmail.com). All rights reserved.
+
+This module is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself. See L<perlartistic>.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+=cut
