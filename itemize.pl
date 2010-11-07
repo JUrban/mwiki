@@ -1233,8 +1233,9 @@ itemize – Decompose a mizar article into its constituent parts
 
 =head1 USAGE
 
-  itemize.pl --article-source-dir=<DIRECTORY> 
+  itemize.pl --article-source-dir=<DIRECTORY>
              --result-dir=<DIRECTORY>
+             --emacs-lisp-dir=<DIRECTORY>
              <ARTICLE>
 
 =for Euclid:
