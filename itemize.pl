@@ -107,12 +107,6 @@ unless (defined $article_name) { # weird: my typo or bug in Getopt::Euclid
   die 'The mandatory ARTICLE argument was somehow omitted!';
 }
 
-# Now ensure that the article name is sane: at least 1 but at most 32 alphanumeric
-# characters long, possibly ended by '.miz'
-if ($article_name !~ /^[A-Za-z0-9]{1,32}(\.miz)?$/) {
-  die 'Article name must be at least one but at most 32 alphanumeric characers long (and may or may not end with the ".miz" suffix)';
-}
-
 # Strip the final ".miz", if there is one
 my $article_name_len = length $article_name;
 if ($article_name =~ /\.miz$/) {
@@ -1286,6 +1280,10 @@ variable will be used.
 
 ARTICLE must be at most 1 but at most 32 alphanumeric characters long,
 excluding an optional ".miz" file extension.
+
+=for Euclid:
+     ARTICLE.type: /^[A-Za-z]{1,32}+(\.miz)?$/
+     ARTICLE.type.error:   Article name must be at most 32 alphanumeric characters long (but it may end with the ".miz" suffix)
 
 =back
 
