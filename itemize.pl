@@ -43,9 +43,14 @@ unless (-r $article_source_dir) {
 
 ### --result-dir
 
-# First, extract or assign a value.  In this case, Getopt:Euclid has
-# already taken care of this for us.
+# First, extract a value.  In this case, Getopt:Euclid has already
+# taken care of this for us, so there's no need to compute a default
+# value in case no value was supplied, as was the case for the
+# --article-source-dir option.
 my $result_dir = $ARGV{'--result-dir'};
+unless (defined $result_dir) { # weird: typo on my part or bug in Getopt::Euclid
+  die 'No value for the --result-dir option is present in the %ARGV table!';
+}
 
 # Ensure that the value is sensible, which in this case means: it
 # exists, it's a directory, and it's writable
