@@ -99,10 +99,6 @@ foreach my $elisp_file (@elisp_files) {
 }
 
 
-# TODO
-#
-# * rewrite article-local labels
-
 use XML::LibXML;
 
 my $article_name = $ARGV[0];
