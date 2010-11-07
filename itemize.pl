@@ -1338,17 +1338,25 @@ This program uses the MIZFILES environment variable.
 
 =head3 Non-standard modules
 
+=over
+
 =item File::Tempdir
 
 =item File::Spec
 
 =item Getopt::Euclid (>= 0.2.3)
 
+=back
+
 =head2 NON-PERL DEPENDENCIES
+
+=over
 
 =item reservations.el
 
 Emacs Lisp code for extracting content from the supplied ARTICLE.
+
+=back
 
 =head1 INCOMPATIBILITIES
 
