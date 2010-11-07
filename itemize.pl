@@ -1269,7 +1269,7 @@ itemize – Decompose a mizar article into its constituent parts
 
 =item <ARTICLE>
 
-ARTICLE should be the name of an article.  directory.  If it ends with
+ARTICLE should be the name of an article.  If ARTICLE ends with
 ".miz", then the part of the article before the ".miz" will be treated
 as the name of the article.
 
