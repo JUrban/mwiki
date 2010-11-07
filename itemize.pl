@@ -1,5 +1,13 @@
 #!/usr/bin/perl -w
 
+# First sanity check: make sure that MIZFILES is set.  We can't do
+# anything it is not set.  Let's not check whether it is a sensible
+# value, just that it has some value.
+my $mizfiles = $ENV{'MIZFILES'};
+unless (defined $mizfiles) {
+  die 'The MIZFILES environment variable is unset; nothing more can be done';
+}
+
 use Getopt::Euclid; # load this first to set up our command-line parser
 
 use Cwd qw / getcwd /;
@@ -11,11 +19,6 @@ use File::Temp qw / tempdir /;
 
 # First, grab the MIZFILEs environment variable; some of the options
 # will have values relative to this.
-
-my $mizfiles = $ENV{'MIZFILES'};
-unless (defined $mizfiles) {
-  $mizfiles = ''; # empty string, to ensure that $mizfiles is defined
-}
 
 # Now deal with the command-line arguments that were given.
 
@@ -1304,9 +1307,7 @@ the program matures.)
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
-Ignores MIZFILES.
-
-(This will change in future versions.)
+This program uses the MIZFILES environment variable.
 
 =head1 DEPENDENCIES
 
