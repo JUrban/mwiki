@@ -1311,17 +1311,25 @@ This program uses the MIZFILES environment variable.
 
 =head1 DEPENDENCIES
 
-=head2 Local modules
+=head2 PERL DEPENDENCIES
+
+=head3 Local modules
 
 =item mizar.pm
 
-=head2 Standard modules
+=head3 Standard modules
 
-=head2 Non-standard modules
+=head3 Non-standard modules
 
 =item File::Tempdir
 
 =item Getopt::Euclid (>= 0.2.3)
+
+=head2 NON-PERL DEPENDENCIES
+
+=item reservations.el
+
+Emacs Lisp code for extracting content from the supplied ARTICLE.
 
 =head1 INCOMPATIBILITIES
 
