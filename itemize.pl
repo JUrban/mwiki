@@ -17,9 +17,6 @@ use File::Temp qw / tempdir /;
 # the documentation section at the end of this file to see what
 # command-line options are available.
 
-# First, grab the MIZFILEs environment variable; some of the options
-# will have values relative to this.
-
 # Now deal with the command-line arguments that were given.
 
 # --article-source-dir
