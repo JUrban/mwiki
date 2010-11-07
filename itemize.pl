@@ -89,12 +89,12 @@ unless (-r $elisp_dir) {
 }
 my @elisp_files = ('reservations.elc');
 foreach my $elisp_file (@elisp_files) {
-  my $elisp_file_path = File::Spec->catfile ($elisp_path, $elisp_file);
+  my $elisp_file_path = File::Spec->catfile ($elisp_dir, $elisp_file);
   unless (-e $elisp_file_path) {
-    die "The required emacs lisp file\n\n  $elisp_file\n\ncannot be found under the emacs lisp directory\n\n$elisp_path";
+    die "The required emacs lisp file\n\n  $elisp_file\n\ncannot be found under the emacs lisp directory\n\n$elisp_dir";
   }
   unless (-r $elisp_file_path) {
-    die "The required emacs lisp file\n\n  $elisp_file\n\nunder the emacs lisp directory\n\n$elisp_path\n\nis not readable!";
+    die "The required emacs lisp file\n\n  $elisp_file\n\nunder the emacs lisp directory\n\n$elisp_dir\n\nis not readable!";
   }
 }
 
