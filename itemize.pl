@@ -56,7 +56,7 @@ unless (defined $result_dir) { # weird: typo on my part or bug in Getopt::Euclid
 # Ensure that the value is sensible, which in this case means: it
 # exists, it's a directory, and it's writable
 unless (-e $result_dir) {
-  die "The given result directory\n\n  $result_dir\n\ndoes not exist!;
+  die "The given result directory\n\n  $result_dir\n\ndoes not exist!";
 }
 unless (-d $result_dir) {
   die "The given result directory\n\n$result_dir\n\nis not actually a directory!";
