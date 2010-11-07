@@ -1238,10 +1238,6 @@ itemize – Decompose a mizar article into its constituent parts
              --emacs-lisp-dir=<DIRECTORY>
              <ARTICLE>
 
-=for Euclid:
-     ARTICLE.type:    readable
-     ARTICLE.default  '-'
-
 =head1 REQUIRED ARGUMENTS
 
 =over
