@@ -98,11 +98,46 @@ foreach my $elisp_file (@elisp_files) {
   }
 }
 
+### ARTICLE
+
+# First, extract a value of the single required ARTICLE
+# argument.
+my $article_name = $ARGV{'<ARTICLE>'};
+unless (defined $article_name) { # weird: my typo or bug in Getopt::Euclid
+  die 'The mandatory ARTICLE argument was somehow omitted!';
+}
+
+# Now ensure that the article name is sane: at least 1 but at most 32 alphanumeric
+# characters long, possibly ended by '.miz'
+if ($article_name !~ /^[A-Za-z0-9]{1,32}(\.miz)?$/) {
+  die 'Article name must be at least one but at most 32 alphanumeric characers long (and may or may not end with the ".miz" suffix)';
+}
+
+# Strip the final ".miz", if there is one
+my $article_name_len = length $article_name;
+if ($article_name =~ /\.miz$/) {
+  $article_name = substr $article_name, 0, $article_name_len - 4;
+}
+
+my $article_miz = $article_name . '.miz';
+my $article_path = File::Spec->catfile ($article_source_dir, $article_name);
+
+# More sanity checks: the mizar file exists and is readable
+unless (-e $article_path) {
+  die "No file named\n\n  $article_miz\n\nunder the source directory\n\n  $article_source_dir";
+}
+unless (-r $article_path) {
+  die "The file\n\n  $article_miz\n\under the source directory\n\n  $article_source_dir\n\nis not readable";
+}
+
+######################################################################
+### End command-line processing.
+###
+### Now we can start doing something.
+######################################################################
 
 use XML::LibXML;
 
-my $article_name = $ARGV[0];
-my $article_miz = $article_name . '.miz';
 my $article_lsp = $article_name . '.lsp';
 my $article_xml = $article_name . '.xml';
 my $article_xml_absrefs = $article_name . '.xml1';
@@ -1248,6 +1283,9 @@ ARTICLE will be looked for in the directory specified by the
 --article-source-dir option.  If that option is unset, then the 'mml'
 subdirectory of whatever is specified by the MIZFILES environment
 variable will be used.
+
+ARTICLE must be at most 1 but at most 32 alphanumeric characters long,
+excluding an optional ".miz" file extension.
 
 =back
 
