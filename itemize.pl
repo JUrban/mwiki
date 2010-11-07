@@ -12,6 +12,7 @@ use Getopt::Euclid; # load this first to set up our command-line parser
 
 use Cwd qw / getcwd /;
 use File::Temp qw / tempdir /;
+use File::Spec;
 
 ######################################################################
 ### Process the command line
@@ -63,6 +64,40 @@ unless (-d $result_dir) {
 unless (-w $result_dir) {
   die 'The given result directory\n\n$result_dir\n\nis not writable!';
 }
+
+### --emacs-lisp-dir
+
+# First, extract or assign a value.  As was the case for the
+# --result-dir option, a default value has already been specified
+# using Getopt::Euclid, so there's no need to compute a default.
+my $elisp_dir = $ARGV{'--emacs-lisp-dir'};
+unless (defuned $elisp_dir) { # weird: typo on my part or bug in Getopt::Euclid
+  die 'No value for the --emacs-lisp-dir option is present in the %ARGV table!';
+}
+
+# Ensure that the value is sensible, which in this case means: it
+# exists, it's a directory, it's readable, and it contains all the
+# needed helper elisp code
+unless (-e $elisp_dir) {
+  die 'The given emacs lisp directory\n\n  $elisp_dir\n\ndoes not exist!';
+}
+unless (-d $elisp_dir) {
+  die 'The given emacs lisp directory\n\n$elisp_dir\n\nis not actually a directory!';
+}
+unless (-r $elisp_dir) {
+  die 'The given emacs lisp directory\n\n$elisp_dir\n\nis not readable!';
+}
+my @elisp_files = ('reservations.elc');
+foreach my $elisp_file (@elisp_files) {
+  my $elisp_file_path = File::Spec->catfile ($elisp_path, $elisp_file);
+  unless (-e $elisp_file_path) {
+    die "The required emacs lisp file\n\n  $elisp_file\n\ncannot be found under the emacs lisp directory\n\n$elisp_path";
+  }
+  unless (-r $elisp_file_path) {
+    die "The required emacs lisp file\n\n  $elisp_file\n\nunder the emacs lisp directory\n\n$elisp_path\n\nis not readable!";
+  }
+}
+
 
 # TODO
 #
@@ -1253,6 +1288,14 @@ writable.
 =for Euclid:
      RESULT-DIRECTORY.default: '.'
 
+=item --emacs-lisp-dir=<ELISP-DIR>
+
+The directory in which to look for the Emacs Lisp code that this
+program uses.  The default is to use the current directory.
+
+=for Euclid:
+     ELISP-DIR.default: '.'
+
 =item --version
 
 =item --usage
@@ -1299,6 +1342,8 @@ This program uses the MIZFILES environment variable.
 =head3 Non-standard modules
 
 =item File::Tempdir
+
+=item File::Spec
 
 =item Getopt::Euclid (>= 0.2.3)
 
