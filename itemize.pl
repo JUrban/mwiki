@@ -71,7 +71,7 @@ unless (-w $result_dir) {
 # --result-dir option, a default value has already been specified
 # using Getopt::Euclid, so there's no need to compute a default.
 my $elisp_dir = $ARGV{'--emacs-lisp-dir'};
-unless (defuned $elisp_dir) { # weird: typo on my part or bug in Getopt::Euclid
+unless (defined $elisp_dir) { # weird: typo on my part or bug in Getopt::Euclid
   die 'No value for the --emacs-lisp-dir option is present in the %ARGV table!';
 }
 
