@@ -33,13 +33,13 @@ unless (defined $article_source_dir) {
 # Now ensure that this value for is sensible, which in this case
 # means: it exists, it's directory, and it's readable.
 unless (-e $article_source_dir) {
-  die 'The given article source directory\n\n  $article_source_dir\n\ndoes not exist!';
+  die "The given article source directory\n\n  $article_source_dir\n\ndoes not exist!";
 }
 unless (-d $article_source_dir) {
-  die 'The given article source directory\n\n$article_source_dir\n\nis not actually a directory!';
+  die "The given article source directory\n\n$article_source_dir\n\nis not actually a directory!";
 }
 unless (-r $article_source_dir) {
-  die 'The given article source directory\n\n$article_source_dir\n\nis not readable!';
+  die "The given article source directory\n\n$article_source_dir\n\nis not readable!";
 }
 
 ### --result-dir
@@ -56,13 +56,13 @@ unless (defined $result_dir) { # weird: typo on my part or bug in Getopt::Euclid
 # Ensure that the value is sensible, which in this case means: it
 # exists, it's a directory, and it's writable
 unless (-e $result_dir) {
-  die 'The given result directory\n\n  $result_dir\n\ndoes not exist!';
+  die "The given result directory\n\n  $result_dir\n\ndoes not exist!;
 }
 unless (-d $result_dir) {
-  die 'The given result directory\n\n$result_dir\n\nis not actually a directory!';
+  die "The given result directory\n\n$result_dir\n\nis not actually a directory!";
 }
 unless (-w $result_dir) {
-  die 'The given result directory\n\n$result_dir\n\nis not writable!';
+  die "The given result directory\n\n$result_dir\n\nis not writable!";
 }
 
 ### --emacs-lisp-dir
@@ -79,13 +79,13 @@ unless (defined $elisp_dir) { # weird: typo on my part or bug in Getopt::Euclid
 # exists, it's a directory, it's readable, and it contains all the
 # needed helper elisp code
 unless (-e $elisp_dir) {
-  die 'The given emacs lisp directory\n\n  $elisp_dir\n\ndoes not exist!';
+  die "The given emacs lisp directory\n\n  $elisp_dir\n\ndoes not exist!";
 }
 unless (-d $elisp_dir) {
-  die 'The given emacs lisp directory\n\n$elisp_dir\n\nis not actually a directory!';
+  die "The given emacs lisp directory\n\n$elisp_dir\n\nis not actually a directory!";
 }
 unless (-r $elisp_dir) {
-  die 'The given emacs lisp directory\n\n$elisp_dir\n\nis not readable!';
+  die "The given emacs lisp directory\n\n$elisp_dir\n\nis not readable!";
 }
 my @elisp_files = ('reservations.elc');
 foreach my $elisp_file (@elisp_files) {
