@@ -1,5 +1,63 @@
 #!/usr/bin/perl -w
 
+use Getopt::Euclid; # load this first to set up our command-line parser
+
+use Cwd qw / getcwd /;
+use File::Temp qw / tempdir /;
+
+# Process command-line arguments.  We are using Getopt::Euclid; see
+# the documentation section at the end of this file to see what
+# command-line options are available.
+
+# First, grab the MIZFILEs environment variable; some of the options
+# will have values relative to this.
+
+my $mizfiles = $ENV{'MIZFILES'};
+unless (defined $mizfiles) {
+  $mizfiles = ''; # empty string, to ensure that $mizfiles is defined
+}
+
+# Now deal with the command-line arguments that were given.
+
+# --article-source-dir
+
+# First, extract a value
+
+my $article_source_dir = $ARGV{'--article-source-dir'};
+unless (defined $article_source_dir) {
+  $article_source_dir = "$mizfiles/mml";
+}
+
+# Now ensure that this value for is sensible, which in this case
+# means: it exists, it's directory, and it's readable.
+unless (-e $article_source_dir) {
+  die 'The given article source directory\n\n  $article_source_dir\n\ndoes not exist!';
+}
+unless (-d $article_source_dir) {
+  die 'The given article source directory\n\n$article_source_dir\n\nis not actually a directory!';
+}
+unless (-r $article_source_dir) {
+  die 'The given article source directory\n\n$article_source_dir\n\nis not readable!';
+}
+
+# --result-dir
+
+# First, extract or assign a value.  In this case, Getopt:Euclid has
+# already taken care of this for us.
+my $result_dir = $ARGV{'--result-dir'};
+
+# Ensure that the value is sensible, which in this case means: it
+# exists, it's a directory, and it's writable
+unless (-e $result_dir) {
+  die 'The given result directory\n\n  $result_dir\n\ndoes not exist!';
+}
+unless (-d $result_dir) {
+  die 'The given result directory\n\n$result_dir\n\nis not actually a directory!';
+}
+unless (-w $result_dir) {
+  die 'The given result directory\n\n$result_dir\n\nis not writable!';
+}
+
 sub usage {
   print <<'END_USAGE';
 Usage: itemize.pl ARTICLE
@@ -1152,23 +1210,78 @@ itemize ();
 
 itemize – Decompose a mizar article into its constituent parts
 
-=head1 VERSION
-
-The initial template usually just has: This documentation refers to
-<application name> version 0.0.1.
-
 =head1 USAGE
 
-itemize.pl ARTICLE-NAME
+  itemize.pl --article-source-dir=<DIRECTORY> 
+             --result-dir=<DIRECTORY>
+             <ARTICLE>
+
+=for Euclid:
+     ARTICLE.type:    readable
+     ARTICLE.default  '-'
 
 =head1 REQUIRED ARGUMENTS
 
-One needs to supply a single argument, ARTICLE-NAME, that names a
-mizar article.
+=over
+
+=item <ARTICLE>
+
+ARTICLE should be the name of an article that exists in the current
+directory.  If it ends with ".miz", then the part of the article
+before the ".miz" will be treated as the name of the article.
+
+A directory called ARTICLE will be created in the current directory.
+Upon termination, the directory ARTICLE will be a mizar "working
+directory" containing subdirectories "dict", "prel", and "text".
+Inside the "text" subdirectory there will be as many new mizar
+articles as there are items in ARTICLE.  The "dict" subdirectory will
+likewise contain as vocabulary files as there are items in ARTICLE.
+The "prel" subdirectory will contain the results of calling miz2prel
+on each of the standalone articles.
+
+=back
 
 =head1 OPTIONS
 
-There are no options.
+=over
+
+=item --article-source-dir=<DIRECTORY>
+
+Take ARTICLE from DIRECTORY.  Both relative and absolute paths are
+acceptable.
+
+If this option is unset, then the MIZFILES environment variable will
+be consulted, and the subdirectory 'mml' will be the source for
+ARTICLE.
+
+=item --result-dir=<RESULT-DIRECTORY>
+
+Make a local mizar database for ARTICLE in RESULT-DIRECTORY.  The
+database will itself be a subdirecory of RESULT-DIRECTORY called by
+the same name as ARTICLE; the database itself will contain
+subdirectories 'prel' and 'text'.
+
+RESULT-DIRECTORY, if unset, defaults to the current directory.  If
+set, it should be a path; it can be either an absolute path (beginning
+with a forward slash '/') or a relative path (i.e., anything that is
+not an absolute path).  In either case, it is up to the user to ensure
+that, if RESULT-DIRECTORY is set, that the directory exists and is
+writable.
+
+=for Euclid:
+     RESULT-DIRECTORY.default: '.'
+
+=item --version
+
+=item --usage
+
+=item --help
+
+=item --man
+
+=back
+
+Print the usual program information.
 
 =head1 DESCRIPTION
 
@@ -1191,13 +1304,15 @@ Ignores MIZFILES.
 
 =head2 Local modules
 
-* mizar.pm
+=item mizar.pm
+
+=head2 Standard modules
 
 =head2 Non-standard modules
 
-Get these from CPAN:
+=item File::Tempdir
 
-* Getopt-Eucid (>= 0.2.3)
+=item Getopt::Euclid (>= 0.2.3)
 
 =head1 INCOMPATIBILITIES
 
