@@ -1313,12 +1313,6 @@ This program uses the MIZFILES environment variable.
 
 =head2 PERL DEPENDENCIES
 
-=head3 Local modules
-
-=item mizar.pm
-
-=head3 Standard modules
-
 =head3 Non-standard modules
 
 =item File::Tempdir
