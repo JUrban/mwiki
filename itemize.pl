@@ -1226,18 +1226,14 @@ itemize – Decompose a mizar article into its constituent parts
 
 =item <ARTICLE>
 
-ARTICLE should be the name of an article that exists in the current
-directory.  If it ends with ".miz", then the part of the article
-before the ".miz" will be treated as the name of the article.
+ARTICLE should be the name of an article.  directory.  If it ends with
+".miz", then the part of the article before the ".miz" will be treated
+as the name of the article.
 
-A directory called ARTICLE will be created in the current directory.
-Upon termination, the directory ARTICLE will be a mizar "working
-directory" containing subdirectories "dict", "prel", and "text".
-Inside the "text" subdirectory there will be as many new mizar
-articles as there are items in ARTICLE.  The "dict" subdirectory will
-likewise contain as vocabulary files as there are items in ARTICLE.
-The "prel" subdirectory will contain the results of calling miz2prel
-on each of the standalone articles.
+ARTICLE will be looked for in the directory specified by the
+--article-source-dir option.  If that option is unset, then the 'mml'
+subdirectory of whatever is specified by the MIZFILES environment
+variable will be used.
 
 =back
 
@@ -1286,6 +1282,18 @@ Print the usual program information.
 =head1 DESCRIPTION
 
 This program divides a mizar article into its constituent pieces.
+
+A directory called by the same name as ARTICLE will be created in the
+directory specified by the --result-dir option.  The default is to use
+the current directory.
+
+Upon termination, the directory ARTICLE will be a mizar "working
+directory" containing subdirectories "dict", "prel", and "text".
+Inside the "text" subdirectory there will be as many new mizar
+articles as there are items in ARTICLE.  The "dict" subdirectory will
+likewise contain as vocabulary files as there are items in ARTICLE.
+The "prel" subdirectory will contain the results of calling miz2prel
+on each of the standalone articles.
 
 =head1 DIAGNOSTICS
 
