@@ -13,16 +13,17 @@ use Getopt::Euclid; # load this first to set up our command-line parser
 use Cwd qw / getcwd /;
 use File::Temp qw / tempdir /;
 
-# Process command-line arguments.  We are using Getopt::Euclid; see
-# the documentation section at the end of this file to see what
-# command-line options are available.
+######################################################################
+### Process the command line
+###
+###
+### We are using Getopt::Euclid; see the documentation section at the
+### end of this file to see what command-line options are available.
+######################################################################
 
-# Now deal with the command-line arguments that were given.
-
-# --article-source-dir
+### --article-source-dir
 
 # First, extract a value
-
 my $article_source_dir = $ARGV{'--article-source-dir'};
 unless (defined $article_source_dir) {
   $article_source_dir = "$mizfiles/mml";
@@ -40,7 +41,7 @@ unless (-r $article_source_dir) {
   die 'The given article source directory\n\n$article_source_dir\n\nis not readable!';
 }
 
-# --result-dir
+### --result-dir
 
 # First, extract or assign a value.  In this case, Getopt:Euclid has
 # already taken care of this for us.
