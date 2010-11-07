@@ -58,26 +58,6 @@ unless (-w $result_dir) {
   die 'The given result directory\n\n$result_dir\n\nis not writable!';
 }
 
-sub usage {
-  print <<'END_USAGE';
-Usage: itemize.pl ARTICLE
-
-ARTICLE should be the name of an article that exists in the current
-directory.  If it ends with ".miz", then the part of the article
-before the ".miz" will be treated as the name of the article.
-
-A directory called ARTICLE will be created in the current directory.
-Upon termination, the directory ARTICLE will be a mizar "working
-directory" containing subdirectories "dict", "prel", and "text".
-Inside the "text" subdirectory there will be as many new mizar
-articles as there are items in ARTICLE.  The "dict" subdirectory will
-likewise contain as vocabulary files as there are items in ARTICLE.
-The "prel" subdirectory will contain the results of calling miz2prel
-on each of the standalone articles.
-
-END_USAGE
-}
-
 # TODO
 #
 # * rewrite article-local labels
