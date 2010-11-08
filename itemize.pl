@@ -13,6 +13,7 @@ use Getopt::Euclid; # load this first to set up our command-line parser
 use Cwd qw / getcwd /;
 use File::Temp qw / tempdir /;
 use File::Spec;
+use File::Copy;
 
 ######################################################################
 ### Process the command line
