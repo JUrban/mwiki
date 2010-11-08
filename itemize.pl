@@ -137,7 +137,40 @@ if (defined $ARGV{'--no-cleanup'}) {
 ### Now we can start doing something.
 ######################################################################
 
+### Prepare the work directory.
+
+# First, create it.
+my $workdir = tempdir (CLEANUP => $cleanup_afterward)
+  or die 'Unable to create a working directory!';
+
+# Now copy the specified mizar article to the work directory
+my $article_in_workdir = File::Spec->catfile ($workdir, $article_miz);
+copy ($article_miz, $article_in_workdir)
+  or die "Unable to copy article ($article_miz) to workdirectory ($workdir): $!";
+
+### Prepare the result directory
+
+## But first check whether it already exists.  If it does, stop.
+my $local_db = File::Spec->catfile ($result_dir, $article);
+if (-x $local_db) {
+  die "Error: there is already a directory called '$article' in the result directory ($result_dir)";
+}
+
+mkdir $local_db
+  or die "Unable to make the local database directory: $!";
+
+my $article_dict_dir = File::Spec->catfile ($local_db, 'dict'); # we don't actually use this yet
+my $article_prel_dir = File::Spec->catfile ($local_db, 'prel');
+my $article_text_dir = File::Spec->catfile ($local_db, 'text');
+
+foreach my $local_db_subdir ($article_dict_dir $article_prel_dir $article_text_dir) {
+  mkdir $local_db_subdir
+    or die "Unable to make local database subdirectory $local_db_subdir: $!";
+}
+
 use XML::LibXML;
+
+
 
 my $article_lsp = $article_name . '.lsp';
 my $article_xml = $article_name . '.xml';
