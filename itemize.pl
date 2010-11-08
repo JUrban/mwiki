@@ -184,10 +184,6 @@ my $article_xml = $article_name . '.xml';
 my $article_xml_absrefs = $article_name . '.xml1';
 my $article_idx = $article_name . '.idx';
 my $article_tmp = $article_name . '.$-$';
-my $article_work_dir = $article_name;
-my $article_dict_dir = $article_name . '/' . 'dict';
-my $article_prel_dir = $article_name . '/' . 'prel';
-my $article_text_dir = $article_name . '/' . 'text';
 
 unless (-e "$article_name.miz") {
   die "Mizar source $article_miz does not exist in the current directory";
@@ -217,30 +213,7 @@ unless (-e "$article_xml_absrefs") {
   }
 }
 
-sub make_miz_dir {
-  if (-e $article_work_dir) {
-    if (-d $article_work_dir) {
-      my @workdirs = `find . -type d -name $article_work_dir -empty`;
-      if (scalar (@workdirs) == 0) {
-	die "Unable to proceed: the working directory for $article_name already exists in this directory but it is not empty; refusing to (potentially) overwrite its contents.";
-      } else {
-	warn "Warning: the working directory for $article_name already exists in the current directory, but it is empty.  Populating it...";
-      }
-    } else {
-      die ("Unable to proceed: a non-directory with the same name as the working directory for $article_name already exists in the current directory.")
-    }
-  } else {
-    warn "Warning: the working directory for $article_name doesn't yet exist in the current directory; creating it...";
-    mkdir ($article_work_dir);
-    mkdir ($article_dict_dir);
-    mkdir ($article_prel_dir);
-    mkdir ($article_text_dir);
-  }
-}
-
 my @items = ();
-
-make_miz_dir ();
 
 # article environment
 my @vocabularies = `/Users/alama/sources/mizar/mwiki/env.pl Vocabularies $article_name`;
