@@ -1237,12 +1237,13 @@ ARTICLE will be looked for in the directory specified by the
 subdirectory of whatever is specified by the MIZFILES environment
 variable will be used.
 
-ARTICLE must be at most 1 but at most 32 alphanumeric characters long,
+ARTICLE must be at most 1 but at most 32 characters long, all
+alphanumeric (though the underscore character '_' is permitted)
 excluding an optional ".miz" file extension.
 
 =for Euclid:
-     ARTICLE.type: /^[A-Za-z]{1,32}+(\.miz)?$/
-     ARTICLE.type.error:   Article name must be at most 32 alphanumeric characters long (but it may end with the ".miz" suffix)
+     ARTICLE.type: /^[A-Za-z0-9_]{1,32}+(\.miz)?$/
+     ARTICLE.type.error:   Article name must be at most 32 characters long, all alphanumeric (or '_'); it may end in '.miz', and this is not counted in the limit of 32 characters.
 
 =back
 
