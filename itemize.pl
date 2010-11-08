@@ -178,8 +178,6 @@ foreach my $local_db_subdir (@local_db_subdirs) {
 use XML::LibXML;
 
 
-
-my $article_lsp = $article_name . '.lsp';
 my $article_xml = $article_name . '.xml';
 my $article_xml_absrefs = $article_name . '.xml1';
 my $article_idx = $article_name . '.idx';
@@ -442,23 +440,6 @@ sub init_reservation_table {
   }
 }
 
-sub tokens {
-  unless (-e $article_lsp) {
-    die ("$article.lsp doesn't exist; unable to proceed");
-  }
-  my @tokens = ();
-  open (LSP, q{<}, $article_lsp)
-    or die ("Unable to open $article.lsp for reading; unable to proceed");
-  my $token;
-  while (defined ($token = <LSP>)) {
-    chomp ($token);
-    push (@tokens, $token);
-  }
-  close (LSP)
-    or die ("Unable to close input filehandle for $article.lsp");
-  return (\@tokens);
-}
-
 sub reservations_from_xml {
   my $doc = miz_xml ();
   my @reservations = $doc->findnodes ('/Reservation');
@@ -545,48 +526,6 @@ sub split_reservations {
     die ("Something went wrong when creating the absolute reference XML: the error was\n\n$!");
   }
 }
-
-# sub split_reservations {
-#   my $tokens_ref = tokens ();
-#   my @tokens = @{$tokens_ref};
-#   my @reservations = ();
-#   my $reservation = "";
-#   my $scanning_identifiers = 0;
-#   my $scanning_reservation_block = 0;
-#   for (my $i = 0, $i++, ) {
-#     my $token = $tokens[$i];
-#     if ($token eq 'reserve') {
-#       $scanning_identifiers = 1;
-#       $scanning_reservation_block = 1;
-#     } elsif ($scanning_identifiers) {
-#       $reservation .= $token;
-#     } elsif ($token eq 'for') {
-#       $scanning_identifiers = 0;
-#       $reservations .= $token;
-#     } elsif ($scanning_reservation_block) {
-#       my $next = $tokens[$i + 1];
-#       $reservations .= $next;
-#       if ($next eq ';') {
-# 	push (@reservations, $reservation);
-# 	$reservation = '';
-# 	$scanning_reservation_block = 0;
-#       } elsif ($next eq 'of' or $next eq 'over') {
-# 	my $after_next = $tokens[$i + 2];
-# 	until ($after_next eq ';' or $after_next eq 'for') {
-# 	  $reservation .= $token;
-# 	  $i++;
-# 	  $token = $tokens[$i];
-# 	  $next = $tokens[$i + 1];
-# 	  $after_next = $tokens[$i + 2];
-# 	}
-# 	if ($after_next eq ';') {
-# 	  $scanning_reservation_block = 0;
-# 	}
-#       }
-#     }
-#   }
-#   return (\@reservations);
-# }
 
 # sub prepare_work_dirs {
 #   my $theorems_dir = $article_work_dir . '/' . 'theorems';
