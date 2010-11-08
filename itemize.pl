@@ -1390,6 +1390,8 @@ This program uses the MIZFILES environment variable.
 
 =item Getopt::Euclid (>= 0.2.3)
 
+=item File::Copy
+
 =back
 
 =head2 NON-PERL DEPENDENCIES
