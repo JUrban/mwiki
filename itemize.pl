@@ -124,6 +124,12 @@ unless (-r $article_path) {
   die "The file\n\n  $article_miz\n\under the source directory\n\n  $article_source_dir\n\nis not readable";
 }
 
+### --no-cleanup
+my $cleanup_afterward = 1;
+if (defined $ARGV{'--no-cleanup'}) {
+  $cleanup_afterward = 0;
+}
+
 ######################################################################
 ### End command-line processing.
 ###
@@ -1324,6 +1330,12 @@ program uses.  The default is to use the current directory.
 
 =for Euclid:
      ELISP-DIR.default: '.'
+
+=item --no-cleanup
+
+Don't remove auxiliary, intermediate files generated for the sake of
+decomposing the given article. (By default, all such files will be
+deleted before terminating.)
 
 =item --version
 
