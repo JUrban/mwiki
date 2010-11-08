@@ -178,6 +178,23 @@ foreach my $local_db_subdir (@local_db_subdirs) {
 
 use XML::LibXML;
 
+######################################################################
+### Prepare article for itemization:
+###
+### 1. Run the accomodator (needed for JA1)
+###
+### 2. Run JA1
+###
+### 3. Verify (and generate article XML)
+######################################################################
+
+### 1. Run the accomodator
+chdir $workdir;
+system ("accom -q -s -l $article_miz > /dev/null 2> /dev/null");
+unless ($? == 0) {
+  die "Something went wrong when calling the accomodator on $article_name: the error was\n\n$!";
+}
+
 
 my $article_xml = $article_name . '.xml';
 my $article_xml_absrefs = $article_name . '.xml1';
