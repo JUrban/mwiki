@@ -15,6 +15,7 @@ use File::Temp qw / tempdir /;
 use File::Spec;
 use File::Copy;
 use File::Path qw / remove_tree /;
+use XML::LibXML;
 
 ######################################################################
 ### Process the command line
@@ -176,8 +177,6 @@ foreach my $local_db_subdir (@local_db_subdirs) {
   mkdir $local_db_subdir
     or die "Unable to make local database subdirectory $local_db_subdir: $!";
 }
-
-use XML::LibXML;
 
 ######################################################################
 ### Prepare article for itemization:
