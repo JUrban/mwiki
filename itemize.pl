@@ -1261,6 +1261,8 @@ if ($cleanup_afterward) {
 #   print "$reservation\n";
 # }
 
+__END__
+
 =head1 NAME
 
 itemize – Decompose a mizar article into its constituent parts
