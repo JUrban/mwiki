@@ -135,7 +135,7 @@ if ($article_name =~ /\.miz$/) {
 }
 
 my $article_miz = $article_name . '.miz';
-my $article_path = File::Spec->catfile ($article_source_dir, $article_name);
+my $article_path = File::Spec->catfile ($article_source_dir, $article_miz);
 
 # More sanity checks: the mizar file exists and is readable
 unless (-e $article_path) {
