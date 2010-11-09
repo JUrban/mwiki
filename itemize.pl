@@ -241,7 +241,7 @@ my $article_text_dir = File::Spec->catfile ($local_db, 'text');
 
 foreach my $local_db_subdir (@local_db_subdirs) {
   my $local_db_path = File::Spec->catfile ($local_db, $local_db_subdir);
-  mkdir $local_db_subdir
+  mkdir $local_db_path
     or die "Error: Unable to make local database subdirectory $local_db_subdir: $!";
 }
 
