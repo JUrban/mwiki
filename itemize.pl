@@ -268,10 +268,6 @@ my $article_xml_absrefs = $article_name . '.xml1';
 my $article_idx = $article_name . '.idx';
 my $article_tmp = $article_name . '.$-$';
 
-unless (-e "$article_name.miz") {
-  die "Error: Mizar source $article_miz does not exist in the current directory";
-}
-
 my $absrefs_stylesheet = '/Users/alama/sources/mizar/xsl4mizar/addabsrefs.xsl';
 unless (-e "$article_xml_absrefs") {
   warn "Absolute reference version of the the XML file for article $article_name does not exist in the current directory.  Creating it";
