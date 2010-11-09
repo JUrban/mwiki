@@ -123,6 +123,43 @@ foreach my $elisp_file (@elisp_files) {
   }
 }
 
+### --with-stylesheets-in
+
+# First, extract or assign a value.
+my $stylesheet_dir = $ARGV{'--with-stylesheets-in'};
+if ($be_verbose) {
+  print "Looking for stylesheets in directory '$stylesheet_dir'\n";
+}
+
+# Now ensure that the value is sensible, which in this case means that
+# the path refers to an existing, readable directory and that that
+# directory contains all the relevant stylesheets (and that these are
+# all readable)
+unless (-e $stylesheet_dir) {
+  die "Error: the stylesheet directory '$stylesheet_dir' does not exist!";
+}
+unless (-d $stylesheet_dir) {
+  die "Error: the stylesheet directory '$stylesheet_dir' is not actually a directory!";
+}
+unless (-r $stylesheet_dir) {
+  die "Error: the stylesheet directory '$stylesheet_dir' is not readable!";
+}
+
+# We've established that the stylesheet directory is reachable.  Now
+# check that all the required stylesheets are reachable in that
+# directory.
+my @stylesheets = ('addabsrefs');
+foreach my $stylesheet (@stylesheets) {
+  my $stylesheet_xsl = "$stylesheet.xsl";
+  my $stylesheet_path = File::Spec->catfile ($stylesheet_dir, $stylesheet_xsl);
+  unless (-e $stylesheet_xsl) {
+    die "The required stylesheet $stylesheet_xsl does exist in $stylesheet_dir";
+  }
+  unless (-r $stylesheet_xsl) {
+    die "The required stylesheet $stylesheet_xsl, under $stylesheet_dir, is not readable";
+  }
+}
+
 ### ARTICLE
 
 # First, extract a value of the single required ARTICLE
@@ -1340,6 +1377,15 @@ program uses.  The default is to use the current directory.
 
 =for Euclid:
      ELISP-DIR.default: '.'
+
+=item --with-stylesheets-in=<STYLESHEET-DIRECTORY>
+
+The directory that contains the relevant stylesheets applied to the
+article XML.  Both absolute and relative paths may be supplied.  If
+this option is unset, then the current directory ('.') is used.
+
+=for Euclid:
+     STYLESHEET-DIRECTORY.default: '.'
 
 =item --no-cleanup
 
