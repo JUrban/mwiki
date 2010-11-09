@@ -1295,8 +1295,8 @@ alphanumeric (though the underscore character '_' is permitted)
 excluding an optional ".miz" file extension.
 
 =for Euclid:
-     ARTICLE.type: /^[A-Za-z0-9_]{1,8}+(\.miz)?$/
-     ARTICLE.type.error:   Article name must be at most 8 characters long, all alphanumeric (or '_'); it may end in '.miz', and this is not counted in the limit of 8 characters.
+     ARTICLE.type: /^[A-Za-z0-9_]{1,8}(\.miz)?/
+     ARTICLE.type.error:   Article must be at most 8 characters long, all alphanumeric (or '_'); it may end in '.miz', and this is not counted in the limit of 8 characters.  You supplied 'ARTICLE'.
 
 =back
 
