@@ -268,16 +268,9 @@ my $article_xml_absrefs = $article_name . '.xml1';
 my $article_idx = $article_name . '.idx';
 my $article_tmp = $article_name . '.$-$';
 
-my $absrefs_stylesheet = '/Users/alama/sources/mizar/xsl4mizar/addabsrefs.xsl';
-unless (-e "$article_xml_absrefs") {
-  warn "Absolute reference version of the the XML file for article $article_name does not exist in the current directory.  Creating it";
-  unless (-e $absrefs_stylesheet) {
-    die ("No absrefs stylesheet at $absrefs_stylesheet; cannot continue.");
-  }
-  system ("xsltproc $absrefs_stylesheet $article_xml 2> /dev/null > $article_xml_absrefs");
-  unless ($? == 0) {
-    die ("Something went wrong when creating the absolute reference XML: the error was\n\n$!");
-  }
+system ("xsltproc $absrefs_stylesheet $article_xml 2> /dev/null > $article_xml_absrefs");
+unless ($? == 0) {
+  die ("Something went wrong when creating the absolute reference XML: the error was\n\n$!");
 }
 
 my @items = ();
