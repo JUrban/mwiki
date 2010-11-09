@@ -25,6 +25,17 @@ use XML::LibXML;
 ### end of this file to see what command-line options are available.
 ######################################################################
 
+### --verbose
+
+## Process --verbose first, because if it is set, then we want to
+## print stuff out as we process the rest of the command-line
+## arguments.
+
+my $be_verbose = 0;
+if (defined $ARGV{'--verbose'}) {
+  $be_verbose = 1;
+}
+
 ### --article-source-dir
 
 # First, extract a value
@@ -131,12 +142,6 @@ unless (-r $article_path) {
 my $cleanup_afterward = 1;
 if (defined $ARGV{'--no-cleanup'}) {
   $cleanup_afterward = 0;
-}
-
-### --verbose
-my $be_verbose = 0;
-if (defined $ARGV{'--verbose'}) {
-  $be_verbose = 1;
 }
 
 ######################################################################
