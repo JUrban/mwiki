@@ -155,7 +155,7 @@ foreach my $stylesheet (@stylesheets) {
   unless (-e $stylesheet_path) {
     die "The required stylesheet $stylesheet_xsl does not exist in $stylesheet_dir";
   }
-  unless (-r $stylesheet_xsl) {
+  unless (-r $stylesheet_path) {
     die "The required stylesheet $stylesheet_xsl, under $stylesheet_dir, is not readable";
   }
 }
