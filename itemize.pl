@@ -181,8 +181,8 @@ my $workdir = tempdir (CLEANUP => $cleanup_afterward)
 
 # Now copy the specified mizar article to the work directory
 my $article_in_workdir = File::Spec->catfile ($workdir, $article_miz);
-copy ($article_miz, $article_in_workdir)
-  or die "Error: Unable to copy article ($article_miz) to workdirectory ($workdir): $!";
+copy ($article_path, $article_in_workdir)
+  or die "Error: Unable to copy article ($article_miz) to work directory ($article_in_workdir):\n\n$!";
 
 ### 2. Prepare the result directory
 
