@@ -14,6 +14,7 @@ use Cwd qw / getcwd /;
 use File::Temp qw / tempdir /;
 use File::Spec;
 use File::Copy;
+use File::Path;
 
 ######################################################################
 ### Process the command line
@@ -1220,6 +1221,23 @@ sub itemize {
 
 itemize ();
 
+######################################################################
+### Cleanup
+######################################################################
+
+if ($cleanup_afterward) {
+  remove_tree ($workdir);
+  # according to File::Path, error handling for remove_tree is done
+  # via the Carp module, and not through the return value (which just
+  # counts the number of files and directories removed).  Deferring to
+  # this modules method for error handling is not ideal, but I'm too
+  # lazy to investigate how to take over error handling and reporting;
+  # in any case, how to do that is described in the File::Path
+  # documentation.
+} else {
+  warn "Not clearning up the work directory; auxiliary files can be found in the directory\n\n  $workdir\n\nfor your inspection.";
+}
+
 # separate_theorems ();
 
 
@@ -1363,6 +1381,8 @@ This program uses the MIZFILES environment variable.
 =item Getopt::Euclid (>= 0.2.3)
 
 =item File::Copy
+
+=item File::Path
 
 =back
 
