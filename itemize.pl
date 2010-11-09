@@ -1267,6 +1267,10 @@ __END__
 
 itemize – Decompose a mizar article into its constituent parts
 
+=head1 VERSION
+
+Alpha!
+
 =head1 USAGE
 
   itemize.pl --article-source-dir=<DIRECTORY>
