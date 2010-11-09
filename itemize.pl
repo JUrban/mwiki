@@ -133,6 +133,12 @@ if (defined $ARGV{'--no-cleanup'}) {
   $cleanup_afterward = 0;
 }
 
+### --verbose
+my $be_verbose = 0;
+if (defined $ARGV{'--verbose'}) {
+  $be_verbose = 1;
+}
+
 ######################################################################
 ### End command-line processing.
 ###
@@ -1325,6 +1331,10 @@ program uses.  The default is to use the current directory.
 Don't remove auxiliary, intermediate files generated for the sake of
 decomposing the given article. (By default, all such files will be
 deleted before terminating.)
+
+=item --verbose
+
+Indicate what's going on at notable points in the computation.
 
 =item --version
 
