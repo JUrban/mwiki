@@ -42,12 +42,12 @@ if (defined $ARGV{'--verbose'}) {
 my $article_source_dir = $ARGV{'--article-source-dir'};
 if (defined $article_source_dir) {
   if ($be_verbose) {
-    print "Setting the article source directory to $article_source_dir, as requested";
+    print "Setting the article source directory to '$article_source_dir', as requested\n";
   }
 } else {
   $article_source_dir = "$mizfiles/mml";
   if ($be_verbose) {
-    print "Setting the article source directory to $article_source_dir (the default)";
+    print "Setting the article source directory to '$article_source_dir' (which is the default)\n";
   }
 }
 
@@ -84,6 +84,10 @@ unless (-d $result_dir) {
 }
 unless (-w $result_dir) {
   die "Error: The given result directory\n\n$result_dir\n\nis not writable!";
+}
+
+if ($be_verbose) {
+  print "Setting the result directory to '$result_dir'\n";
 }
 
 ### --emacs-lisp-dir
@@ -132,6 +136,10 @@ unless (defined $article_name) { # weird: my typo or bug in Getopt::Euclid
 my $article_name_len = length $article_name;
 if ($article_name =~ /\.miz$/) {
   $article_name = substr $article_name, 0, $article_name_len - 4;
+}
+
+if ($be_verbose) {
+  print "Working with article '$article_name'\n";
 }
 
 my $article_miz = $article_name . '.miz';
@@ -186,7 +194,7 @@ if (-x $local_db) {
 }
 
 if ($be_verbose) {
-  print "Article fragments will be stored in $local_db";
+  print "Article fragments will be stored in '$local_db'\n";
 }
 
 mkdir $local_db
