@@ -178,6 +178,10 @@ if (-x $local_db) {
   die "Error: there is already a directory called '$article' in the result directory ($result_dir)";
 }
 
+if ($be_verbose) {
+  print "Article fragments will be stored in $local_db";
+}
+
 mkdir $local_db
   or die "Unable to make the local database directory: $!";
 my @local_db_subdirs = ('dict', 'prel', 'text');
