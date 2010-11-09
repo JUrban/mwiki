@@ -14,7 +14,7 @@ use Cwd qw / getcwd /;
 use File::Temp qw / tempdir /;
 use File::Spec;
 use File::Copy;
-use File::Path;
+use File::Path qw / remove_tree /;
 
 ######################################################################
 ### Process the command line
