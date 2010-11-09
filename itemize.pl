@@ -40,8 +40,15 @@ if (defined $ARGV{'--verbose'}) {
 
 # First, extract a value
 my $article_source_dir = $ARGV{'--article-source-dir'};
-unless (defined $article_source_dir) {
+if (defined $article_source_dir) {
+  if ($be_verbose) {
+    print "Setting the article source directory to $article_source_dir, as requested";
+  }
+} else {
   $article_source_dir = "$mizfiles/mml";
+  if ($be_verbose) {
+    print "Setting the article source directory to $article_source_dir (the default)";
+  }
 }
 
 # Now ensure that this value for is sensible, which in this case
