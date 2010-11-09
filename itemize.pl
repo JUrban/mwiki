@@ -152,8 +152,8 @@ my @stylesheets = ('addabsrefs');
 foreach my $stylesheet (@stylesheets) {
   my $stylesheet_xsl = "$stylesheet.xsl";
   my $stylesheet_path = File::Spec->catfile ($stylesheet_dir, $stylesheet_xsl);
-  unless (-e $stylesheet_xsl) {
-    die "The required stylesheet $stylesheet_xsl does exist in $stylesheet_dir";
+  unless (-e $stylesheet_path) {
+    die "The required stylesheet $stylesheet_xsl does not exist in $stylesheet_dir";
   }
   unless (-r $stylesheet_xsl) {
     die "The required stylesheet $stylesheet_xsl, under $stylesheet_dir, is not readable";
