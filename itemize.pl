@@ -180,6 +180,7 @@ if ($be_verbose) {
 }
 
 my $article_miz = $article_name . '.miz';
+my $article_err = $article_name . '.err'; # for error checking with the mizar tools
 my $article_path = File::Spec->catfile ($article_source_dir, $article_miz);
 
 # More sanity checks: the mizar file exists and is readable
@@ -260,6 +261,19 @@ chdir $workdir;
 system ("accom -q -s -l $article_miz > /dev/null 2> /dev/null");
 unless ($? == 0) {
   die "Error: Something went wrong when calling the accomodator on $article_name: the error was\n\n$!";
+}
+if (-s $article_err) {
+  die "Error: although the accomodator returned successfully, it nonetheless generated a non-empty error file";
+}
+
+
+### 2. Run JA1
+system ("JA1 -q -s -l $article_miz > /dev/null 2> /dev/null");
+unless ($? == 0) {
+  die "Error: Something went wrong when calling JA1 on $article_name: the error was\n\n$!";
+}
+if (-s $article_err) {
+  die "Error: although the JA1 tool returned successfully, it nonetheless generated a non-empty error file";
 }
 
 
