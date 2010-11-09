@@ -1273,10 +1273,7 @@ Alpha!
 
 =head1 USAGE
 
-  itemize.pl --article-source-dir=<DIRECTORY>
-             --result-dir=<DIRECTORY>
-             --emacs-lisp-dir=<DIRECTORY>
-             <ARTICLE>
+  itemize.pl [options] ARTICLE
 
 =head1 REQUIRED ARGUMENTS
 
