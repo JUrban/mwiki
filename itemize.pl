@@ -227,18 +227,6 @@ unless (-e "$article_name.miz") {
   die "Error: Mizar source $article_miz does not exist in the current directory";
 }
 
-unless (-e "$article_xml") {
-  warn "XML file for article $article_name does not exist in the current directory.  Creating it";
-  system ("accom -q -s -l $article_miz > /dev/null 2> /dev/null");
-  unless ($? == 0) {
-    die ("Something went wrong when calling the accomodator on $article_name: the error was\n\n$!");
-  }
-  system ("verifier -q -s -l $article_miz > /dev/null 2> /dev/null");
-  unless ($? == 0) {
-    die ("Something went wrong when calling the verifier on $article_name: the error was\n\n$!");
-  }
-}
-
 my $absrefs_stylesheet = '/Users/alama/sources/mizar/xsl4mizar/addabsrefs.xsl';
 unless (-e "$article_xml_absrefs") {
   warn "Absolute reference version of the the XML file for article $article_name does not exist in the current directory.  Creating it";
