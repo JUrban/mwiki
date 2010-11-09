@@ -5,7 +5,7 @@
 # value, just that it has some value.
 my $mizfiles = $ENV{'MIZFILES'};
 unless (defined $mizfiles) {
-  die 'The MIZFILES environment variable is unset; nothing more can be done';
+  die 'Error: The MIZFILES environment variable is unset; nothing more can be done';
 }
 
 use Getopt::Euclid; # load this first to set up our command-line parser
@@ -47,13 +47,13 @@ unless (defined $article_source_dir) {
 # Now ensure that this value for is sensible, which in this case
 # means: it exists, it's directory, and it's readable.
 unless (-e $article_source_dir) {
-  die "The given article source directory\n\n  $article_source_dir\n\ndoes not exist!";
+  die "Error: The given article source directory\n\n  $article_source_dir\n\ndoes not exist!";
 }
 unless (-d $article_source_dir) {
-  die "The given article source directory\n\n$article_source_dir\n\nis not actually a directory!";
+  die "Error: The given article source directory\n\n$article_source_dir\n\nis not actually a directory!";
 }
 unless (-r $article_source_dir) {
-  die "The given article source directory\n\n$article_source_dir\n\nis not readable!";
+  die "Error: The given article source directory\n\n$article_source_dir\n\nis not readable!";
 }
 
 ### --result-dir
@@ -64,19 +64,19 @@ unless (-r $article_source_dir) {
 # --article-source-dir option.
 my $result_dir = $ARGV{'--result-dir'};
 unless (defined $result_dir) { # weird: typo on my part or bug in Getopt::Euclid
-  die 'No value for the --result-dir option is present in the %ARGV table!';
+  die 'Error: No value for the --result-dir option is present in the %ARGV table!';
 }
 
 # Ensure that the value is sensible, which in this case means: it
 # exists, it's a directory, and it's writable
 unless (-e $result_dir) {
-  die "The given result directory\n\n  $result_dir\n\ndoes not exist!";
+  die "Error: The given result directory\n\n  $result_dir\n\ndoes not exist!";
 }
 unless (-d $result_dir) {
-  die "The given result directory\n\n$result_dir\n\nis not actually a directory!";
+  die "Error: The given result directory\n\n$result_dir\n\nis not actually a directory!";
 }
 unless (-w $result_dir) {
-  die "The given result directory\n\n$result_dir\n\nis not writable!";
+  die "Error: The given result directory\n\n$result_dir\n\nis not writable!";
 }
 
 ### --emacs-lisp-dir
@@ -86,29 +86,29 @@ unless (-w $result_dir) {
 # using Getopt::Euclid, so there's no need to compute a default.
 my $elisp_dir = $ARGV{'--emacs-lisp-dir'};
 unless (defined $elisp_dir) { # weird: typo on my part or bug in Getopt::Euclid
-  die 'No value for the --emacs-lisp-dir option is present in the %ARGV table!';
+  die 'Error: No value for the --emacs-lisp-dir option is present in the %ARGV table!';
 }
 
 # Ensure that the value is sensible, which in this case means: it
 # exists, it's a directory, it's readable, and it contains all the
 # needed helper elisp code
 unless (-e $elisp_dir) {
-  die "The given emacs lisp directory\n\n  $elisp_dir\n\ndoes not exist!";
+  die "Error: The given emacs lisp directory\n\n  $elisp_dir\n\ndoes not exist!";
 }
 unless (-d $elisp_dir) {
-  die "The given emacs lisp directory\n\n$elisp_dir\n\nis not actually a directory!";
+  die "Error: The given emacs lisp directory\n\n$elisp_dir\n\nis not actually a directory!";
 }
 unless (-r $elisp_dir) {
-  die "The given emacs lisp directory\n\n$elisp_dir\n\nis not readable!";
+  die "Error: The given emacs lisp directory\n\n$elisp_dir\n\nis not readable!";
 }
 my @elisp_files = ('reservations.elc');
 foreach my $elisp_file (@elisp_files) {
   my $elisp_file_path = File::Spec->catfile ($elisp_dir, $elisp_file);
   unless (-e $elisp_file_path) {
-    die "The required emacs lisp file\n\n  $elisp_file\n\ncannot be found under the emacs lisp directory\n\n$elisp_dir";
+    die "Error: The required emacs lisp file\n\n  $elisp_file\n\ncannot be found under the emacs lisp directory\n\n$elisp_dir";
   }
   unless (-r $elisp_file_path) {
-    die "The required emacs lisp file\n\n  $elisp_file\n\nunder the emacs lisp directory\n\n$elisp_dir\n\nis not readable!";
+    die "Error: The required emacs lisp file\n\n  $elisp_file\n\nunder the emacs lisp directory\n\n$elisp_dir\n\nis not readable!";
   }
 }
 
@@ -118,7 +118,7 @@ foreach my $elisp_file (@elisp_files) {
 # argument.
 my $article_name = $ARGV{'<ARTICLE>'};
 unless (defined $article_name) { # weird: my typo or bug in Getopt::Euclid
-  die 'The mandatory ARTICLE argument was somehow omitted!';
+  die 'Error: The mandatory ARTICLE argument was somehow omitted!';
 }
 
 # Strip the final ".miz", if there is one
@@ -132,10 +132,10 @@ my $article_path = File::Spec->catfile ($article_source_dir, $article_name);
 
 # More sanity checks: the mizar file exists and is readable
 unless (-e $article_path) {
-  die "No file named\n\n  $article_miz\n\nunder the source directory\n\n  $article_source_dir";
+  die "Error: No file named\n\n  $article_miz\n\nunder the source directory\n\n  $article_source_dir";
 }
 unless (-r $article_path) {
-  die "The file\n\n  $article_miz\n\under the source directory\n\n  $article_source_dir\n\nis not readable";
+  die "Error: The file\n\n  $article_miz\n\under the source directory\n\n  $article_source_dir\n\nis not readable";
 }
 
 ### --no-cleanup
@@ -162,12 +162,12 @@ if (defined $ARGV{'--no-cleanup'}) {
 
 # First, create it.
 my $workdir = tempdir (CLEANUP => $cleanup_afterward)
-  or die 'Unable to create a working directory!';
+  or die 'Error: Unable to create a working directory!';
 
 # Now copy the specified mizar article to the work directory
 my $article_in_workdir = File::Spec->catfile ($workdir, $article_miz);
 copy ($article_miz, $article_in_workdir)
-  or die "Unable to copy article ($article_miz) to workdirectory ($workdir): $!";
+  or die "Error: Unable to copy article ($article_miz) to workdirectory ($workdir): $!";
 
 ### 2. Prepare the result directory
 
@@ -175,7 +175,7 @@ copy ($article_miz, $article_in_workdir)
 ## don't want to potentially overwrite anything.
 my $local_db = File::Spec->catfile ($result_dir, $article);
 if (-x $local_db) {
-  die "Error: there is already a directory called '$article' in the result directory ($result_dir)";
+  die "Error: Error: there is already a directory called '$article' in the result directory ($result_dir)";
 }
 
 if ($be_verbose) {
@@ -183,14 +183,14 @@ if ($be_verbose) {
 }
 
 mkdir $local_db
-  or die "Unable to make the local database directory: $!";
+  or die "Error: Unable to make the local database directory: $!";
 my @local_db_subdirs = ('dict', 'prel', 'text');
 my $article_text_dir = File::Spec->catfile ($local_db, 'text');
 
 foreach my $local_db_subdir (@local_db_subdirs) {
   my $local_db_path = File::Spec->catfile ($local_db, $local_db_subdir);
   mkdir $local_db_subdir
-    or die "Unable to make local database subdirectory $local_db_subdir: $!";
+    or die "Error: Unable to make local database subdirectory $local_db_subdir: $!";
 }
 
 ######################################################################
