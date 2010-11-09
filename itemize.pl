@@ -207,7 +207,7 @@ foreach my $local_db_subdir (@local_db_subdirs) {
 chdir $workdir;
 system ("accom -q -s -l $article_miz > /dev/null 2> /dev/null");
 unless ($? == 0) {
-  die "Something went wrong when calling the accomodator on $article_name: the error was\n\n$!";
+  die "Error: Something went wrong when calling the accomodator on $article_name: the error was\n\n$!";
 }
 
 
@@ -217,7 +217,7 @@ my $article_idx = $article_name . '.idx';
 my $article_tmp = $article_name . '.$-$';
 
 unless (-e "$article_name.miz") {
-  die "Mizar source $article_miz does not exist in the current directory";
+  die "Error: Mizar source $article_miz does not exist in the current directory";
 }
 
 unless (-e "$article_xml") {
