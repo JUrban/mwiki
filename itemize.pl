@@ -1355,9 +1355,9 @@ Indicate what's going on at notable points in the computation.
 
 =item --man
 
-=back
-
 Print the usual program information.
+
+=back
 
 =head1 DESCRIPTION
 
