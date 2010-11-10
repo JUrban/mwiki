@@ -340,8 +340,6 @@ unless ($? == 0) {
 ### into its constituent items.
 ######################################################################
 
-my @items = ();
-
 # article environment
 my @vocabularies = `/Users/alama/sources/mizar/mwiki/env.pl Vocabularies $article_name`;
 chomp (@vocabularies);
