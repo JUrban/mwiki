@@ -569,71 +569,6 @@ sub init_vid_table {
 
 init_vid_table ();
 
-sub split_reservations {
-  # ugh -- the JA tool screws up line numbering when comments are present!  we need to strip comments first.
-  my $sed_command = "sed -e 's/\\ *::.*//' < $article_miz > $article_miz-no-comments";
-  # DEBUG
-  warn ("about to execute this sed command: $sed_command");
-  system ($sed_command);
-  system ('mv', "$article_miz-no-comments", "$article_miz");
-  system ("accom -q -s -l $article_miz > /dev/null 2> /dev/null");
-  unless ($? == 0) {
-    die ("Something went wrong when calling the accomodator on $article_name: the error was\n\n$!");
-  }
-  system ("JA $article_miz > /dev/null 2> /dev/null");
-  unless ($? == 0) {
-    die ("Something went wrong when calling the JA tool on $article_name: the error was\n\n$!");
-  }
-  system ("edtfile $article_name > /dev/null 2> /dev/null");
-  unless ($? == 0) {
-    die ("Something went wrong when calling edtfile on $article_name: the error was\n\n$!");
-  }
-  system ('mv', $article_tmp, $article_miz);
-  unless ($? == 0) {
-    die ("Something went wrong when overwriting the original .miz file by one whose reservations are split up by the JA tool: the error was\n\n$!");
-  }
-  # Done.  We shouldn't need to call the accomodator and the verifier
-  # on the new .miz, right, since it's "the same" as the old,
-  # non-split one?  Right?  (This is not the case for the JA1 tool,
-  # since that one will have a slightly different XML representation:
-  # no Reservation element will have more than one Ident child.)
-
-  # We are NOT done: JA might change line numbering:
-  #
-  # reserve A,B,C for Ordinal,
-  # X,X1,Y,Y1,Z,a,b,b1,b2,x,y,z for set,
-  # R for Relation
-  #  ,
-  # f,g,h for Function,
-  # k,m,n for natural number;
-  #
-  # gets sent by JA to
-  #
-  # reserve A,B,C for  Ordinal;
-  # reserve X,X1,Y,Y1,Z,a,b,b1,b2,x,y,z for  set;
-  # reserve R for  Relation;
-  # reserve f,g,h for  Function;
-  # reserve k,m,n for  natural number;
-  #
-  # The first bunch of reservations spans 6 lines, but the new one spans 5!
-  system ("accom -q -s -l $article_miz > /dev/null 2> /dev/null");
-  unless ($? == 0) {
-    die ("Something went wrong when calling the accomodator on $article_name: the error was\n\n$!");
-  }
-  # DEBUG
-  warn "Verifying again (thanks, JA...)";
-  system ("verifier -q -s -l $article_miz > /dev/null 2> /dev/null");
-  unless ($? == 0) {
-    die ("Something went wrong when calling the verifier on $article_name: the error was\n\n$!");
-  }
-  # DEBUG
-  warn "Regenerating the absolute reference XML (thanks, JA...)";
-  system ("xsltproc $absrefs_stylesheet $article_xml 2> /dev/null > $article_xml_absrefs");
-  unless ($? == 0) {
-    die ("Something went wrong when creating the absolute reference XML: the error was\n\n$!");
-  }
-}
-
 # sub prepare_work_dirs {
 #   my $theorems_dir = $article_work_dir . '/' . 'theorems';
 #   my $schemes_dir = $article_work_dir . '/' . 'schemes';
@@ -799,7 +734,6 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
 }
 
 # prepare_work_dirs ();
-split_reservations ();
 init_reservation_table ();
 # DEBUG
 print_reservation_table ();
