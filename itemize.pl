@@ -126,6 +126,13 @@ foreach my $elisp_file (@elisp_files) {
     die "Error: The required emacs lisp file\n\n  $elisp_file\n\nunder the emacs lisp directory\n\n$elisp_dir\n\nis not readable!";
   }
 }
+my $reservations_elc_path = File::Spec->catfile ($elisp_dir, 'reservations.elc');
+unless (-e $reservations_elc_path) {
+  die "Error: reservations.elc does not exist under $elisp_dir";
+}
+unless (-r $reservations_elc_path) {
+  die "Error: reservations.elc under $elisp_dir is not readable";
+}
 
 ### --with-stylesheets-in
 
