@@ -179,15 +179,19 @@ if ($be_verbose) {
   print "Working with article '$article_name'\n";
 }
 
+# Some common extensions we'll be using, and their paths
 my $article_miz = $article_name . '.miz';
 my $article_err = $article_name . '.err'; # for error checking with the mizar tools
-my $article_path = File::Spec->catfile ($article_source_dir, $article_miz);
+my $article_tmp = $article_name . '.$-$';
+my $article_miz_path = File::Spec->catfile ($article_source_dir, $article_miz);
+my $artice_err_path = File::Spec->catfile ($article_source_dir, $article_err);
+my $artice_tmp_path = File::Spec->catfile ($article_source_dir, $article_tmp);
 
 # More sanity checks: the mizar file exists and is readable
-unless (-e $article_path) {
+unless (-e $article_miz_path) {
   die "Error: No file named\n\n  $article_miz\n\nunder the source directory\n\n  $article_source_dir";
 }
-unless (-r $article_path) {
+unless (-r $article_miz_path) {
   die "Error: The file\n\n  $article_miz\n\under the source directory\n\n  $article_source_dir\n\nis not readable";
 }
 
@@ -219,7 +223,7 @@ my $workdir = tempdir (CLEANUP => $cleanup_afterward)
 
 # Now copy the specified mizar article to the work directory
 my $article_in_workdir = File::Spec->catfile ($workdir, $article_miz);
-copy ($article_path, $article_in_workdir)
+copy ($article_miz_path, $article_in_workdir)
   or die "Error: Unable to copy article ($article_miz) to work directory ($article_in_workdir):\n\n$!";
 
 ### 2. Prepare the result directory
@@ -277,6 +281,15 @@ unless ($? == 0) {
 if (-s $article_err) {
   die "Error: although the JA1 tool returned successfully, it nonetheless generated a non-empty error file";
 }
+system ("edtfile $article_name > /dev/null 2> /dev/null");
+unless ($? == 0) {
+  die ("Error: Something went wrong during the call to edtfile on $article_name:\n\n  $!");
+}
+if (-s $article_err) {
+  die "Error: although the edtfile tool returned successfully, it nonetheless generated a non-empty error file";
+}
+move ($article_tmp_path, $article_miz_path)
+  or die "Error: unable to rename the temporary file\n\n  $article_tmp\n\nto\n\n  $article_miz\n\nin the work directory\n\n  $workdir .\n\nThe error was\n\n  $!");
 
 ### 3. Verify (and generate article XML)
 system ("verifier -s -q -l $article_miz > /dev/null 2> /dev/null");
