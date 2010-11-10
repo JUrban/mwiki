@@ -195,8 +195,8 @@ my $article_miz = $article_name . '.miz';
 my $article_err = $article_name . '.err'; # for error checking with the mizar tools
 my $article_tmp = $article_name . '.$-$';
 my $article_miz_path = File::Spec->catfile ($article_source_dir, $article_miz);
-my $artice_err_path = File::Spec->catfile ($article_source_dir, $article_err);
-my $artice_tmp_path = File::Spec->catfile ($article_source_dir, $article_tmp);
+my $article_err_path = File::Spec->catfile ($article_source_dir, $article_err);
+my $article_tmp_path = File::Spec->catfile ($article_source_dir, $article_tmp);
 
 # More sanity checks: the mizar file exists and is readable
 unless (-e $article_miz_path) {
