@@ -317,6 +317,12 @@ unless ($? == 0) {
   die ("Something went wrong when creating the absolute reference XML: the error was\n\n$!");
 }
 
+######################################################################
+### We're done setting up the work directory; now we can use the
+### intermediate files we just generated to split up the given article
+### into its constituent items.
+######################################################################
+
 my @items = ();
 
 # article environment
