@@ -363,8 +363,6 @@ my @schemes = `/Users/alama/sources/mizar/mwiki/env.pl Schemes $article_name`;
 chomp (@schemes);
 @schemes = grep (!/^HIDDEN$/, @schemes);
 
-my %item_kinds = (); # maps natural numbers to constant strings: 'notation', 'definition', 'registration', 'theorem', 'scheme' etc.
-
 my @mml_lar = ();
 
 sub read_mml_lar {
@@ -402,14 +400,9 @@ sub export_item {
   # notations
   my @this_item_notations = @notations;
   foreach my $i (1 .. $number - 1) {
-    my $earlier_item_kind = $item_kinds{$i-1};
-    if ($earlier_item_kind eq 'notation'
-	|| $earlier_item_kind eq 'definition'
-        || $earlier_item_kind eq 'registration') {
-      push (@this_item_notations, "ITEM$i");
-    }
+    push (@this_item_notations, "ITEM$i");
   }
-  unless (scalar (@this_item_notations) == 0) {
+  unless ($number == 1) {
     print ITEM_MIZ ("notations " . join (', ', @this_item_notations) . ";");
     print ITEM_MIZ ("\n");
   }
@@ -417,14 +410,9 @@ sub export_item {
   # constructors
   my @this_item_constructors = @constructors;
   foreach my $i (1 .. $number - 1) {
-    my $earlier_item_kind = $item_kinds{$i-1};
-    if ($earlier_item_kind eq 'definition'
-	|| $earlier_item_kind eq 'registration'
-        || $earlier_item_kind eq 'notation') {
-      push (@this_item_constructors, "ITEM$i");
-    }
+    push (@this_item_constructors, "ITEM$i");
   }
-  unless (scalar (@this_item_constructors) == 0) {
+  unless ($number == 1) {
     print ITEM_MIZ ("constructors " . join (', ', @this_item_constructors) . ";");
     print ITEM_MIZ ("\n");
   }
@@ -432,12 +420,9 @@ sub export_item {
   # registrations
   my @this_item_registrations = @registrations;
   foreach my $i (1 .. $number - 1) {
-    my $earlier_item_kind = $item_kinds{$i-1};
-    if ($earlier_item_kind eq 'registration') {
-      push (@this_item_registrations, "ITEM$i");
-    }
+    push (@this_item_registrations, "ITEM$i");
   }
-  unless (scalar (@this_item_registrations) == 0) {
+  unless ($number == 1) {
     print ITEM_MIZ ("registrations " . join (', ', @this_item_registrations) . ";");
     print ITEM_MIZ ("\n");
   }
@@ -452,14 +437,9 @@ sub export_item {
   # handle the definitions directive just like the constructors directive
   my @this_item_definitions = @definitions;
   foreach my $i (1 .. $number - 1) {
-    my $earlier_item_kind = $item_kinds{$i-1};
-    if ($earlier_item_kind eq 'definition'
-        || $earlier_item_kind eq 'notation'
-        || $earlier_item_kind eq 'registration') {
-      push (@this_item_definitions, "ITEM$i");
-    }
+    push (@this_item_definitions, "ITEM$i");
   }
-  unless (scalar (@this_item_definitions) == 0) {
+  unless ($number == 1) {
     print ITEM_MIZ ("definitions " . join (', ', @this_item_definitions) . ";");
     print ITEM_MIZ ("\n");
   }
@@ -467,16 +447,9 @@ sub export_item {
   # theorems
   my @this_item_theorems = @theorems;
   foreach my $i (1 .. $number - 1) {
-    my $earlier_item_kind = $item_kinds{$i-1};
-    # DEBUG
-    # warn ("earlier item $i is type $earlier_item_kind");
-    if ($earlier_item_kind eq 'theorem'
-	|| $earlier_item_kind eq 'definition'
-        || $earlier_item_kind eq 'notation') {
-      push (@this_item_theorems, "ITEM$i");
-    }
+    push (@this_item_theorems, "ITEM$i");
   }
-  unless (scalar (@this_item_theorems) == 0) {
+  unless ($number == 1) {
     print ITEM_MIZ ("theorems " . join (', ', @this_item_theorems) . ";");
     print ITEM_MIZ ("\n");
   }
@@ -484,12 +457,9 @@ sub export_item {
   # schemes
   my @this_item_schemes = @schemes;
   foreach my $i (1 .. $number - 1) {
-    my $earlier_item_kind = $item_kinds{$i-1};
-    if ($earlier_item_kind eq 'scheme') {
-      push (@this_item_schemes, "ITEM$i");
-    }
+    push (@this_item_schemes, "ITEM$i");
   }
-  unless (scalar (@this_item_schemes) == 0) {
+  unless ($number == 1) {
     print ITEM_MIZ ("schemes " . join (', ', @this_item_schemes) . ";");
     print ITEM_MIZ ("\n");
   }
@@ -934,30 +904,6 @@ sub itemize {
   foreach my $i (1 .. scalar (@tpnodes)) {
     my $node = $tpnodes[$i-1];
     my $node_name = $node->nodeName;
-
-    # register this in the item kind table
-    if ($node_name eq 'DefinitionBlock') {
-      $item_kinds{$i-1} = 'definition';
-    } elsif ($node_name eq 'SchemeBlock') {
-      $item_kinds{$i-1} = 'scheme';
-    } elsif ($node_name eq 'RegistrationBlock') {
-      $item_kinds{$i-1} = 'registration';
-    } elsif ($node_name eq 'NotationBlock') {
-      $item_kinds{$i-1} = 'notation';
-    } elsif ($node_name eq 'JustifiedTheorem') {
-      $item_kinds{$i-1} = 'theorem';
-    } elsif ($node_name eq 'Proposition') {
-      $item_kinds{$i-1} = 'theorem';
-    } elsif ($node_name eq 'DefTheorem') {
-      # DEBUG
-      warn ('We just encountered a DefTheorem node');
-      $item_kinds{$i-1} = 'theorem';
-    } else {
-      die ("Unable to register node $i: unknown type $node_name");
-    }
-
-    # DEBUG
-    warn ("This is item $i, and we just set its type to " . $item_kinds{$i-1} . "...so there");
 
     # register a scheme, if necessary
     if ($node_name eq 'SchemeBlock') {
