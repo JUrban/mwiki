@@ -552,7 +552,7 @@ sub nulls_to_newlines {
 }
 
 sub init_reservation_table {
-  my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --funcall find-reservations`;
+  my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --funcall find-reservations`;
   unless ($? == 0) {
     die ("Weird: emacs didn't exit cleanly: $!");
   }
@@ -640,7 +640,7 @@ sub scheme_before_position {
   my $col = shift;
   my $scheme = '';		# empty string
   # DEBUG
-  my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --eval '(scheme-before-position $line $col)'`;
+  my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(scheme-before-position $line $col)'`;
   unless ($? == 0) {
     die ("Weird: emacs died: $!");
   }
@@ -662,7 +662,7 @@ sub theorem_before_position {
   my $col = shift;
   my $theorem = '';		# empty string
   # DEBUG
-  my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --eval '(theorem-before-position $line $col)'`;
+  my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(theorem-before-position $line $col)'`;
   unless ($? == 0) {
     die ("Weird: emacs died: $!");
   }
@@ -678,7 +678,7 @@ sub definition_before_position {
   my $col = shift;
   my $definition = '';		# empty string
   # DEBUG
-  my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --eval '(definition-before-position $line $col)'`;
+  my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(definition-before-position $line $col)'`;
   unless ($? == 0) {
     die ("Weird: emacs died: $!");
   }
@@ -705,7 +705,7 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
 
   my $emacs_command;
   if (scalar (@schemes) == 0 && scalar (@definitions) == 0 && scalar (@theorems) == 0) {
-    $emacs_command = "emacs23 --quick --batch --load reservations.elc --visit $article_miz --eval \"(extract-region-replacing-schemes-and-definitions-and-theorems '$item_kind \\\"$label\\\" $bl $bc $el $ec)\"";
+    $emacs_command = "emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval \"(extract-region-replacing-schemes-and-definitions-and-theorems '$item_kind \\\"$label\\\" $bl $bc $el $ec)\"";
   } else {
     # build the last argument to the EXTRACT-REGION-REPLACING-SCHEMES function
     my $instructions = '';
@@ -735,7 +735,7 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
       $instructions .= " ";
     }
 
-    $emacs_command = "emacs23 --quick --batch --load reservations.elc --visit $article_miz --eval \"(extract-region-replacing-schemes-and-definitions-and-theorems '$item_kind \\\"$label\\\" $bl $bc $el $ec $instructions)\"";
+    $emacs_command = "emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval \"(extract-region-replacing-schemes-and-definitions-and-theorems '$item_kind \\\"$label\\\" $bl $bc $el $ec $instructions)\"";
   }
 
   my $region = ''; # empty string
@@ -813,7 +813,7 @@ sub extract_toplevel_unexported_theorem_with_label {
   my $end_line = shift;
   my $end_col = shift;
   my $label = shift;
-  my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --eval '(toplevel-unexported-theorem-before-position-with-label $end_line $end_col \"$label\")'`;
+  my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(toplevel-unexported-theorem-before-position-with-label $end_line $end_col \"$label\")'`;
   unless ($? == 0) {
     die ("Weird: emacs died extracting the unexported theorem with label $label before position ($end_line,$end_col): the error was: $!");
   }
@@ -868,7 +868,7 @@ my %theorem_vid_to_absnum = ();
 sub position_of_theorem_keyword_before_pos {
   my $line = shift;
   my $col = shift;
-  my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --funcall (position-of-theorem-keyword-before-position)`;
+  my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --funcall (position-of-theorem-keyword-before-position)`;
 }
 
 sub is_exported_deftheorem {
