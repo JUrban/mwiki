@@ -65,13 +65,10 @@ unless (-r $article_source_dir) {
 
 ### --result-dir
 
-# First, extract a value.  In this case, Getopt:Euclid has already
-# taken care of this for us, so there's no need to compute a default
-# value in case no value was supplied, as was the case for the
-# --article-source-dir option.
+# First, extract a value.  The default is to use the current directory.
 my $result_dir = $ARGV{'--result-dir'};
-unless (defined $result_dir) { # weird: typo on my part or bug in Getopt::Euclid
-  die 'Error: No value for the --result-dir option is present in the %ARGV table!';
+unless (defined $result_dir) {
+  $result_dir = getcwd ();
 }
 
 # Ensure that the value is sensible, which in this case means: it
@@ -1344,10 +1341,10 @@ ARTICLE.
 
 =item --result-dir=<RESULT-DIRECTORY>
 
-Make a local mizar database for ARTICLE in RESULT-DIRECTORY.  The
-database will itself be a subdirecory of RESULT-DIRECTORY called by
-the same name as ARTICLE; the database itself will contain
-subdirectories 'prel' and 'text'.
+Make a local mizar database for ARTICLE in RESULT-DIRECTORY, which
+should be an absolute path.  The database will itself be a subdirecory
+of RESULT-DIRECTORY called by the same name as ARTICLE; the database
+itself will contain subdirectories 'prel' and 'text'.
 
 RESULT-DIRECTORY, if unset, defaults to the current directory.  If
 set, it should be a path; it can be either an absolute path (beginning
@@ -1357,7 +1354,6 @@ that, if RESULT-DIRECTORY is set, that the directory exists and is
 writable.
 
 =for Euclid:
-     RESULT-DIRECTORY.default: '.'
 
 =item --emacs-lisp-dir=<ELISP-DIR>
 
