@@ -289,7 +289,7 @@ if (-s $article_err) {
   die "Error: although the edtfile tool returned successfully, it nonetheless generated a non-empty error file";
 }
 move ($article_tmp_path, $article_miz_path)
-  or die "Error: unable to rename the temporary file\n\n  $article_tmp\n\nto\n\n  $article_miz\n\nin the work directory\n\n  $workdir .\n\nThe error was\n\n  $!");
+  or die "Error: unable to rename the temporary file\n\n  $article_tmp\n\nto\n\n  $article_miz\n\nin the work directory\n\n  $workdir .\n\nThe error was\n\n  $!";
 
 ### 3. Verify (and generate article XML)
 system ("verifier -s -q -l $article_miz > /dev/null 2> /dev/null");
