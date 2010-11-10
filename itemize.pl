@@ -254,6 +254,8 @@ foreach my $local_db_subdir (@local_db_subdirs) {
 ### 2. Run JA1
 ###
 ### 3. Verify (and generate article XML)
+###
+### 4. Generate the absolute reference version of the generated XML
 ######################################################################
 
 ### 1. Run the accomodator
@@ -276,12 +278,28 @@ if (-s $article_err) {
   die "Error: although the JA1 tool returned successfully, it nonetheless generated a non-empty error file";
 }
 
+### 3. Verify (and generate article XML)
+system ("verifier -s -q -l $article_miz > /dev/null 2> /dev/null");
+unless ($? == 0) {
+  die "Error: something went wrong verifying $article_miz: the error was\n\n$!";
+}
+unless (-z $article_err) {
+  die "Error: although the verifier returned successfully, it nonetheless generated a non-empty error file";
+}
 
+### 4. Generate the absolute reference version of the generated XML
+my $absrefs_stylesheet = File::Spec->catfile ($stylesheet_dir, 'addabsrefs.xsl');
 my $article_xml = $article_name . '.xml';
 my $article_xml_absrefs = $article_name . '.xml1';
 my $article_idx = $article_name . '.idx';
 my $article_tmp = $article_name . '.$-$';
-
+unless (-e $absrefs_stylesheet) {
+  die "The absolute reference stylesheet could not be found under $stylesheet_dir!";
+}
+unless (-r $absrefs_stylesheet) {
+  die "The absolute reference styesheet under $stylesheet_dir is not readable.";
+}
+chdir $workdir;
 system ("xsltproc $absrefs_stylesheet $article_xml 2> /dev/null > $article_xml_absrefs");
 unless ($? == 0) {
   die ("Something went wrong when creating the absolute reference XML: the error was\n\n$!");
