@@ -305,7 +305,6 @@ my $absrefs_stylesheet = File::Spec->catfile ($stylesheet_dir, 'addabsrefs.xsl')
 my $article_xml = $article_name . '.xml';
 my $article_xml_absrefs = $article_name . '.xml1';
 my $article_idx = $article_name . '.idx';
-my $article_tmp = $article_name . '.$-$';
 unless (-e $absrefs_stylesheet) {
   die "The absolute reference stylesheet could not be found under $stylesheet_dir!";
 }
