@@ -255,7 +255,7 @@ foreach my $local_db_subdir (@local_db_subdirs) {
 ###
 ### 1. Run the accomodator (needed for JA1)
 ###
-### 2. Run JA1
+### 2. Run JA1 and edtfile
 ###
 ### 3. Verify (and generate article XML)
 ###
@@ -273,7 +273,7 @@ if (-s $article_err) {
 }
 
 
-### 2. Run JA1
+### 2. Run JA1 and edtfile
 system ("JA1 -q -s -l $article_miz > /dev/null 2> /dev/null");
 unless ($? == 0) {
   die "Error: Something went wrong when calling JA1 on $article_name: the error was\n\n$!";
