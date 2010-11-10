@@ -390,8 +390,9 @@ sub export_item {
   my $begin_line = shift;
   my $text = shift;
 
-  my $item_path = $article_text_dir . '/' . "ITEM$number.miz";
-  open (ITEM_MIZ, q{>}, $item_path) or die ("Unable to open an output filehandle at $item_path");
+  my $item_path = File::Spec->catfile ($article_text_dir, "ITEM$number.miz");
+  open (ITEM_MIZ, q{>}, $item_path)
+    or die ("Unable to open an output filehandle at $item_path:\n\n  $!");
   print ITEM_MIZ ("environ\n");
 
   # vocabularies are easy
