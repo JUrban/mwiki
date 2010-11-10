@@ -341,31 +341,56 @@ unless ($? == 0) {
 ### into its constituent items.
 ######################################################################
 
+sub fetch_directive {
+  my $directive = shift;
+
+  my $article_evl = $article_name . '.evl';
+
+  chdir $workdir;
+  system ("envget -l $article_miz > /dev/null 2> /dev/null");
+
+  # This is the way things should be, but envget doesn't behave as expected!
+
+  # unless ($? == 0) {
+  #   die ("Something went wrong when calling envget on $article_base.\nThe error was\n\n  $!");
+  # }
+
+  # But let's check for an error file:
+  unless (-z $article_err) {
+    die "Error: envget generated a non-empty error file while fetching the value of the directive $directive";
+  }
+
+  # cheap approach: take advantage of the fact the the Directives in the
+  # EVL file all begin at the beginning of the line
+  my $evl_directive = "sed -n -e '/^<Directive name=\"$directive\"/,/^<\\/Directive/p' $article_evl";
+  # another cheap trick like the one above
+  my $select_identifiers = 'grep "^<Ident name="';
+
+  # now delete all the padding
+  my $name_equals_field = 'cut -f 2 -d \' \'';
+  my $name_right_hand_side = 'cut -f 2 -d \'=\'';
+  my $de_double_quote = 'sed -e \'s/"//g\'';
+
+  my $big_pipe = "$evl_directive | $select_identifiers | $name_equals_field | $name_right_hand_side | $de_double_quote";
+
+  my @directive_items = `$big_pipe`;
+  chomp (@directive_items);
+  @directive_items = grep (!/^HIDDEN$/, @directive_items);
+  return @directive_items;
+}
+
 # article environment
-my @vocabularies = `/Users/alama/sources/mizar/mwiki/env.pl Vocabularies $article_name`;
-chomp (@vocabularies);
-@vocabularies = grep (!/^HIDDEN$/, @vocabularies);
-my @notations = `/Users/alama/sources/mizar/mwiki/env.pl Notations $article_name`;
-chomp (@notations);
-@notations = grep (!/^HIDDEN$/, @notations);
-my @constructors = `/Users/alama/sources/mizar/mwiki/env.pl Constructors $article_name`;
-chomp (@constructors);
-@constructors = grep (!/^HIDDEN$/, @constructors);
-my @registrations = `/Users/alama/sources/mizar/mwiki/env.pl Registrations $article_name`;
-chomp (@registrations);
-@registrations = grep (!/^HIDDEN$/, @registrations);
-my @requirements = `/Users/alama/sources/mizar/mwiki/env.pl Requirements $article_name`;
-chomp (@requirements);
-@requirements = grep (!/^HIDDEN$/, @requirements);
-my @definitions = `/Users/alama/sources/mizar/mwiki/env.pl Definitions $article_name`;
-chomp (@definitions);
-@definitions = grep (!/^HIDDEN$/, @definitions);
-my @theorems = `/Users/alama/sources/mizar/mwiki/env.pl Theorems $article_name`;
-chomp (@theorems);
-@theorems = grep (!/^HIDDEN$/, @theorems);
-my @schemes = `/Users/alama/sources/mizar/mwiki/env.pl Schemes $article_name`;
-chomp (@schemes);
-@schemes = grep (!/^HIDDEN$/, @schemes);
+my @vocabularies = fetch_directive ('Vocabularies');
+my @notations = fetch_directive ('Notations');
+my @constructors = fetch_directive ('Constructors');
+my @registrations = fetch_directive ('Registrations');
+my @requirements = fetch_directive ('Requirements');
+my @definitions = fetch_directive ('Definitions');
+my @theorems = fetch_directive ('Theorems');
+my @schemes = fetch_directive ('Schemes');
+
+# DEBUG
+warn "The vocabularies environment is @vocabularies\n";
 
 my @mml_lar = ();
 
