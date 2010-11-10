@@ -229,6 +229,10 @@ if (defined $ARGV{'--no-cleanup'}) {
 my $workdir = tempdir (CLEANUP => $cleanup_afterward)
   or die 'Error: Unable to create a working directory!';
 
+if ($be_verbose) {
+  print "Setting the work directory to $workdir\n";
+}
+
 # Now copy the specified mizar article to the work directory
 my $article_in_workdir = catfile ($workdir, $article_miz);
 copy ($article_miz_path, $article_in_workdir)
