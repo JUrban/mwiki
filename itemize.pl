@@ -12,7 +12,7 @@ use Getopt::Euclid; # load this first to set up our command-line parser
 
 use Cwd qw / getcwd /;
 use File::Temp qw / tempdir /;
-use File::Spec;
+use File::Spec::Functions;
 use File::Copy qw / copy move /;
 use File::Path qw / remove_tree /;
 use XML::LibXML;
@@ -118,7 +118,7 @@ unless (-r $elisp_dir) {
 }
 my @elisp_files = ('reservations.elc');
 foreach my $elisp_file (@elisp_files) {
-  my $elisp_file_path = File::Spec->catfile ($elisp_dir, $elisp_file);
+  my $elisp_file_path = catfile ($elisp_dir, $elisp_file);
   unless (-e $elisp_file_path) {
     die "Error: The required emacs lisp file\n\n  $elisp_file\n\ncannot be found under the emacs lisp directory\n\n$elisp_dir";
   }
@@ -126,7 +126,7 @@ foreach my $elisp_file (@elisp_files) {
     die "Error: The required emacs lisp file\n\n  $elisp_file\n\nunder the emacs lisp directory\n\n$elisp_dir\n\nis not readable!";
   }
 }
-my $reservations_elc_path = File::Spec->catfile ($elisp_dir, 'reservations.elc');
+my $reservations_elc_path = catfile ($elisp_dir, 'reservations.elc');
 unless (-e $reservations_elc_path) {
   die "Error: reservations.elc does not exist under $elisp_dir";
 }
@@ -162,7 +162,7 @@ unless (-r $stylesheet_dir) {
 my @stylesheets = ('addabsrefs');
 foreach my $stylesheet (@stylesheets) {
   my $stylesheet_xsl = "$stylesheet.xsl";
-  my $stylesheet_path = File::Spec->catfile ($stylesheet_dir, $stylesheet_xsl);
+  my $stylesheet_path = catfile ($stylesheet_dir, $stylesheet_xsl);
   unless (-e $stylesheet_path) {
     die "The required stylesheet $stylesheet_xsl does not exist in $stylesheet_dir";
   }
@@ -194,9 +194,9 @@ if ($be_verbose) {
 my $article_miz = $article_name . '.miz';
 my $article_err = $article_name . '.err'; # for error checking with the mizar tools
 my $article_tmp = $article_name . '.$-$';
-my $article_miz_path = File::Spec->catfile ($article_source_dir, $article_miz);
-my $article_err_path = File::Spec->catfile ($article_source_dir, $article_err);
-my $article_tmp_path = File::Spec->catfile ($article_source_dir, $article_tmp);
+my $article_miz_path = catfile ($article_source_dir, $article_miz);
+my $article_err_path = catfile ($article_source_dir, $article_err);
+my $article_tmp_path = catfile ($article_source_dir, $article_tmp);
 
 # More sanity checks: the mizar file exists and is readable
 unless (-e $article_miz_path) {
@@ -233,7 +233,7 @@ my $workdir = tempdir (CLEANUP => $cleanup_afterward)
   or die 'Error: Unable to create a working directory!';
 
 # Now copy the specified mizar article to the work directory
-my $article_in_workdir = File::Spec->catfile ($workdir, $article_miz);
+my $article_in_workdir = catfile ($workdir, $article_miz);
 copy ($article_miz_path, $article_in_workdir)
   or die "Error: Unable to copy article ($article_miz) to work directory ($article_in_workdir):\n\n$!";
 
@@ -241,7 +241,7 @@ copy ($article_miz_path, $article_in_workdir)
 
 ## But first check whether it already exists.  If it does, stop; we
 ## don't want to potentially overwrite anything.
-my $local_db = File::Spec->catfile ($result_dir, $article_name);
+my $local_db = catfile ($result_dir, $article_name);
 if (-x $local_db) {
   die "Error: there is already a directory called '$article_name' in the result directory ($result_dir); refusing to overwrite its contents";
 }
@@ -253,10 +253,10 @@ if ($be_verbose) {
 mkdir $local_db
   or die "Error: Unable to make the local database directory: $!";
 my @local_db_subdirs = ('dict', 'prel', 'text');
-my $article_text_dir = File::Spec->catfile ($local_db, 'text');
+my $article_text_dir = catfile ($local_db, 'text');
 
 foreach my $local_db_subdir (@local_db_subdirs) {
-  my $local_db_path = File::Spec->catfile ($local_db, $local_db_subdir);
+  my $local_db_path = catfile ($local_db, $local_db_subdir);
   mkdir $local_db_path
     or die "Error: Unable to make local database subdirectory $local_db_subdir: $!";
 }
@@ -318,7 +318,7 @@ unless (-z $article_err) {
 }
 
 ### 4. Generate the absolute reference version of the generated XML
-my $absrefs_stylesheet = File::Spec->catfile ($stylesheet_dir, 'addabsrefs.xsl');
+my $absrefs_stylesheet = catfile ($stylesheet_dir, 'addabsrefs.xsl');
 my $article_xml = $article_name . '.xml';
 my $article_xml_absrefs = $article_name . '.xml1';
 my $article_idx = $article_name . '.idx';
@@ -390,7 +390,7 @@ sub export_item {
   my $begin_line = shift;
   my $text = shift;
 
-  my $item_path = File::Spec->catfile ($article_text_dir, "ITEM$number.miz");
+  my $item_path = catfile ($article_text_dir, "ITEM$number.miz");
   open (ITEM_MIZ, q{>}, $item_path)
     or die ("Unable to open an output filehandle at $item_path:\n\n  $!");
   print ITEM_MIZ ("environ\n");
