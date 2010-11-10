@@ -100,6 +100,10 @@ unless (defined $elisp_dir) { # weird: typo on my part or bug in Getopt::Euclid
   die 'Error: No value for the --emacs-lisp-dir option is present in the %ARGV table!';
 }
 
+if ($be_verbose) {
+  print "Setting elisp directory to $elisp_dir\n";
+}
+
 # Ensure that the value is sensible, which in this case means: it
 # exists, it's a directory, it's readable, and it contains all the
 # needed helper elisp code
