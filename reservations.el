@@ -259,7 +259,7 @@
     (forward-char col)
     (forward-word 1)
     (backward-kill-word 1)
-    (insert (format "ITEM%d:sch 1" absolute-item-number))))
+    (insert (format "%d:sch 1" absolute-item-number))))
 
 (defun apply-definition-replacement (instruction)
   (destructuring-bind (line col absolute-item-number def-number)
@@ -268,7 +268,7 @@
     (forward-line (1- line))
     (forward-char col)
     (backward-kill-word 1)
-    (insert (format "ITEM%d:def %d" absolute-item-number def-number))))
+    (insert (format "%d:def %d" absolute-item-number def-number))))
 
 (defun apply-theorem-replacement (instruction)
   (destructuring-bind (line col absolute-item-number)
@@ -277,7 +277,7 @@
     (forward-line (1- line))
     (forward-char col)
     (backward-kill-word 1)
-    (insert (format "ITEM%d:1" absolute-item-number))))
+    (insert (format "%d:1" absolute-item-number))))
 
 (defun delimited-region (beg-line beg-col end-line end-col)
   (multiple-value-bind (beg end)
@@ -317,13 +317,13 @@ REPACEMENT-TYPE must be either 'definition', 'scheme' or
 'theorem'.  If it is 'scheme', then the pair (LINE,COL) means
 that the cursor is immediately before the name of an
 article-local scheme to be replaced.  It will be replaced by
-\"ITEM<ABSOLUTE-ITEM-NUMBER>:sch 1\".  If REPLACEMENT-TYPE is
+\"<ABSOLUTE-ITEM-NUMBER>:sch 1\".  If REPLACEMENT-TYPE is
 equal to 'definition', then the pair (LINE,COL) is immediately
 after the name of the article-local definition, and will be
-replaced by \"ITEM<ABSOLUTE-ITEM-NUMBER>:def 1\".  Finally, if
+replaced by \"<ABSOLUTE-ITEM-NUMBER>:def 1\".  Finally, if
 REPLACEMENT-TYPE is 'theorem', then (LINE,COL) is immediately
 after the name of a reference to an article-local theorem, and it
-will be replaced by \"ITEM<ABSOLUTE-ITEM-NUMBER>:1\"."
+will be replaced by \"<ABSOLUTE-ITEM-NUMBER>:1\"."
   (if (eq item-keyword 'canceled)
       (princ "theorem not contradiction")
     (let (real-beg-line real-beg-col what-we-are-looking-for)
