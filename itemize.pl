@@ -419,7 +419,7 @@ sub export_item {
 
   # vocabularies are easy
   my @this_item_vocabularies = @vocabularies;
-  unless (@this_item_vocabularies) == 0) {
+  unless (@this_item_vocabularies == 0) {
     print ITEM_MIZ ("vocabularies " . join (', ', @this_item_vocabularies) . ";");
     print ITEM_MIZ ("\n");
   }
