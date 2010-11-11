@@ -394,15 +394,14 @@ my @schemes = fetch_directive ('Schemes');
 my @mml_lar = ();
 
 sub read_mml_lar {
-  open (MML_LAR, q{<}, '/sw/share/mizar/mml.lar')
-    or die ("mml.lar cannot be opened: $!");
-  my $line;
-  while (defined ($line = <MML_LAR>)) {
-    chomp $line;
-    push (@mml_lar, $line);
+  open my $mmllar, '<', '/sw/share/mizar/mml.lar'
+    or die "mml.lar cannot be opened: $!";
+  while (<$mmllar>)) {
+    chomp;
+    push (@mml_lar, $_);
   }
-  close (MML_LAR)
-    or die ("Can't close read-only filehandle for mml.lar: $!");
+  close ($mmllar)
+    or die "Can't close read-only filehandle for mml.lar: $!";
   return;
 }
 
