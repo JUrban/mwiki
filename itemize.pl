@@ -1297,19 +1297,6 @@ sub export_item_with_number {
   return;
 }
 
-=for TODO
-
-* trim_directive cuts down the contents of a specified directive by
-  looking for files in the local prel database that have a given
-  suffix.  This approach is fairly fast, because it just depends on
-  testing existence of files.  This is perhaps the laziest workable
-  approach; it ensures only that the article fragmens make sense to
-  the mizar tools. We should plug in to Josef's code; it requires far
-  more computation than simply checking the existence of suitable
-  files, but that is the way we cut things down as far as possible.
-
-=cut
-
 sub trim_directive {
   my $directive_name = shift;
   my $extension_for_directive = shift;
@@ -1652,6 +1639,17 @@ under the same terms as Perl itself. See L<perlartistic>.
 This program is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+=head1 TODO
+
+=item trim_directive cuts down the contents of a specified directive
+  by looking for files in the local prel database that have a given
+  suffix.  This approach is fairly fast, because it just depends on
+  testing existence of files.  This is perhaps the laziest workable
+  approach; it ensures only that the article fragmens make sense to
+  the mizar tools. We should plug in to Josef's code; it requires far
+  more computation than simply checking the existence of suitable
+  files, but that is the way we cut things down as far as possible.
 
 =cut
 
