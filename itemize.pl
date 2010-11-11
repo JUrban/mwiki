@@ -1436,9 +1436,6 @@ if ($cleanup_afterward) {
   warn "Not clearning up the work directory; auxiliary files can be found in the directory\n\n  $workdir\n\nfor your inspection.";
 }
 
-# separate_theorems ();
-
-
 __END__
 
 =head1 NAME
