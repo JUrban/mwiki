@@ -1229,9 +1229,11 @@ sub itemize {
       export_item ($i, $begin_line, $text); # don't start at 0
     }
   }
+
+  return scalar @tpnodes;
 }
 
-itemize ();
+my $num_items = itemize ();
 
 ######################################################################
 ### Cleanup
