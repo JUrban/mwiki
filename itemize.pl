@@ -1238,6 +1238,207 @@ sub itemize {
 my $num_items = itemize ();
 
 ######################################################################
+### Incrementally verify and export each of the generated items
+######################################################################
+
+sub verify_item_with_number {
+  my $item_number = shift;
+  my $miz = catfile ('text', "item$item_number.miz");
+  my $err = catfile ('text', "item$item_number.err");
+
+  # where we'll work
+  chdir $local_db;
+
+  # sanity check: article exists and is readable
+  unless (-e $miz) {
+    die "Error: the mizar article for item number $item_number does not exist under $article_text_dir!";
+  }
+  unless (-r $miz) {
+    die "Error: the mizar article for item number $item_number under $article_text_dir is not readable!";
+  }
+
+  # accomodate
+  system ("accom -q -s -l $miz > /dev/null 2> /dev/null");
+
+  # more sanity checking
+  unless ($? == 0) {
+    die "Error: Something went wrong when calling the accomodator on $miz under $article_text_dir: the error was\n\n$!";
+  }
+  if (-e $err && -s $err) {
+    die "Error: although the accomodator returned successfully when run on $miz under $article_text_dir,\\it nonetheless generated a non-empty error file";
+  }
+
+  # verify
+  system ("verifier -q -s -l $miz > /dev/null 2> /dev/null");
+
+  # even more sanity checking
+  unless ($? == 0) {
+    die "Error: Something went wrong when calling the verifier on $miz under $article_text_dir: the error was\n\n$!";
+  }
+  if (-e $err && -s $err) {
+    die "Error: although the verifier returned successfully when run on $miz under $article_text_dir,\\it nonetheless generated a non-empty error file";
+  }
+
+  return;
+}
+
+sub export_item_with_number {
+  my $item_number = shift;
+  my $miz = catfile ('text', "item$item_number.miz");
+  my $err = catfile ('text', "item$item_number.err");
+
+  # where we'll work
+  chdir $local_db;
+
+  # sanity check: article exists and is readable
+  unless (-e $miz) {
+    die "Error: the mizar article for item number $item_number does not exist under $article_text_dir!";
+  }
+  unless (-r $miz) {
+    die "Error: the mizar article for item number $item_number under $article_text_dir is not readable!";
+  }
+
+  # export
+  system ("exporter -q -s -l $miz > /dev/null 2> /dev/null");
+  unless ($? == 0) {
+    die "Error: Something went wrong when exporting $miz under $article_text_dir: the error was\n\n$!";
+  }
+  if (-e $err && -s $err) {
+    die "Error: although the exporter terminated successfully after working on $miz (under $article_text_dir),\na non-empty error file was generated nonetheess!";
+  }
+
+  # transfer
+  system ("transfer -q -s -l $miz > /dev/null 2> /dev/null");
+
+  # even more sanity checking
+  unless ($? == 0) {
+    die "Error: Something went wrong when calling the transfer tool on $miz under $article_text_dir: the error was\n\n$!";
+  }
+  if (-e $err && -s $err) {
+    die "Error: although transfer terminated successfully after working on $miz (under $article_text_dir),\na non-empty error file was generated nonetheess!";
+  }
+
+  return;
+}
+
+sub trim_directive {
+  my $directive_name = shift;
+  my $extension_for_directive = shift;
+  my @directive_contents = @{shift ()};
+  my @trimmed = ();
+  foreach my $directive_item (@directive_contents) {
+    my $file_to_look_for = catfile ($article_prel_dir, "$directive_item.$extension_for_directive");
+    # DEBUG
+      warn "Looking for file named $file_to_look_for";
+    if (grep (/^$directive_name$/i, @mml_lar)) {
+      push (@trimmed, $directive_item);
+    } elsif ($directive_item eq 'TARSKI') { # TARSKI is not listed in mml.lar
+      push (@trimmed, $directive_item);
+    } elsif (-e $file_to_look_for) {
+      push (@trimmed, $directive_item);
+      # DEBUG
+      warn "We found it!";
+    } else {
+      # DEBUG
+      warn "Not found";
+    }
+  }
+  return \@trimmed;
+}
+
+sub trim_item_with_number {
+
+  my $item_number = shift;
+
+  # DEBUG
+  warn "Triming article fragment #$item_number";
+
+  my $miz = catfile ($article_text_dir, "ITEM$item_number.miz");
+
+  # sanity check: the article fragment exists and is readable
+  unless (-e $miz) {
+    die "Error: unable to trim article fragment $item_number because the corresponding .miz file doesn't exist under $article_text_dir!";
+  }
+  unless (-r $miz) {
+    die "Error: unable to trim article fragment $item_number because the corresponding .miz file under $article_text_dir is not readable!";
+  }
+
+  # copy the environment
+  my @notations = @notations;
+  my @constructors = @constructors;
+  my @registrations = @registrations;
+  my @definitions = @definitions;
+  my @theorems = @theorems;
+  my @schemes = @schemes;
+
+  my @earlier_item_numbers = ();
+  foreach my $i (1 .. $item_number - 1) {
+    push (@earlier_item_numbers, "ITEM$i");
+  }
+
+  push (@notations, @earlier_item_numbers);
+  push (@constructors,@earlier_item_numbers);
+  push (@registrations, @earlier_item_numbers);
+  push (@definitions, @earlier_item_numbers);
+  push (@theorems, @earlier_item_numbers);
+  push (@schemes, @earlier_item_numbers);
+
+  my @trimmed_notations = @{trim_directive ('notations', 'dno', \@notations)};
+  my @trimmed_constructors = @{trim_directive ('constructors', 'dco', \@constructors)};
+  my @trimmed_registrations = @{trim_directive ('registrations', 'dcl', \@registrations)};
+  my @trimmed_definitions = @{trim_directive ('definitions', 'def', \@definitions)};
+  my @trimmed_theorems = @{trim_directive ('theorems', 'the', \@theorems)};
+  my @trimmed_schemes = @{trim_directive ('schemes', 'sch', \@schemes)};
+
+  # we're going to overwrite the .miz with the trimmed environment
+  open my $miz_in, '<', $miz
+    or die "Coudn't open read-only filehandle for $miz: $!";
+  unlink $miz;
+  open my $miz_out, '>', $miz
+    or die "Couldn' open write-only filehandle for $miz: $!";
+  while (defined (my $line = <$miz_in>)) {
+    chomp $line;
+    if ($line =~ /^notations /) {
+      print {$miz_out} ('notations ' . join (', ', @trimmed_notations) . ";\n")
+	unless scalar @trimmed_notations == 0;
+    } elsif ($line =~ /^constructors /) {
+      print {$miz_out} ('constructors ' . join (', ', @trimmed_constructors) . ";\n")
+	unless scalar @trimmed_constructors == 0;
+    } elsif ($line =~ /^registrations /) {
+      print {$miz_out} ('registrations ' . join (', ', @trimmed_registrations) . ";\n")
+	unless scalar @trimmed_registrations == 0;
+    } elsif ($line =~ /^definitions /) {
+      print {$miz_out} ('definitions ' . join (', ', @trimmed_definitions) . ";\n")
+	unless scalar @trimmed_definitions == 0;
+    } elsif ($line =~ /^theorems /) {
+      print {$miz_out} ('theorems ' . join (', ', @trimmed_theorems) . ";\n")
+	unless scalar @trimmed_theorems == 0;
+    } elsif ($line =~ /^schemes /) {
+      print {$miz_out} ('schemes ' . join (', ', @trimmed_schemes) . ";\n")
+	unless scalar @trimmed_schemes == 0;
+    } elsif ($line =~ /^requirements /) { # special case
+      print {$miz_out} ('requirements ' . join (', ', @requirements) . ";\n")
+	unless scalar @requirements == 0;
+    } else {
+      print {$miz_out} ("$line\n");
+    }
+  }
+
+  close $miz_in
+    or die "Couldn't close input filehandle for $miz!";
+  close $miz_out
+    or die "Couldn't close output filehandle for $miz!";
+
+  return;
+}
+
+foreach my $item_number (1 .. $num_items) {
+  trim_item_with_number ($item_number);
+  verify_item_with_number ($item_number);
+  export_item_with_number ($item_number);
+}
+
+######################################################################
 ### Cleanup
 ######################################################################
 
