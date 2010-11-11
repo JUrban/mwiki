@@ -393,6 +393,15 @@ my @schemes = fetch_directive ('Schemes');
 
 my @mml_lar = ();
 
+# ensure that we can read mml.lar
+my $mml_lar_path = catfile ($mizfiles, 'mml.lar');
+unless (-e $mml_lar_path) {
+  die "The file mml.lar doesn't exist under $mizfiles!";
+}
+unless (-r $mml_lar_path) {
+  die "The file mml.lar under $mizfiles is not readable!";
+}
+
 sub read_mml_lar {
   open my $mmllar, '<', '/sw/share/mizar/mml.lar'
     or die "mml.lar cannot be opened: $!";
