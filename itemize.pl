@@ -1321,6 +1321,18 @@ sub export_item_with_number {
   return;
 }
 
+=for TODO
+
+* trim_directive cuts down the contents of a specified directive by
+  looking for files in the local prel database that have a given
+  suffix.  This approach is fairly fast, because it just depends on
+  testing existence of files.  This is perhaps the laziest workable
+  approach.  We should plug in to Josef's code; it requires far more
+  computation than simply checking the existence of suitable files,
+  but it is the way we cut things down as far as possible.
+
+=cut
+
 sub trim_directive {
   my $directive_name = shift;
   my $extension_for_directive = shift;
@@ -1376,6 +1388,9 @@ sub trim_item_with_number {
     push (@earlier_item_numbers, "ITEM$i");
   }
 
+  # in addition to any directives that the original article uses,
+  # conservatively start off by saying that the fragment depends on
+  # ALL earlier fragments.  We'll cut that down later.
   push (@notations, @earlier_item_numbers);
   push (@constructors,@earlier_item_numbers);
   push (@registrations, @earlier_item_numbers);
@@ -1383,6 +1398,8 @@ sub trim_item_with_number {
   push (@theorems, @earlier_item_numbers);
   push (@schemes, @earlier_item_numbers);
 
+  # Now that we've ballooned each of the directives, cut them down to
+  # something more sensible.
   my @trimmed_notations = @{trim_directive ('notations', 'dno', \@notations)};
   my @trimmed_constructors = @{trim_directive ('constructors', 'dco', \@constructors)};
   my @trimmed_registrations = @{trim_directive ('registrations', 'dcl', \@registrations)};
