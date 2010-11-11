@@ -16,6 +16,7 @@ use File::Spec::Functions qw / catfile catdir /;
 use File::Copy qw / copy move /;
 use File::Path qw / remove_tree /;
 use XML::LibXML;
+use Fatal qw / open /;
 
 ######################################################################
 ### Process the command line
