@@ -1253,12 +1253,6 @@ if ($cleanup_afterward) {
 # separate_theorems ();
 
 
-# my $reservations_ref = split_reservations ();
-# my @reservations = @{$reservations_ref};
-# foreach my $reservation (@reservations) {
-#   print "$reservation\n";
-# }
-
 __END__
 
 =head1 NAME
