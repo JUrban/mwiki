@@ -1642,6 +1642,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 =head1 TODO
 
+=over
+
 =item trim_directive cuts down the contents of a specified directive
   by looking for files in the local prel database that have a given
   suffix.  This approach is fairly fast, because it just depends on
@@ -1650,6 +1652,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   the mizar tools. We should plug in to Josef's code; it requires far
   more computation than simply checking the existence of suitable
   files, but that is the way we cut things down as far as possible.
+
+=back
 
 =cut
 
