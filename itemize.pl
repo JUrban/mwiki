@@ -585,30 +585,6 @@ sub init_vid_table {
 
 init_vid_table ();
 
-# sub prepare_work_dirs {
-#   my $theorems_dir = $article_work_dir . '/' . 'theorems';
-#   my $schemes_dir = $article_work_dir . '/' . 'schemes';
-#   my $definitions_dir = $article_work_dir . '/' . 'definitions';
-#   mkdir ($theorems_dir);
-#   mkdir ($definitions_dir);
-#   return;
-# }
-
-# sub load_environment {
-#   my @output = `emacs23 --quick --batch --load reservations.elc --visit $article_miz --funcall article-environment`;
-#   unless ($? == 0) {
-#     die ("Weird: emacs didn't exit cleanly: $!");
-#   }
-#   # can't we just turn this list of strings into a single string,
-#   # using a builtin command?  this looks so primitive
-#   my $environment = '';		# empty string
-#   foreach my $line (@output) {
-#     chomp ($line);
-#     $environment .= "$line\n";
-#   }
-#   return ($environment);
-# }
-
 sub print_reservation_table {
   # DEBUG
   warn "Here is the reservation table:";
