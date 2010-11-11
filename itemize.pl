@@ -1202,9 +1202,7 @@ sub itemize {
       print (";\n");
       print ("======================================================================\n");
 
-      # DEBUG
-      warn ("Exporting...");
-      export_item ($i, $begin_line, $text); # don't start at 0
+      export_item ($i, $begin_line, $text);
     }
   }
 
