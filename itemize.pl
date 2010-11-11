@@ -1656,6 +1656,13 @@ things much slower than they need to be.  We are using emacs only in a
 limited capacity: extracting regions of text.  We can certainly do
 this in perl, and likely much faster.
 
+=item Mizar module
+
+A fair amount of this code deals with just running mizar tools,
+checking their return values and existence of a non-empty .err file,
+etc.  This kind of thing more naturally belongs in a separate mizar
+module rather than here.
+
 =back
 
 =cut
