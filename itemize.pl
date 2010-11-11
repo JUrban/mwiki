@@ -389,9 +389,6 @@ my @definitions = fetch_directive ('Definitions');
 my @theorems = fetch_directive ('Theorems');
 my @schemes = fetch_directive ('Schemes');
 
-# DEBUG
-warn "The vocabularies environment is @vocabularies\n";
-
 my @mml_lar = ();
 
 sub read_mml_lar {
