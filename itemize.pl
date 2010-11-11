@@ -403,7 +403,7 @@ unless (-r $mml_lar_path) {
 }
 
 sub read_mml_lar {
-  open my $mmllar, '<', '/sw/share/mizar/mml.lar'
+  open my $mmllar, '<', $mml_lar_path
     or die "mml.lar cannot be opened: $!";
   while (<$mmllar>)) {
     chomp;
