@@ -1638,7 +1638,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 =over
 
-=item trim_directive
+=item Dependency computation
 
 trim_directive cuts down the contents of a specified directive by
 looking for files in the local prel database that have a given suffix.
