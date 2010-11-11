@@ -428,7 +428,7 @@ sub export_item {
   foreach my $i (1 .. $number - 1) {
     push (@this_item_notations, $i);
   }
-  unless ($number == 1) {
+  unless (scalar @this_item_notations == 0) {
     print ITEM_MIZ ("notations " . join (', ', @this_item_notations) . ";");
     print ITEM_MIZ ("\n");
   }
@@ -438,7 +438,7 @@ sub export_item {
   foreach my $i (1 .. $number - 1) {
     push (@this_item_constructors, $i);
   }
-  unless ($number == 1) {
+  unless (scalar @this_item_constructors == 0) {
     print ITEM_MIZ ("constructors " . join (', ', @this_item_constructors) . ";");
     print ITEM_MIZ ("\n");
   }
@@ -448,7 +448,7 @@ sub export_item {
   foreach my $i (1 .. $number - 1) {
     push (@this_item_registrations, $i);
   }
-  unless ($number == 1) {
+  unless (scalar @this_item_registrations == 0) {
     print ITEM_MIZ ("registrations " . join (', ', @this_item_registrations) . ";");
     print ITEM_MIZ ("\n");
   }
@@ -465,7 +465,7 @@ sub export_item {
   foreach my $i (1 .. $number - 1) {
     push (@this_item_definitions, $i);
   }
-  unless ($number == 1) {
+  unless (scalar @this_item_definitions == 0) {
     print ITEM_MIZ ("definitions " . join (', ', @this_item_definitions) . ";");
     print ITEM_MIZ ("\n");
   }
@@ -475,7 +475,7 @@ sub export_item {
   foreach my $i (1 .. $number - 1) {
     push (@this_item_theorems, $i);
   }
-  unless ($number == 1) {
+  unless (scalar @this_item_theorems == 0) {
     print ITEM_MIZ ("theorems " . join (', ', @this_item_theorems) . ";");
     print ITEM_MIZ ("\n");
   }
@@ -485,7 +485,7 @@ sub export_item {
   foreach my $i (1 .. $number - 1) {
     push (@this_item_schemes, $i);
   }
-  unless ($number == 1) {
+  unless (scalar @this_item_schemes == 0) {
     print ITEM_MIZ ("schemes " . join (', ', @this_item_schemes) . ";");
     print ITEM_MIZ ("\n");
   }
