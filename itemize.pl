@@ -191,9 +191,11 @@ if ($be_verbose) {
 my $article_miz = $article_name . '.miz';
 my $article_err = $article_name . '.err'; # for error checking with the mizar tools
 my $article_tmp = $article_name . '.$-$';
+my $article_evl = $article_name . '.evl';
 my $article_miz_path = catfile ($article_source_dir, $article_miz);
 my $article_err_path = catfile ($article_source_dir, $article_err);
 my $article_tmp_path = catfile ($article_source_dir, $article_tmp);
+my $article_evl_path = catfile ($article_source_dir, $article_evl);
 
 # More sanity checks: the mizar file exists and is readable
 unless (-e $article_miz_path) {
@@ -343,8 +345,6 @@ unless ($? == 0) {
 
 sub fetch_directive {
   my $directive = shift;
-
-  my $article_evl = $article_name . '.evl';
 
   chdir $workdir;
   system ("envget -l $article_miz > /dev/null 2> /dev/null");
