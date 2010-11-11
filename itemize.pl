@@ -1303,9 +1303,10 @@ sub export_item_with_number {
   looking for files in the local prel database that have a given
   suffix.  This approach is fairly fast, because it just depends on
   testing existence of files.  This is perhaps the laziest workable
-  approach.  We should plug in to Josef's code; it requires far more
-  computation than simply checking the existence of suitable files,
-  but it is the way we cut things down as far as possible.
+  approach; it ensures only that the article fragmens make sense to
+  the mizar tools. We should plug in to Josef's code; it requires far
+  more computation than simply checking the existence of suitable
+  files, but that is the way we cut things down as far as possible.
 
 =cut
 
