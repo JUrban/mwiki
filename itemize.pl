@@ -411,7 +411,7 @@ sub export_item {
   my $begin_line = shift;
   my $text = shift;
 
-  my $item_path = catfile ($article_text_dir, "$number.miz");
+  my $item_path = catfile ($article_text_dir, "item$number.miz");
   open (ITEM_MIZ, q{>}, $item_path)
     or die ("Unable to open an output filehandle at $item_path:\n\n  $!");
   print ITEM_MIZ ("environ\n");
@@ -426,7 +426,7 @@ sub export_item {
   # notations
   my @this_item_notations = @notations;
   foreach my $i (1 .. $number - 1) {
-    push (@this_item_notations, $i);
+    push (@this_item_notations, "ITEM$i");
   }
   unless (@this_item_notations == 0) {
     print ITEM_MIZ ("notations " . join (', ', @this_item_notations) . ";");
@@ -436,7 +436,7 @@ sub export_item {
   # constructors
   my @this_item_constructors = @constructors;
   foreach my $i (1 .. $number - 1) {
-    push (@this_item_constructors, $i);
+    push (@this_item_constructors, "ITEM$i");
   }
   unless (@this_item_constructors == 0) {
     print ITEM_MIZ ("constructors " . join (', ', @this_item_constructors) . ";");
@@ -446,7 +446,7 @@ sub export_item {
   # registrations
   my @this_item_registrations = @registrations;
   foreach my $i (1 .. $number - 1) {
-    push (@this_item_registrations, $i);
+    push (@this_item_registrations, "ITEM$i");
   }
   unless (@this_item_registrations == 0) {
     print ITEM_MIZ ("registrations " . join (', ', @this_item_registrations) . ";");
@@ -463,7 +463,7 @@ sub export_item {
   # handle the definitions directive just like the constructors directive
   my @this_item_definitions = @definitions;
   foreach my $i (1 .. $number - 1) {
-    push (@this_item_definitions, $i);
+    push (@this_item_definitions, "ITEM$i");
   }
   unless (@this_item_definitions == 0) {
     print ITEM_MIZ ("definitions " . join (', ', @this_item_definitions) . ";");
@@ -473,7 +473,7 @@ sub export_item {
   # theorems
   my @this_item_theorems = @theorems;
   foreach my $i (1 .. $number - 1) {
-    push (@this_item_theorems, $i);
+    push (@this_item_theorems, "ITEM$i");
   }
   unless (@this_item_theorems == 0) {
     print ITEM_MIZ ("theorems " . join (', ', @this_item_theorems) . ";");
