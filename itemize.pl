@@ -12,7 +12,7 @@ use Getopt::Euclid; # load this first to set up our command-line parser
 
 use Cwd qw / getcwd /;
 use File::Temp qw / tempdir /;
-use File::Spec::Functions qw / catfile /;
+use File::Spec::Functions qw / catfile catdir /;
 use File::Copy qw / copy move /;
 use File::Path qw / remove_tree /;
 use XML::LibXML;
@@ -256,7 +256,8 @@ if ($be_verbose) {
 mkdir $local_db
   or die "Error: Unable to make the local database directory: $!";
 my @local_db_subdirs = ('dict', 'prel', 'text');
-my $article_text_dir = catfile ($local_db, 'text');
+my $article_text_dir = catdir ($local_db, 'text');
+my $article_prel_dir = catdir ($local_db, 'prel');
 
 foreach my $local_db_subdir (@local_db_subdirs) {
   my $local_db_path = catfile ($local_db, $local_db_subdir);
