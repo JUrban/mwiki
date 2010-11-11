@@ -1425,7 +1425,8 @@ Emacs Lisp code for extracting content from the supplied ARTICLE.
 
 =head1 INCOMPATIBILITIES
 
-None are known.
+Be careful with the version of envget being used: we need that tool to
+produce XML, rather than cryptic plain text.
 
 =head1 BUGS AND LIMITATIONS
 
