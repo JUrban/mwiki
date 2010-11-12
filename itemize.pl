@@ -909,7 +909,20 @@ sub itemize {
     warn ("final deftheorem number $i generated $num_exported_theorems exported theorems");
   }
 
-  @tpnodes = $doc->findnodes ('//JustifiedTheorem | //Proposition[(name(..)="Article")] | //DefinitionBlock | //SchemeBlock | //RegistrationBlock | //NotationBlock | //Defpred[name(..)="Article"] | //Deffunc[(name(..)="Article)] | //Reconsider[(name(..)="Article")] | //Set[(name(..)="Article")]');
+  my @item_xpaths = ('//JustifiedTheorem',
+		     '//Proposition[name(..)="Article"]',
+		     '//DefinitionBlock',
+		     '//SchemeBlock',
+		     '//RegistrationBlock',
+		     '//NotationBlock',
+		     '//Defpred[name(..)="Article"]',
+		     '//Deffunc[name(..)="Article"]',
+		     '//Reconsider[name(..)="Article"]',
+		     '//Set[name(..)="Article"]');
+
+  my $query = join ' | ', @item_xpaths;
+
+  @tpnodes = $doc->findnodes ($query);
   my $scheme_num = 0;
   # DEBUG
   warn ("we have to consider " . scalar (@tpnodes) . " nodes");
