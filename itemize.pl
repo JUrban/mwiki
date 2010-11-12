@@ -269,6 +269,8 @@ foreach my $local_db_subdir (@local_db_subdirs) {
 ######################################################################
 ### Prepare article for itemization:
 ###
+### 0. Load the .miz file
+###
 ### 1. Run the accomodator (needed for JA1)
 ###
 ### 2. Run JA1 and edtfile
@@ -277,6 +279,21 @@ foreach my $local_db_subdir (@local_db_subdirs) {
 ###
 ### 4. Generate the absolute reference version of the generated XML
 ######################################################################
+
+### 0. Load the miz file
+
+my @article_lines = ();
+
+open my $miz, '<', $article_miz_path # we already know this is readable
+  or die "Couldn't open an input file handle for $article_miz_path!";
+while (defined (my $line = <$miz>)) {
+  chomp $line;
+  push (@article_lines, $line);
+}
+close $miz
+  or die "Couldn't close the input file handle for $article_miz_path!";
+
+my $num_article_lines = scalar @article_lines;
 
 ### 1. Run the accomodator
 chdir $workdir;
