@@ -517,11 +517,6 @@ sub export_item {
   close (ITEM_MIZ) or die ("Unable to close the filehandle for the path $item_path");
 }
 
-# the XPath expression for proofs that are not inside other proof
-my $top_proof_xpath = '//Proof[not((name(..)="Proof") 
-          or (name(..)="Now") or (name(..)="Hereby")
-          or (name(..)="CaseBlock") or (name(..)="SupposeBlock"))]';
-
 sub read_miz_file {
   # read the whole mizar file as a sequence of strings
   my @mizfile_lines = ();
