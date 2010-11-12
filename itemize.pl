@@ -1349,19 +1349,12 @@ sub trim_directive {
   my @trimmed = ();
   foreach my $directive_item (@directive_contents) {
     my $file_to_look_for = catfile ($article_prel_dir, "$directive_item.$extension_for_directive");
-    # DEBUG
-      warn "Looking for file named $file_to_look_for";
     if (grep (/^$directive_name$/i, @mml_lar)) {
       push (@trimmed, $directive_item);
     } elsif ($directive_item eq 'TARSKI') { # TARSKI is not listed in mml.lar
       push (@trimmed, $directive_item);
     } elsif (-e $file_to_look_for) {
       push (@trimmed, $directive_item);
-      # DEBUG
-      warn "We found it!";
-    } else {
-      # DEBUG
-      warn "Not found";
     }
   }
   return \@trimmed;
