@@ -1472,7 +1472,7 @@ if ($cleanup_afterward) {
   # in any case, how to do that is described in the File::Path
   # documentation.
 } else {
-  warn "Not clearning up the work directory; auxiliary files can be found in the directory\n\n  $workdir\n\nfor your inspection.";
+  print "Not clearning up the work directory; auxiliary files can be found in the directory\n\n  $workdir\n\nfor your inspection.\n";
 }
 
 __END__
