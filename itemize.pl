@@ -551,26 +551,32 @@ sub miz_idx {
 
 my %reservation_table = ();
 
-sub nulls_to_newlines {
-  my $str = shift;
-  $str =~ s/\0/\n/g;
-  return ($str);
-}
-
 sub init_reservation_table {
-  my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --funcall find-reservations`;
-  unless ($? == 0) {
-    die ("Weird: emacs didn't exit cleanly: $!");
+  foreach my $line_num (0 .. $num_article_lines - 1) {
+    my $miz_line = $article_lines[$line_num];
+    if ($miz_line =~ m/^reserve[ ]+[^ ]|[ ]+reserve[ ][^ ]/g) {
+#                                                          ^ 'g' here; see below
+      my $after_reserve = pos $miz_line;
+      my $line_up_to_match = substr $miz_line, 0, $after_reserve;
+      unless ($line_up_to_match =~ m/::/) {
+#                                      ^ no 'g' in match here...
+	if ($miz_line =~ m/\G[^;]+;/g) {
+#                          ^ ...so '\G' here refers to the penultimate match
+	  my $semicolon = pos $miz_line;
+	  my $reserve
+	    = substr $miz_line,
+                     $after_reserve - 1,
+#                                   ^ - 1 for the previous non-whitespace char
+		     $semicolon - $after_reserve + 1;
+#                                                ^ + 1 for the semicolon
+	  # DEBUG
+	  warn "Computed reservation $reserve";
+	  $reservation_table{$line_num} = $reserve;
+	}
+      }
+    }
   }
-  my $num_lines = scalar (@output);
-  for (my $i = 0; $i < $num_lines; $i = $i + 2) {
-    my $line_number = $output[$i];
-    my $reservation_block_nulled = $output[$i+1];
-    chomp ($line_number);
-    chomp ($reservation_block_nulled);
-    $reservation_table{$line_number}
-      = nulls_to_newlines ($reservation_block_nulled);
-  }
+  return;
 }
 
 sub reservations_from_xml {
