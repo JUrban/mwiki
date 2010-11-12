@@ -534,11 +534,6 @@ sub export_item {
   close (ITEM_MIZ) or die ("Unable to close the filehandle for the path $item_path");
 }
 
-# the XPath expression for proofs that are not inside other proof
-my $top_proof_xpath = '//Proof[not((name(..)="Proof") 
-          or (name(..)="Now") or (name(..)="Hereby")
-          or (name(..)="CaseBlock") or (name(..)="SupposeBlock"))]';
-
 sub miz_xml {
   my $parser = XML::LibXML->new();
   return ($parser->parse_file($article_xml_absrefs));
