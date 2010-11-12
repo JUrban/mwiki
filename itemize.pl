@@ -1688,6 +1688,20 @@ checking their return values and existence of a non-empty .err file,
 etc.  This kind of thing more naturally belongs in a separate mizar
 module rather than here.
 
+=item Unhandled items
+
+=over
+
+=item deffunc
+
+=item defpred
+
+=item reconsider
+
+=item set
+
+=back
+
 =back
 
 =cut
