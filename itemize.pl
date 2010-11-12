@@ -405,7 +405,7 @@ unless (-r $mml_lar_path) {
 sub read_mml_lar {
   open my $mmllar, '<', $mml_lar_path
     or die "mml.lar cannot be opened: $!";
-  while (<$mmllar>)) {
+  while (<$mmllar>) {
     chomp;
     push (@mml_lar, $_);
   }
