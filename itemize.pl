@@ -909,7 +909,7 @@ sub itemize {
     warn ("final deftheorem number $i generated $num_exported_theorems exported theorems");
   }
 
-  @tpnodes = $doc->findnodes ('//JustifiedTheorem | //Proposition[(name(..)="Article")] | //DefinitionBlock | //SchemeBlock | //RegistrationBlock | //NotationBlock');
+  @tpnodes = $doc->findnodes ('//JustifiedTheorem | //Proposition[(name(..)="Article")] | //DefinitionBlock | //SchemeBlock | //RegistrationBlock | //NotationBlock | //Defpred | //Deffunc | //Reconsider | //Set');
   my $scheme_num = 0;
   # DEBUG
   warn ("we have to consider " . scalar (@tpnodes) . " nodes");
@@ -940,6 +940,22 @@ sub itemize {
 	$definition_vid_to_absnum{$vid} = $i;
 	# $definition_vid_to_thmnum{$vid} = 0;
       }
+    }
+
+    if ($node_name eq 'Defpred') {
+      warn "Node $i is a global defpred statement; we don't know how to handle these yet.";
+    }
+
+    if ($node_name eq 'Deffunc') {
+      warn "Node $i is a global deffunc statement; we don't know how to handle these yet.";
+    }
+
+    if ($node_name eq 'Reconsider') {
+      warn "Node $i is a global reconsider statement; we don't know how to handle these yet.";
+    }
+
+    if ($node_name eq 'Set') {
+      warn "Node $i is a global reconsider statement; we don't know how to handle these yet.";
     }
 
     # deal with Definiens elements corresponding to Definition
