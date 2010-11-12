@@ -539,21 +539,6 @@ my $top_proof_xpath = '//Proof[not((name(..)="Proof")
           or (name(..)="Now") or (name(..)="Hereby")
           or (name(..)="CaseBlock") or (name(..)="SupposeBlock"))]';
 
-sub read_miz_file {
-  # read the whole mizar file as a sequence of strings
-  my @mizfile_lines = ();
-  open (MIZFILE, q{<}, $article_miz)
-    or die ("Unable to open file $article_miz for reading.");
-  my $miz_line;
-  while (defined ($miz_line = <MIZFILE>)) {
-    chomp $miz_line;
-    push (@mizfile_lines, $miz_line);
-  }
-  close (MIZFILE)
-    or die ("Unable to close the input filehandle for $article_miz!");
-  return (\@mizfile_lines);
-}
-
 sub miz_xml {
   my $parser = XML::LibXML->new();
   return ($parser->parse_file($article_xml_absrefs));
@@ -755,8 +740,6 @@ init_reservation_table ();
 # DEBUG
 print_reservation_table ();
 # load_environment ();
-my $miz_lines_ref = read_miz_file ();
-my @mizfile_lines = @{$miz_lines_ref};
 
 my %vid_to_theorem_num = ();
 my %theorem_num_to_vid = ();
