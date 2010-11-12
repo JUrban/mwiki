@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<style type="text/css">
+body {font-family: monospace; margin: 0px;}
+.wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
+.wikiactions li { display: inline; padding: .2em .4em; }
+.wikiactions a {text-decoration:underline;}
+</style>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link href="coqdoc.css" rel="stylesheet" type="text/css"/>
+<title>C-CoRN Wiki</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+<div class="wikiactions">
+<ul>
+<li><a href="##INDEX##">Index</a></li> 
+<li><a href="##CONTENTS##">Contents</a></li> 
+<li><a href="##CWIKICGIURL##?p=cwiki.git;a=gitweb">Gitweb</a></li>
+</ul>
+</div>
+</div>
+
+<div id="main">
+
+<form method="post" action="##CWIKICGIURL##" enctype="multipart/form-data">
+<table align=right>
+<tr>
+<td align=top>
+                <input type="text" name="f" value="algebra/Foo.v" SIZE="20">
+</td>
+          <input type="hidden" name="p" value="cwiki.git">
+          <input type="hidden" name="a" value="edit">
+
+        <td align=right>
+          <input type="submit" value="Create/Edit">
+         </td>
+</tr>
+</table>
+</form>
+
+
+<h1>C-CoRN Wiki</h1>
+

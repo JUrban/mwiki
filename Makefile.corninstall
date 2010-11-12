@@ -1,7 +1,7 @@
 # -*- mode: makefile; -*-
 
 # An install script, as Makefile, to set up the initial installation
-# of the mizar wiki.  We will probably run this only a handful of
+# of the coq/corn wiki.  We will probably run this only a handful of
 # times.
 
 # The following should be present in the environment or as argments to
@@ -10,23 +10,22 @@
 # - REPOS_BASE: the root directory where our repos -- the backend and
 #   the bare frontend -- will be stored
 #
-# - MIZFILES: the root directory of a mizar installation.  It should
-#   contain data files mml.lar etc, the prel subdirectory, and the mml
-#   subdirectory.
-#
-# - XSL4MIZ: root directory of Josef Urban's xsl4mizar code.
+# - LIBFILES: the root directory of a coq/corn library installation.  It should
+#   contain the .doclist file and .v files, preferably not be compiled
 #
 # One can optionally specify:
 #
-# - MIZBIN: default: $(MIZFILES)/bin.  The directory where the mizar
+# - CGI_NAME: default: cwiki.cgi.  The name of the wiki cgi
+#
+# - COQBIN: default: $(LIBFILES)/bin.  The directory where the Coq
 #   binaries are held
 #
 # - MAKEJOBS: default 1.  The degree of parallelization used by make
-#   when computing the initial HTML-ized presentation of the MML
+#   when computing the initial HTML-ized presentation of the LIB
 #
-# - NUM_ARTICLES: default 10.  The length of the initial segment of
-#   mml.lar (taken from MIZFILES).  Set it to a big value to ensure
-#   that the entire current MML is used; set it to a low-value for
+# - NUM_ARTICLES: default 0.  The length of the initial segment of
+#   cornlist (taken from LIBFILES).  Set it to 0 to ensure
+#   that the whole library is used; set it to a low-value for
 #   debugging purposes.
 #
 # - MWIKI_USER: default "mwiki".  The name of the unix user to add that
@@ -38,8 +37,10 @@
 #
 # - HEAD: default /usr/bin/head.  See description of INSTALL variable.
 
-REPO_NAME=mwiki
-REPO_DIR_INDEX=00INDEX.html
+REPO_NAME=cwiki
+CGI_NAME=cwiki.cgi
+REPO_DIR_INDEX=index.html
+REPO_DIR_CONTENTS=toc.html
 SCRATCH_BASE=$(REPOS_BASE)/scratch
 PUBLIC_REPOS_BASE=$(REPOS_BASE)/public
 PUBLIC_REPO=$(REPOS_BASE)/public/$(REPO_NAME)
@@ -47,18 +48,16 @@ PUBLIC_SANDBOX=$(PUBLIC_REPOS_BASE)/sandbox
 PUBLIC_COMPILED_REPO=$(PUBLIC_REPOS_BASE)/compiled
 BARE_PUBLIC_REPO=$(PUBLIC_REPOS_BASE)/$(REPO_NAME).git
 REPOBIN=$(PUBLIC_REPO)/bin
-MIZBIN=$(MIZFILES)/bin
+COQBIN=$(LIBFILES)/bin
 MAKEJOBS=1
-SHEETS=addabsrefs miz evl2dep
 CSS=article index
 JAVASCRIPT=article
-PERLSCRIPTS=mkxmlhead mkmmlindex duplicates
-PERLMODULES=mizar
+PERLSCRIPTS=
+PERLMODULES=
 GITWEB_ROOT=/var/cache/git
-NUM_ARTICLES=10
+NUM_ARTICLES=0
 HEAD=/usr/bin/head
 INSTALL=/usr/bin/install
-INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
 
 # this should be passed as arg - e.g. mws.cs.ru.nl
 WIKIHOST=localhost
@@ -67,14 +66,14 @@ WIKIHOST=localhost
 CGILIB=/usr/lib/cgi-bin
 
 APACHE_ROOT=
-HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2
+HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
 PUBLIC_MWIKI_USER=mwiki
 
 # .PHONY: all repo sandbox deps xml repo-miz repo-prel repo-perl repo-bin repo-xsl repo-export repo-gitinit repo-makefiles
 
-MIZBINARIES=accom envget exporter makeenv transfer verifier
+COQBINARIES=coqc coqc.opt coqdep coqdoc
 
-MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
+COQDOCFILES=coqheader.in coqfooter.in coqindexheader.in
 
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
@@ -86,37 +85,29 @@ public-repos: public-repo-init public-sandbox public-compiled public-repo-export
 
 scratch-directories:
 	mkdir -p $(SCRATCH_BASE)
-	cd $(SCRATCH_BASE) && mkdir mml dict prel bin xsl html .perl
 
-scratch-mizfiles: scratch-directories
-	# .miz
-	for article in hidden tarski $(INITIAL_SEGMENT); do \
-	  $(INSTALL) --preserve-timestamps --mode=644 $(MIZFILES)/mml/$$article.miz $(SCRATCH_BASE)/mml; \
-	done
-	# prel
-	cp -p $(MIZFILES)/prel/h/hidden.* $(SCRATCH_BASE)/prel
-	cp -p $(MIZFILES)/prel/*/*.dre $(SCRATCH_BASE)/prel
-	chown -R $(PUBLIC_MWIKI_USER) $(SCRATCH_BASE)/prel
-	# data
-	for rootfile in $(MIZROOTFILES); do \
-	  cp -p $(MIZFILES)/$$rootfile $(SCRATCH_BASE); \
-	done
-	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(SCRATCH_BASE)/mml.lar
+
+scratch-libfiles: scratch-directories
+	# articles
+	cp -a $(LIBFILES)/* $(SCRATCH_BASE)
+	cd $(SCRATCH_BASE) && mkdir bin .perl && mv Makefile Makefile.original
+	# when only initial segment used (testing)
+	if (test 0 -ne $(NUM_ARTICLES)); then \
+	  head -n $(NUM_ARTICLES) cornlist > $(SCRATCH_BASE)/.doclist && \
+	  cd $(SCRATCH_BASE) && \
+          sort .doclist > .docsorted && \
+	  find -name "*.v" -not -name 'Transparent_*' -not -name 'Opaque_*' | sed -e 's/\.\///' > .alllist && \
+          sort .alllist > .allsorted && \
+          rm `comm -1 -3 .docsorted .allsorted` && \
+          rm .doclist .docsorted .alllist .allsorted; \
+        fi 
 	# bin
-	for binary in $(MIZBINARIES); do \
-	  $(INSTALL) --mode 755 $(MIZBIN)/$$binary $(SCRATCH_BASE)/bin/$$binary; \
+	for binary in $(COQBINARIES); do \
+	  $(INSTALL) --mode 755 $(COQBIN)/$$binary $(SCRATCH_BASE)/bin/$$binary; \
 	done
-	# xsl
-	for sheet in $(SHEETS); do \
-	  $(INSTALL) --mode 644 $(XSL4MIZ)/$$sheet.xsl $(SCRATCH_BASE)/xsl; \
-	done
-	# css
-	for sheet in $(CSS); do \
-	  $(INSTALL) --mode 644 $$sheet.css $(SCRATCH_BASE)/html; \
-	done
-	# javascript
-	for jsfile in $(JAVASCRIPT); do \
-	  $(INSTALL) --mode 644 $$jsfile.js $(SCRATCH_BASE)/html; \
+	# doc
+	for doc in $(COQDOCFILES); do \
+	  $(INSTALL) --mode 755 $$doc $(SCRATCH_BASE)/doc/$$doc; \
 	done
 	# perl
 	for perlfile in $(PERLMODULES); do \
@@ -126,19 +117,17 @@ scratch-mizfiles: scratch-directories
 	  $(INSTALL) --mode 755 $$perlfile.pl $(SCRATCH_BASE)/.perl; \
 	done
 	# makefiles
-	$(INSTALL) --mode 644 Makefile.repo $(SCRATCH_BASE)/Makefile
-	$(INSTALL) --mode 644 Makefile-depsrepo $(SCRATCH_BASE)/mml/Makefile
+	$(INSTALL) --mode 644 Makefile.coqrepo $(SCRATCH_BASE)/Makefile
 
-scratch-deps: scratch-mizfiles
-	touch $(SCRATCH_BASE)/mml/hidden-prel # everything depends on hidden-prel
-	@$(MAKE) -C $(SCRATCH_BASE)/mml -j $(MAKEJOBS) evls deps MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH)
+scratch-deps: scratch-libfiles
 
 scratch-html: scratch-deps
-	@$(MAKE) -C $(SCRATCH_BASE) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH) WIKIHOST=$(WIKIHOST) GITPROJECT=$(REPO_NAME).git
+	@$(MAKE) -C $(SCRATCH_BASE) -j $(MAKEJOBS) allvo allhtml LIBFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH) WIKIHOST=$(WIKIHOST) CGI_NAME=$(CGI_NAME) GITPROJECT=$(REPO_NAME).git REPO_DIR_INDEX=$(REPO_DIR_INDEX)
 
 scratch: scratch-html
 
 public-repo-init: public-mwiki-user scratch
+#public-repo-init: scratch
 	mkdir -p $(PUBLIC_REPO)
 	cp -R $(SCRATCH_BASE)/* $(PUBLIC_REPO)
 	cp -R $(SCRATCH_BASE)/.perl $(PUBLIC_REPO)
@@ -149,7 +138,7 @@ public-repo-init: public-mwiki-user scratch
 	$(INSTALL) \
 	  --mode 644 \
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
-	  mml-gitignore $(PUBLIC_REPO)/.gitignore
+	  corn-gitignore $(PUBLIC_REPO)/.gitignore
 	$(INSTALL) \
 	  --mode 644 \
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
@@ -159,12 +148,12 @@ public-repo-init: public-mwiki-user scratch
            && git config mwiki.makejobs $(MAKEJOBS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(REPO_NAME)
 
+	for i in pre-commit post-commit; do \
 	$(INSTALL) \
 	  --mode 755 \
 	  --owner=$(PUBLIC_MWIKI_USER) \
 	  --group=$(PUBLIC_MWIKI_USER) \
-	  pre-commit post-commit $(PUBLIC_REPO)/.git/hooks
-
+	  $$i-coq $(PUBLIC_REPO)/.git/hooks/$$i; done
 
 
 public-mwiki-user:
@@ -175,7 +164,7 @@ public-mwiki-user:
 	#     || echo "$(PUBLIC_MWIKI_USER) already exists"
 	sv down git-daemon
 	mv /etc/sv/git-daemon/run /etc/sv/git-daemon/run.original
-	install -m 755 mwiki-gitdaemon.run /etc/sv/git-daemon/run
+	install -m 755 cwiki-gitdaemon.run /etc/sv/git-daemon/run
 	sv up git-daemon
 
 public-compiled: scratch
@@ -195,8 +184,8 @@ public-repo-export: public-repo-init
 	$(INSTALL) \
 	  --mode=644 \
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
-	  public-repo-description $(BARE_PUBLIC_REPO)/description
-	for hookfile in pre-receive post-update; do \
+	  corn-public-repo-description $(BARE_PUBLIC_REPO)/description
+	for hookfile in pre-receive-coq post-update; do \
 	  sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g" < $$hookfile.in \
 	    > $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
 	  chmod 755 $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
@@ -224,15 +213,15 @@ gitweb: public-repo-export
 
 apacheconf:
 	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##REPO_NAME##/$$ARGV[1]/g; s/##PUBLIC_COMPILED_REPO##/$$ARGV[2]/g; s/##REPO_DIR_INDEX##/$$ARGV[3]/g; print }' \
-          apacheconf-mizar.in $(REPO_NAME) $(PUBLIC_COMPILED_REPO) $(REPO_DIR_INDEX) > \
+          apacheconf.in $(REPO_NAME) $(PUBLIC_COMPILED_REPO) $(REPO_DIR_INDEX) > \
           $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME) \
           && chmod 644 $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME)
 
 mwiki: public-repos apacheconf
 	mkdir -p $(CGILIB)/mwiki
 	$(INSTALL) -m 755 \
-           --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) mwiki.cgi \
-	  $(CGILIB)/mwiki/mwiki.cgi
+           --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) cwiki.cgi \
+	  $(CGILIB)/mwiki/$(CGI_NAME)
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -f -s ../sites-available/$(REPO_NAME) $(REPO_NAME)
 	apache2ctl restart
@@ -249,12 +238,7 @@ clean:
 	rm -f $(APACHE_ROOT)/etc/apache2/sites-enabled/gitweb
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.error.log
 	rm -f $(APACHE_ROOT)/var/log/apache2/gitweb.access.log
-	rm -f $(CGILIB)/mwiki/mwiki.cgi
-	if [ -e $(HTTPD_CONF_DIR)/mods-available/dir.conf.original ]; then \
-	  rm -f $(HTTPD_CONF_DIR)/mods-available/dir.conf; \
-	  mv $(HTTPD_CONF_DIR)/mods-available/dir.conf.original \
-	     $(HTTPD_CONF_DIR)/mods-available/dir.conf; \
-	fi
 	apache2ctl restart
 	sv down git-daemon
+	-mv -f /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
 	sv up git-daemon

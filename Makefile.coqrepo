@@ -1,0 +1,106 @@
+# -*- mode: makefile; -*-
+
+## assumes that we are always called from top directory
+
+##TODO: The include Makefiles are automatically re-made and
+#       re-included, so make deps is not needed; use this for mizar
+#       too
+
+export SHELL=/bin/bash
+ECHO = /bin/echo
+
+# anything matching .v has to compile;
+# if you do not want it to compile, rename it to .broken, or whatever
+# there might be more liberal repo policies
+COQSOURCES=$(shell find -name "*.v" -not -name 'Transparent_*' -not -name 'Opaque_*' | sed -e 's/\.\///')
+#                      ======><==><===== the quotes are needed!
+#                      see end of man page for 'find' (NON-BUGS - without quote the glob gets expanded)
+# the sed is used to remove initial "./" in output of find: needed for later name translation in coqdoc output hacking
+COQDEPEND := $(COQSOURCES:.v=.d)
+COQOBJECTS := $(COQSOURCES:.v=.vo)
+COQGLOBS := $(COQSOURCES:.v=.glob)
+COQBARE:= $(COQSOURCES:.v=)
+
+# address of the host
+WIKIHOST=mws.cs.ru.nl
+# name of the wiki cgi
+CGI_NAME=cwiki.cgi
+# address of the corn/coq wiki cgi
+CWIKICGIURL="http://$(WIKIHOST)/cgi-bin/mwiki/$(CGI_NAME)"
+# name of the html index file
+REPO_DIR_INDEX=index.html
+# name of the html contents file
+REPO_DIR_CONTENTS=toc.html
+
+
+# File where coqc stores the references to global symbols
+GLOBFILE = $(SRCDIR)/.glob
+
+
+# the crazy -R directive: we have to collect all toplevel directories - that seems to be enough
+# TODO: possibly collecte only those that have .v files in them
+COQMAP=$(shell ls -d */ | sed -e 's/\(.*\)\//-R \1 \1 /')
+
+dep-tag = "    DEP "
+verify-tag = "    COQ "
+html-tag   = "    HTM "
+
+all:
+	echo $(COQBARE)
+
+
+deps: $(COQDEPEND)
+allvo: $(COQOBJECTS)
+
+%.d: %.v
+	@$(ECHO) $(dep-tag) $<
+	@coqdep $(COQMAP) $< > $*.d
+
+%.vo %.glob : %.v  %.d
+	@set -e; \
+	$(ECHO) $(verify-tag) $<; \
+	GLOB="$(<:.v=.glob)"; \
+	coqc  -dump-glob "$${GLOB}" $(COQMAP) $<
+
+
+##TODO: remove the brain-damaged "constructive" requirement that all
+##      files have to be processed at once (otherwise we do not trust
+##      that they exist and don't link to them), using Hugo's patch
+##      (switch to newer Coq probably needed for this)
+allhtml :  allvo
+	@$(ECHO) $(html-tag)
+	@mkdir -p doc/html
+	@coqdoc --body-only -utf8 --toc -s $(COQMAP) --multi-index  -d doc/html $(COQSOURCES) 
+	@set -e; \
+	for path in $(COQBARE); do \
+	name=`echo $$path | tr \/ \.`; \
+	htmlname=doc/html/$$name.html; \
+	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##FILENAME##/$$ARGV[1]/g; s/##FILEPATH##/$$ARGV[2]/g; s/##CWIKICGIURL##/$$ARGV[3]/g; s/##INDEX##/$$ARGV[4]/g; s/##CONTENTS##/$$ARGV[5]/g; print }' doc/coqheader.in $$name $$path.v $(CWIKICGIURL) $(REPO_DIR_INDEX) $(REPO_DIR_CONTENTS) | \
+	cat - $$htmlname doc/coqfooter.in > $$htmlname.new; \
+	mv $$htmlname.new $$htmlname; \
+	done
+	@set -e; \
+	for i in doc/html/toc.html doc/html/index.html doc/html/index_*; do \
+	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##CWIKICGIURL##/$$ARGV[1]/g; s/##INDEX##/$$ARGV[2]/g; s/##CONTENTS##/$$ARGV[3]/g; print }' doc/coqindexheader.in $(CWIKICGIURL) $(REPO_DIR_INDEX) $(REPO_DIR_CONTENTS) | \
+	cat - $$i doc/coqfooter.in > $$i.new; \
+	mv $$i.new $$i; \
+	done
+
+clean : depclean objclean globclean
+
+
+
+depclean : 
+	@rm -f $(COQDEPEND) 
+
+objclean : 
+	@rm -f $(COQOBJECTS)
+
+globclean : 
+	@rm -f $(COQGLOBS)
+
+doclean :
+	@rm -rf doc
+
+
+-include $(COQDEPEND)

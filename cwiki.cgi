@@ -16,7 +16,7 @@ use HTTP::Request::Common;
 ##       variable of the backend and frontend.
 
 # directory where frontends are stored
-my $frontend_dir  = "/var/cache/mwiki/public/";
+my $frontend_dir  = "/var/cache/git/";
 
 # path to the git cgi
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
@@ -31,6 +31,8 @@ my $input_file	  = $query->param('f');
 my $action	  = $query->param('a');
 my $git_project	  = $query->param('p');
 
+chomp($input_file);
+
 # these exist only when commiting
 my $ProblemSource = $query->param('ProblemSource');
 my $input_article = $query->param('Formula');
@@ -41,12 +43,16 @@ my $message       = $query->param('Message');
 
 
 print $query->header();
-print $query->start_html(-title => "Processing $input_file",
-			 # -dtd => '-//W3C//DTD XHTML 1.0 Transitional//EN',
-			 -head => [
-				   Link ({-rel => 'stylesheet',
-				       -href => '/mwiki/edit.css'})
-				  ]);
+print $query->start_html(-title=>"Processing $input_file",
+			 -dtd=>'-//W3C//DTD HTML 3.2//EN',
+			-head  => style(
+{-type => 'text/css'},
+'body {font-family: monospace; margin: 0px;}
+.wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
+.wikiactions li { display: inline; padding: .2em .4em; }'
+                         )
+);
+
 sub pr_pad {
   my $str = shift;
   return ("[Mwiki] $str");
@@ -84,19 +90,14 @@ else { pr_die("Unknown action \"$action\"."); }
 
 my $mizar_article_ext = 'miz';
 my $coq_article_ext = 'v';
-my $article_ext = $mizar_article_ext;
+my $article_ext = $coq_article_ext;
 my $article_regexp = '\.$article_ext\$';
 
-# Other file extensions that we have to allow.
-my $mizar_special_ext = 'voc';
-my $special_ext = $mizar_special_ext;
-my $special_regexp = '\.$special_ext\$';
 
-my $this_ext = "";
-
-if ((defined $input_file) && ($input_file =~ /^((mml|dict)\/([a-z0-9_]+)[.]($article_ext|$special_ext))$/))
+if ((defined $input_file) && ($input_file =~ /^(([A-Za-z0-9_]+\/[A-Za-z0-9_\/]+)[.]$article_ext)$/))
 {
-    ($aname, $this_ext) = ($3, $4);
+    $aname = $2;
+    $aname =~ tr/\//./;
 }
 elsif ($action =~ /^(gitweb)$/) { $aname=""; }
 else { pr_die("The file name \"$input_file\" is not allowed"); }
@@ -151,24 +152,12 @@ sub printheader
 
     if(length($aname) > 0)
     {
-	if($this_ext eq $article_ext)
-	{
 	$viewlinks=<<VEND
          <li> <a href="$htmldir/$aname.html">View</a> </li>
          <li> <a href="?p=$git_project;a=edit;f=$input_file">Edit</a> </li>
          <li> <a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
          <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
 VEND
-	}
-	else  # no htmlization - present as raw
-	{
-	    	$viewlinks=<<REND
-         <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">View</a> </li>
-         <li> <a href="?p=$git_project;a=edit;f=$input_file">Edit</a> </li>
-         <li> <a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
-         <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
-REND
-	}
     }
 
     print<<END
@@ -255,7 +244,7 @@ if($action eq "commit")
     lockwiki();
 
     # Copy the contents of the new file to the backend repo.
-    ($input_file =~ /^(mml|dict)\/[a-z0-9_]+[.]($article_ext|$special_ext)$/) or
+    ($input_file =~ /^([A-Za-z0-9_]+\/([A-Za-z0-9_\/]+\/)*)[A-Za-z0-9_]+[.]$article_ext$/) or
 	pr_die("Wrong file name: $input_file");
     my $possibly_new_dir_path = $1;
     `mkdir -p $backend_repo_path$possibly_new_dir_path`;
@@ -324,18 +313,17 @@ if($action eq "commit")
     pr_print ("Pushing the commit to frontend");
     my $mv_out = system("/bin/mv -f $frontend_repo/hooks/pre-receive $frontend_repo/hooks/pre-receive.old 2>&1");
     my $git_push_output 
-	= system("$git push --verbose frontend HEAD 2>&1");
+	= system("$git push frontend HEAD 2>&1");
     my $git_push_exit_code = ($? >> 8);
     unless ($git_push_exit_code == 0) 
     {
-	pr_print ("Error pushing to the frontend repository: $! :: $mv_out");
+	pr_print ("Error pushing to the frontend repository: $git_push_output :: $mv_out");
 	system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
 	pr_die ("The exit code was $git_push_exit_code");
 
     }
     system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
     pr_print ("All OK!");
-    print "</pre>\n";
     unlockwiki();
 }
 
@@ -353,29 +341,24 @@ if($action eq "history")
     print_iframe("$lgitwebcgi?p=$git_project;a=history;f=$input_file");
 }
 
-my $voc_template="K\n";
-
 my $article_template=<<AEND
-:: Article Title
-::  by Article Author
-::
-::
-:: Copyright (c) Article Author
-
-environ
-
- vocabularies TARSKI, XBOOLE_0;
- notations TARSKI, XBOOLE_0;
- constructors TARSKI, XBOOLE_0;
- definitions TARSKI, XBOOLE_0;
- theorems TARSKI, XBOOLE_0, XBOOLE_1;
- schemes XBOOLE_0;
-
-begin
-
-reserve x,x1,x2 for set;
-
-theorem Foo: x=x;
+(* Copyright (C) 2010
+ * Unknown Author
+ * 
+ * This work is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This work is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with this work; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *) 
 AEND
 ;
 
@@ -391,16 +374,10 @@ if($action eq "edit")
 	$old_content = do { local $/; <FILEHANDLE> };
 	close(FILEHANDLE);
     }
-    elsif($this_ext eq $article_ext)
+    else
     {
 	$old_content = $article_template;
     }
-    else
-    {
-	$old_content = $voc_template;
-    }
-
-    $old_content = escapeHTML ($old_content);
 
     print<<END;
  <div class="wikiactions">
@@ -414,28 +391,40 @@ if($action eq "edit")
 </div>
 <dl>
   <dd>
-    <form method="post" action="mwiki.cgi" enctype="multipart/form-data">
-    <br/>
+    <form method="post" action="cwiki.cgi" enctype="multipart/form-data">
+    <br>
     <table>
       <tr>
         <td>
-          <input type="radio" name="ProblemSource" value="Formula" id="ProblemSourceRadioButton" checked="checked"/>Edit article<br/>
+          <input type="radio" name="ProblemSource" value="Formula" id="ProblemSourceRadioButton" checked>Edit article<br/>
           <textarea name="Formula" tabindex="3"  rows="35" cols="90" id="FORMULAEProblemTextBox">$old_content</textarea>
-          <input type="hidden" name="p" value="$git_project"/>
-          <input type="hidden" name="a" value="commit"/>
-          <input type="hidden" name="f" value="$input_file"/>
+        <tr valign="top">
         </td>
+         <!--      <td>
+         <!-- <input type="radio" name="ProblemSource" value="UPLOAD">Article file to upload (not supported yet) -->
+         <!-- <br/> -->
+         <!-- <input type="file" name="UPLOADProblem"  size="30" />  -->
+         <!--  <tr valign="top">  -->
+         <!-- </td> -->
+          <input type="hidden" name="p" value="$git_project">
+          <input type="hidden" name="a" value="commit">
+          <input type="hidden" name="f" value="$input_file">
+        <!--	<td> <input type="radio" name="ProblemSource" value="URL" >URL to fetch article from<br> -->
+        <!--	<input type="text" name="FormulaURL" tabindex="4"  size="80" /><TR VALIGN=TOP></TD> -->
+        <!-- <td> <input type="checkbox" name="VocSource" value="UPLOAD"> -->
+        <!--	Optional vocabulary file to upload (its name will be kept)<BR> -->
+        <!--	<input type="file" name="VocFile"  size="20" /></TD> -->
       </tr>
       <tr>
-        <td>Commit message (mandatory):</td>
-      </tr>
+              <td align=top>
+	      Commit message (mandatory):<br>
+                <textarea name="Message" tabindex="3"  rows="2" cols="40" id="MessageTextBox"></textarea>
+              </td>
+            </tr>
       <tr>
-        <td>
-           <textarea name="Message" tabindex="3"  rows="2" cols="40" id="MessageTextBox"></textarea>
-        </td>
-        <td align="right">
-          <input type="submit" value="Submit"/>
-          <input type="reset" value="Reset"/>
+        <td align=right>
+          <input type="submit" value="Submit">
+          <input type="reset" value="Reset">
          </td>
        </tr>
      </table>
