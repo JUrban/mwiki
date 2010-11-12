@@ -909,18 +909,18 @@ sub itemize {
     warn ("final deftheorem number $i generated $num_exported_theorems exported theorems");
   }
 
-  my @item_xpaths = ('//JustifiedTheorem',
-		     '//Proposition[name(..)="Article"]',
-		     '//DefinitionBlock',
-		     '//SchemeBlock',
-		     '//RegistrationBlock',
-		     '//NotationBlock',
-		     '//Defpred[name(..)="Article"]',
-		     '//Deffunc[name(..)="Article"]',
-		     '//Reconsider[name(..)="Article"]',
-		     '//Set[name(..)="Article"]');
+  my @item_xpaths = ('JustifiedTheorem',
+		     'Proposition',
+		     'DefinitionBlock',
+		     'SchemeBlock',
+		     'RegistrationBlock',
+		     'NotationBlock',
+		     'Defpred',
+		     'Deffunc',
+		     'Reconsider',
+		     'Set');
 
-  my $query = join ' | ', @item_xpaths;
+  my $query = join (' | ', map { "//$_\[name(..)='Article'\]" } @item_xpaths);
 
   @tpnodes = $doc->findnodes ($query);
   my $scheme_num = 0;
