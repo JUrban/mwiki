@@ -920,7 +920,7 @@ sub itemize {
 		     'Reconsider',
 		     'Set');
 
-  my $query = join (' | ', map { "//$_\[name(..)='Article'\]" } @item_xpaths);
+  my $query = join (' | ', map { "Article/$_" } @item_xpaths);
 
   @tpnodes = $doc->findnodes ($query);
   my $scheme_num = 0;
