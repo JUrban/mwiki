@@ -1254,6 +1254,11 @@ my $num_items = itemize ();
 
 sub verify_item_with_number {
   my $item_number = shift;
+
+  if ($be_verbose) {
+    print "Verifying article fragment #$item_number\n";
+  }
+
   my $miz = catfile ('text', "item$item_number.miz");
   my $err = catfile ('text', "item$item_number.err");
 
@@ -1295,6 +1300,11 @@ sub verify_item_with_number {
 
 sub export_item_with_number {
   my $item_number = shift;
+
+  if ($be_verbose) {
+    print "Exporting article fragment #$item_number\n";
+  }
+
   my $miz = catfile ('text', "item$item_number.miz");
   my $err = catfile ('text', "item$item_number.err");
 
@@ -1361,8 +1371,9 @@ sub trim_item_with_number {
 
   my $item_number = shift;
 
-  # DEBUG
-  warn "Triming article fragment #$item_number";
+  if ($be_verbose) {
+    print "Triming article fragment #$item_number\n";
+  }
 
   my $miz = catfile ($article_text_dir, "ITEM$item_number.miz");
 
