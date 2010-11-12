@@ -619,6 +619,48 @@ sub reservations_before_line {
 }
 
 sub scheme_before_position {
+  my $line_num_to_begin = shift;
+  my $col_num_to_begin = shift;
+
+  my $line_num = $line_num_to_begin;
+  my $scheme_keyword_encountered = 0;
+
+  my ($goal_line, $goal_col_beg, $goal_col_end);
+
+  until ($scheme_keyword_encountered) {
+    my $line = $article_lines[$line_num];
+    my $line_len = length $line;
+    my $col = ($line_num_to_begin == $line_num ? $col_num_to_begin : $line_len);
+    my $line_up_to_col = substr $line, 0, $col;
+    if ($line_up_to_col =~ m/^scheme[ ]+[^ ]|[ ]scheme[ ]+[^ ]/g) {
+      my $end_of_scheme = pos $line_up_to_col;
+      my $up_to_scheme = substr $line_up_to_col, 0, $end_of_scheme;
+
+      # check whether the 'scheme' on this line is commented out; if
+      # so, keep going back
+      if ($up_to_scheme ~= m/::/) {
+	$line_num--;
+      } else {
+	$scheme_keyword_encountered = 1;
+	$goal_line = $line;
+	$goal_line_num = $line_num;
+	# we know the line, but we don't yet know the column: there
+	# may be more than one scheme on this line; we need to find
+	# the LAST one.  Use the \G anchor from the previous m/.../g
+	# match.
+	while ($line_up_to_col =~ m/\G[ ]scheme[ ]+[^ ]/g) {
+	  $goal_col_num = pos $line_up_to_col;
+	}
+      }
+    }
+  }
+
+  return substr $goal_line, $goal_
+
+
+}
+
+sub scheme_before_position {
   my $line = shift;
   my $col = shift;
   my $scheme = '';		# empty string
@@ -670,6 +712,31 @@ sub definition_before_position {
     $definition .= "$out_line\n";
   }
   return ($definition);
+}
+
+sub extract_region {
+  my $beg_line = shift;
+  my $beg_col = shift;
+  my $end_line = shift;
+  my $end_col = shift;
+
+  # get the first line
+  my $first_line_full 
+    = $article_lines[$beg_line-1]; # count lines from 1
+  my $first_line = substr $first_line_full, $beg_col; # count cols from 0
+  my $result .= $first_line;
+
+  # get intermediate lines
+  for (my $i = $beg_line; $i < $end_line - 1; $i++) {
+    $result .= "\n" . $article_lines[$i];
+  }
+
+  # get the last line
+  my $last_line_full = $article_lines[$end_line-1]; # count lines from 1
+  my $last_line = substr $last_line_full, 0, $end_col; # count cols from 0
+  $result .= "\n" . $last_line;
+
+  return $result;
 }
 
 sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
