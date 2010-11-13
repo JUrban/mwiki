@@ -324,7 +324,7 @@ move ($article_tmp, $article_miz) == 1
 # load
 my @article_lines = ();
 
-open my $miz, '<', $article_miz_path # we already 'know' this is readable
+open my $miz, '<', $article_in_workdir # we already 'know' this is readable
   or die "Couldn't open an input file handle for $article_miz_path!";
 while (defined (my $line = <$miz>)) {
   chomp $line;
