@@ -276,6 +276,8 @@ foreach my $local_db_subdir (@local_db_subdirs) {
 ### 3. Verify (and generate article XML)
 ###
 ### 4. Generate the absolute reference version of the generated XML
+###
+### 5. Load the .idx file
 ######################################################################
 
 ### 1. Run the accomodator
@@ -348,7 +350,6 @@ unless (-z $article_err) {
 my $absrefs_stylesheet = catfile ($stylesheet_dir, 'addabsrefs.xsl');
 my $article_xml = $article_name . '.xml';
 my $article_xml_absrefs = $article_name . '.xml1';
-my $article_idx = $article_name . '.idx';
 unless (-e $absrefs_stylesheet) {
   die "The absolute reference stylesheet could not be found under $stylesheet_dir!";
 }
@@ -359,6 +360,29 @@ chdir $workdir;
 system ("xsltproc $absrefs_stylesheet $article_xml 2> /dev/null > $article_xml_absrefs");
 unless ($? == 0) {
   die ("Something went wrong when creating the absolute reference XML: the error was\n\n$!");
+}
+
+### 5. Load the idx file
+my $article_idx = $article_name . '.idx';
+my %idx_table = ();
+
+# sanity
+unless (-e $article_idx) {
+  die "IDX file doesn't exist in the working directory ($workdir)!";
+}
+unless (-r $article_idx) {
+  die "IDX file in the working directory ($workdir) is not readable!";
+}
+
+my $idx_parser = XML::LibXML->new();
+my $idx_doc = $idx_parser->parse_file ($article_idx);
+my $symbol_xpath_query 
+  = 'Symbols/Symbol'; # this might need to change in the future
+my @symbols = $idx_doc->findnodes ($symbol_xpath_query);
+foreach my $symbol (@symbols) {
+  my $vid = $symbol->findvalue ('@nr');
+  my $name = $symbol->findvalue ('@name');
+  $idx_table{$vid} = $name;
 }
 
 ######################################################################
@@ -544,11 +568,6 @@ sub miz_xml {
   return ($parser->parse_file($article_xml_absrefs));
 }
 
-sub miz_idx {
-  my $parser = XML::LibXML->new();
-  return ($parser->parse_file($article_idx));
-}
-
 my %reservation_table = ();
 
 sub init_reservation_table {
@@ -584,22 +603,6 @@ sub reservations_from_xml {
   my @reservations = $doc->findnodes ('/Reservation');
   return (\@reservations);
 }
-
-my %vid_table = ();
-
-sub init_vid_table {
-  my $doc = miz_idx ();
-  my @symbols = $doc->findnodes ('//Symbol');
-  foreach my $symbol (@symbols) {
-    my $vid = $symbol->findvalue ('@nr');
-    my $name = $symbol->findvalue ('@name');
-    # DEBUG
-    warn ("setting vid $vid to label $name...");
-    $vid_table{$vid} = $name;
-  }
-}
-
-init_vid_table ();
 
 sub print_reservation_table {
   # DEBUG
