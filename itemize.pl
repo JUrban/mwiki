@@ -937,11 +937,11 @@ my %definition_vid_to_thmnum = ();
 my %theorem_nr_to_absnum = ();
 my %theorem_vid_to_absnum = ();
 
-sub position_of_theorem_keyword_before_pos {
-  my $line = shift;
-  my $col = shift;
-  my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --funcall (position-of-theorem-keyword-before-position)`;
-}
+# sub position_of_theorem_keyword_before_pos {
+#   my $line = shift;
+#   my $col = shift;
+#   my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --funcall (position-of-theorem-keyword-before-position)`;
+# }
 
 sub is_exported_deftheorem {
   my $deftheorem_node = shift;
