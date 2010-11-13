@@ -1460,7 +1460,7 @@ sub trim_item_with_number {
     print "Triming article fragment #$item_number\n";
   }
 
-  my $miz = catfile ($article_text_dir, "ITEM$item_number.miz");
+  my $miz = catfile ($article_text_dir, "item$item_number.miz");
 
   # sanity check: the article fragment exists and is readable
   unless (-e $miz) {
