@@ -720,11 +720,25 @@ sub extract_region {
   my $end_line = shift;
   my $end_col = shift;
 
+  if ($beg_line < 0) {
+    die "Cannot extract a line with a negative line number\n(we were asked for the region starting from line $beg_line)";
+  }
+
+  if ($end_line > $num_article_lines) {
+    die "Cannot extract a line beyond the end of the file\n(there are $num_article_lines total, but we were asked for the region up to line $end_line)";
+  }
+
+  my $result = '';
+
   # get the first line
-  my $first_line_full 
+  my $first_line_full
     = $article_lines[$beg_line-1]; # count lines from 1
-  my $first_line = substr $first_line_full, $beg_col; # count cols from 0
-  my $result .= $first_line;
+  my $first_line_length = length $first_line_full;
+  if ($beg_col < $first_line_length) {
+    $result .= substr $first_line_full, $beg_col; # count cols from 0
+  } else {
+    die "Cannot extract text from beyond the end of the line\n(the line of the file that was first requested has length $first_line_length, but we were asked to start at column $beg_col)";
+  }
 
   # get intermediate lines
   for (my $i = $beg_line; $i < $end_line - 1; $i++) {
@@ -733,8 +747,13 @@ sub extract_region {
 
   # get the last line
   my $last_line_full = $article_lines[$end_line-1]; # count lines from 1
-  my $last_line = substr $last_line_full, 0, $end_col; # count cols from 0
-  $result .= "\n" . $last_line;
+  my $last_line_length = length $last_line_full;
+  if ($end_col < $last_line_length) {
+    $result .= "\n" . substr $last_line_full, 0, $end_col; # count cols from 0
+  } else {
+    die "Cannot extract text from beyond the end of the line\n(the last line of the requested region has length $last_line_length, but we were asked to extract up to column $end_col)";
+  }
+
 
   return $result;
 }
