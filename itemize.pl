@@ -655,8 +655,7 @@ sub scheme_before_position {
     }
   }
 
-  return substr $goal_line, $goal_
-
+  return substr $goal_line, $goal;
 
 }
 
