@@ -623,100 +623,99 @@ sub reservations_before_line {
   return (\@reservations);
 }
 
-sub scheme_before_position {
-  my $line_num_to_begin = shift;
-  my $col_num_to_begin = shift;
+# sub scheme_before_position {
+#   my $line_num_to_begin = shift;
+#   my $col_num_to_begin = shift;
+  
+#   my $line_num = $line_num_to_begin;
+#   my $scheme_keyword_encountered = 0;
+  
+#   my ($goal_line, $goal_col_beg, $goal_col_end);
+  
+#   until ($scheme_keyword_encountered) {
+#     my $line = $article_lines[$line_num];
+#     my $line_len = length $line;
+#     my $col = ($line_num_to_begin == $line_num ? $col_num_to_begin : $line_len);
+#     my $line_up_to_col = substr $line, 0, $col;
+#     if ($line_up_to_col =~ m/^scheme[ ]+[^ ]|[ ]scheme[ ]+[^ ]/g) {
+#       my $end_of_scheme = pos $line_up_to_col;
+#       my $up_to_scheme = substr $line_up_to_col, 0, $end_of_scheme;
 
-  my $line_num = $line_num_to_begin;
-  my $scheme_keyword_encountered = 0;
+#       # check whether the 'scheme' on this line is commented out; if
+#       # so, keep going back
+#       if ($up_to_scheme =~ m/::/) {
+# 	$line_num--;
+#       } else {
+# 	$scheme_keyword_encountered = 1;
+# 	$goal_line = $line;
+# 	$goal_line_num = $line_num;
+# 	# we know the line, but we don't yet know the column: there
+# 	# may be more than one scheme on this line; we need to find
+# 	# the LAST one.  Use the \G anchor from the previous m/.../g
+# 	# match.
+# 	while ($line_up_to_col =~ m/\G[ ]scheme[ ]+[^ ]/g) {
+# 	  $goal_col_num = pos $line_up_to_col;
+# 	}
+#       }
+#     }
+#   }
 
-  my ($goal_line, $goal_col_beg, $goal_col_end);
+#   return substr $goal_line, $goal;
+# }
 
-  until ($scheme_keyword_encountered) {
-    my $line = $article_lines[$line_num];
-    my $line_len = length $line;
-    my $col = ($line_num_to_begin == $line_num ? $col_num_to_begin : $line_len);
-    my $line_up_to_col = substr $line, 0, $col;
-    if ($line_up_to_col =~ m/^scheme[ ]+[^ ]|[ ]scheme[ ]+[^ ]/g) {
-      my $end_of_scheme = pos $line_up_to_col;
-      my $up_to_scheme = substr $line_up_to_col, 0, $end_of_scheme;
+# sub scheme_before_position {
+#   my $line = shift;
+#   my $col = shift;
+#   my $scheme = '';		# empty string
+#   # DEBUG
+#   my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(scheme-before-position $line $col)'`;
+#   unless ($? == 0) {
+#     die ("Weird: emacs died: $!");
+#   }
+#   chomp (@output);
+#   foreach my $i (0 .. scalar (@output) - 1) {
+#     my $out_line = $output[$i];
+#     $scheme .= $out_line;
+#     if ($i == scalar (@output) - 1) {
+#       $scheme .= " ";
+#     } else {
+#       $scheme .= "\n";
+#     }
+#   }
+#   return ($scheme);
+# }
 
-      # check whether the 'scheme' on this line is commented out; if
-      # so, keep going back
-      if ($up_to_scheme ~= m/::/) {
-	$line_num--;
-      } else {
-	$scheme_keyword_encountered = 1;
-	$goal_line = $line;
-	$goal_line_num = $line_num;
-	# we know the line, but we don't yet know the column: there
-	# may be more than one scheme on this line; we need to find
-	# the LAST one.  Use the \G anchor from the previous m/.../g
-	# match.
-	while ($line_up_to_col =~ m/\G[ ]scheme[ ]+[^ ]/g) {
-	  $goal_col_num = pos $line_up_to_col;
-	}
-      }
-    }
-  }
+# sub theorem_before_position {
+#   my $line = shift;
+#   my $col = shift;
+#   my $theorem = '';		# empty string
+#   # DEBUG
+#   my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(theorem-before-position $line $col)'`;
+#   unless ($? == 0) {
+#     die ("Weird: emacs died: $!");
+#   }
+#   foreach $out_line (@output) {
+#     chomp ($out_line);
+#     $theorem .= "$out_line\n";
+#   }
+#   return ($theorem);
+# }
 
-  return substr $goal_line, $goal;
-
-}
-
-sub scheme_before_position {
-  my $line = shift;
-  my $col = shift;
-  my $scheme = '';		# empty string
-  # DEBUG
-  my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(scheme-before-position $line $col)'`;
-  unless ($? == 0) {
-    die ("Weird: emacs died: $!");
-  }
-  chomp (@output);
-  foreach my $i (0 .. scalar (@output) - 1) {
-    my $out_line = $output[$i];
-    $scheme .= $out_line;
-    if ($i == scalar (@output) - 1) {
-      $scheme .= " ";
-    } else {
-      $scheme .= "\n";
-    }
-  }
-  return ($scheme);
-}
-
-sub theorem_before_position {
-  my $line = shift;
-  my $col = shift;
-  my $theorem = '';		# empty string
-  # DEBUG
-  my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(theorem-before-position $line $col)'`;
-  unless ($? == 0) {
-    die ("Weird: emacs died: $!");
-  }
-  foreach $out_line (@output) {
-    chomp ($out_line);
-    $theorem .= "$out_line\n";
-  }
-  return ($theorem);
-}
-
-sub definition_before_position {
-  my $line = shift;
-  my $col = shift;
-  my $definition = '';		# empty string
-  # DEBUG
-  my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(definition-before-position $line $col)'`;
-  unless ($? == 0) {
-    die ("Weird: emacs died: $!");
-  }
-  foreach $out_line (@output) {
-    chomp ($out_line);
-    $definition .= "$out_line\n";
-  }
-  return ($definition);
-}
+# sub definition_before_position {
+#   my $line = shift;
+#   my $col = shift;
+#   my $definition = '';		# empty string
+#   # DEBUG
+#   my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(definition-before-position $line $col)'`;
+#   unless ($? == 0) {
+#     die ("Weird: emacs died: $!");
+#   }
+#   foreach $out_line (@output) {
+#     chomp ($out_line);
+#     $definition .= "$out_line\n";
+#   }
+#   return ($definition);
+# }
 
 sub extract_region {
   my $beg_line = shift;
@@ -880,21 +879,21 @@ sub line_and_column {
 
 
 
-sub extract_toplevel_unexported_theorem_with_label {
-  my $end_line = shift;
-  my $end_col = shift;
-  my $label = shift;
-  my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(toplevel-unexported-theorem-before-position-with-label $end_line $end_col \"$label\")'`;
-  unless ($? == 0) {
-    die ("Weird: emacs died extracting the unexported theorem with label $label before position ($end_line,$end_col): the error was: $!");
-  }
-  chomp (@output);
-  my $result = '';
-  foreach my $line (@output) {
-    $result .= $line;
-  }
-  return $result;
-}
+# sub extract_toplevel_unexported_theorem_with_label {
+#   my $end_line = shift;
+#   my $end_col = shift;
+#   my $label = shift;
+#   my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(toplevel-unexported-theorem-before-position-with-label $end_line $end_col \"$label\")'`;
+#   unless ($? == 0) {
+#     die ("Weird: emacs died extracting the unexported theorem with label $label before position ($end_line,$end_col): the error was: $!");
+#   }
+#   chomp (@output);
+#   my $result = '';
+#   foreach my $line (@output) {
+#     $result .= $line;
+#   }
+#   return $result;
+# }
 
 sub pretext_from_item_type_and_beginning {
   my $item_type = shift;
@@ -903,7 +902,8 @@ sub pretext_from_item_type_and_beginning {
   my $item_node = shift;
   my $pretext;
   if ($item_type eq 'JustifiedTheorem') {
-    $pretext = theorem_before_position ($begin_line, $begin_col);
+    # $pretext = theorem_before_position ($begin_line, $begin_col);
+    $pretext = 'theorem ';
   } elsif ($item_type eq 'Proposition') {
     my $vid = $item_node->findvalue ('@vid');
     # DEBUG
@@ -911,10 +911,11 @@ sub pretext_from_item_type_and_beginning {
     my $prop_label = $vid_table{$vid};
     # DEBUG
     warn ("unexported toplevel theorem has label $prop_label...");
-    my $theorem = extract_toplevel_unexported_theorem_with_label ($begin_line, $begin_col, $prop_label);
-    $pretext = "theorem $theorem\n";
+    # my $theorem = extract_toplevel_unexported_theorem_with_label ($begin_line, $begin_col, $prop_label);
+    # $pretext = "theorem $theorem\n";
+    $pretext = "theorem ";
   } elsif ($item_type eq 'SchemeBlock') {
-    $pretext = scheme_before_position ($begin_line, $begin_col);
+    $pretext = 'scheme '; # scheme_before_position ($begin_line, $begin_col);
     # DEBUG
     warn ("we're dealing with a scheme, and the pretext is $pretext\n");
   } elsif ($item_type eq 'NotationBlock') {
