@@ -726,6 +726,18 @@ sub extract_region {
   my $end_line = shift;
   my $end_col = shift;
 
+  my @buffer
+    = @{extract_region_as_array ($beg_line, $beg_col, $end_line, $end_col)};
+
+  return join ("\n", @buffer);
+}
+
+sub extract_region_as_array {
+  my $beg_line = shift;
+  my $beg_col = shift;
+  my $end_line = shift;
+  my $end_col = shift;
+
   # sanity checking
   if ($beg_line < 0) {
     die "Cannot extract a line with a negative line number\n(we were asked for the region starting from line $beg_line)";
@@ -734,34 +746,42 @@ sub extract_region {
     die "Cannot extract a line beyond the end of the file\n(there are $num_article_lines total, but we were asked for the region up to line $end_line)";
   }
 
-  my $result = '';
+  my @buffer = ();
 
   # get the first line
   my $first_line_full
     = $article_lines[$beg_line-1]; # count lines from 1
   my $first_line_length = length $first_line_full;
-  if ($beg_col < $first_line_length) {
-    $result .= substr $first_line_full, $beg_col; # count cols from 0
+  if ($beg_col <= $first_line_length) {
+    push (@buffer, substr $first_line_full, $beg_col); # count cols from 1
   } else {
-    die "Cannot extract text from beyond the end of the line\n(the line of the file that was first requested has length $first_line_length, but we were asked to start at column $beg_col)";
+    die "Cannot extract text from beyond the end of the line\n(the line of the file that was first requested,\n\n  $first_line_full\n\nhas length $first_line_length, but we were asked to start at column $beg_col)";
   }
 
   # get intermediate lines between $beg_line and $end_line
   for (my $i = $beg_line; $i < $end_line - 1; $i++) {
-    $result .= "\n" . $article_lines[$i];
+    push (@buffer, $article_lines[$i]);
   }
 
   # get the last line
   my $last_line_full = $article_lines[$end_line-1]; # count lines from 1
   my $last_line_length = length $last_line_full;
   if ($end_col < $last_line_length) {
-    $result .= "\n" . substr $last_line_full, 0, $end_col; # count cols from 0
+    push (@buffer, substr $last_line_full, 0, $end_col); # count cols from 0
   } else {
     die "Cannot extract text from beyond the end of the line\n(the last line of the requested region has length $last_line_length, but we were asked to extract up to column $end_col)";
   }
+  return \@buffer;
+}
 
-
-  return $result;
+sub instruction_greater_than {
+  my @instruction_a = @{shift ()};
+  my @instruction_b = @{shift ()};
+  my $line_a = $instruction_a[1];
+  my $line_b = $instruction_b[1];
+  my $col_a = $instruction_a[2];
+  my $col_b = $instruction_b[2];
+  return (($line_a > $line_b) || ($line_a == $line_b && $col_a > $col_b));
 }
 
 sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
@@ -771,68 +791,250 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
   my $bc = shift;
   my $el = shift;
   my $ec = shift;
-  my $schemes_ref = shift;
-  my $definitions_ref = shift;
-  my $theorems_ref = shift;
-  my @schemes = @{$schemes_ref};
-  my @definitions = @{$definitions_ref};
-  my @theorems = @{$theorems_ref};
+  my @schemes = @{shift ()};
+  my @definitions = @{shift ()};
+  my @theorems = @{shift ()};
 
-  my $emacs_command;
-  if (scalar (@schemes) == 0 && scalar (@definitions) == 0 && scalar (@theorems) == 0) {
-    $emacs_command = "emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval \"(extract-region-replacing-schemes-and-definitions-and-theorems '$item_kind \\\"$label\\\" $bl $bc $el $ec)\"";
-  } else {
-    # build the last argument to the EXTRACT-REGION-REPLACING-SCHEMES function
-    my $instructions = '';
-    foreach my $scheme_triple_ref (@schemes) {
-      my @scheme_triple = @{$scheme_triple_ref};
-      my $scheme_line = $scheme_triple[0];
-      my $scheme_col = $scheme_triple[1];
-      my $scheme_abs_num = $scheme_triple[2];
-      $instructions .= "'(scheme $scheme_line $scheme_col $scheme_abs_num)";
-      $instructions .= " ";
-    }
-    foreach my $definition_info_ref (@definitions) {
-      my @definition_info = @{$definition_info_ref};
-      my $def_line = $definition_info[0];
-      my $def_col = $definition_info[1];
-      my $def_abs_num = $definition_info[2];
-      my $def_def_num = $definition_info[3];
-      $instructions .= "'(definition $def_line $def_col $def_abs_num $def_def_num)";
-      $instructions .= " ";
-    }
-    foreach my $theorem_triple_ref (@theorems) {
-      my @theorem_triple = @{$theorem_triple_ref};
-      my $theorem_line = $theorem_triple[0];
-      my $theorem_col = $theorem_triple[1];
-      my $theorem_abs_num = $theorem_triple[2];
-      $instructions .= "'(theorem $theorem_line $theorem_col $theorem_abs_num)";
-      $instructions .= " ";
-    }
+  my @instructions = ();
 
-    $emacs_command = "emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval \"(extract-region-replacing-schemes-and-definitions-and-theorems '$item_kind \\\"$label\\\" $bl $bc $el $ec $instructions)\"";
+  foreach my $scheme_info_ref (@schemes) {
+    my @scheme_info = @{$scheme_info_ref};
+    my @instruction = ('scheme');
+    push (@instruction, @scheme_info);
+    push (@instructions, \@instruction);
+  }
+  foreach my $definition_info_ref (@definitions) {
+    my @definition_info = @{$definition_info_ref};
+    my @instruction = ('definition');
+    push (@instruction, @definition_info);
+    push (@instructions, \@instruction);
+  }
+  foreach my $theorem_info_ref (@theorems) {
+    my @theorem_info = @{$theorem_info_ref};
+    my @instruction = ('theorem');
+    push (@instruction, @theorem_info);
+    push (@instructions, \@instruction);
   }
 
-  my $region = ''; # empty string
+  # sort the instructions
+  my @sorted_instructions
+    = sort instruction_greater_than @instructions; # apply in REVERSE order
 
-  # DEBUG
-  warn ("emacs command:\n\n  $emacs_command");
-  my @output = `$emacs_command`;
-  unless ($? == 0) {
-    die ("Weird: emacs died: $!");
+  # do it
+  my @buffer = @{extract_region_as_array ($bl, $bc, $el, $ec)};
+
+  foreach my $instruction_ref (@sorted_instructions) {
+    my @instruction = @{$instruction_ref};
+
+    # instructions are of two kinds: scheme and theorem instructions,
+    # and definition instructions.  Scheme and theorem instructions look
+    # like
+    #
+    # (scheme <line> <column> <label> <item-number>)
+    #
+    # and
+    #
+    # (theorem <line> <column> <label> <item-number>) .
+    #
+    # In both of these kinds of instructions, <line> and <column> refer
+    # to the place in the source article where the scheme/theorem
+    # reference begins.  Thus, <line> and <column> point
+    #
+    # blah by Th1,XBOOLE_0:def 4;
+    #         ^
+    #         here
+    #
+    # <label> is a string representing the label of the toplevel
+    # article-internal item to be replaced.  <item-number> refers to
+    # the absolute item number.  Thus, continuing the example above,
+    # if the sole instruction were
+    #
+    # (theorem 1 8 'Th1' 3)
+    #
+    # then
+    #
+    # blah by Th1,XBOOLE_0:def 4;
+    #
+    # would get transformed to
+    #
+    # blah by ITEM3:1,XBOOLE_0:def 4;
+    #
+    # Definition instructions have an extra piece of information:
+    #
+    # (definition <line> <column> <label> <item-number> <relative-item-number>
+    #
+    # <line>, <column>, <label>, and <item-number> mean the same thing
+    # as they do for scheme and theorem instructions. The extra bit
+    # <relative-item-number> refers to the number of the definition
+    # within <item-number> (which is a definition).  "Definition" here
+    # just means "definition block", which can have multiple
+    # definitions, hence the need for the further
+    # <relative-item-number> information.
+    #
+    # This function takes the region of the article delimited by BL, BC,
+    # EL, and EC and applies the instruction.  It returns a reference to
+    # the modfied article text.
+
+    my $instruction_type = $instruction[0];
+    my $instr_line_num = $instruction[1];
+    my $instr_col_num = $instruction[2];
+    my $instr_label = $instruction[3];
+    my $instr_item_num = $instruction[4];
+
+    # DEBUG
+    warn "Applying instruction ($instruction_type $instr_line_num $instr_col_num $instr_item_num $instr_label)";
+
+    # sanity checks
+    if ($instr_line_num < 1) {
+      die "The given editing instruction requests that line $instr_line_num be modified, but that's impossible (we start counting line numbers at 1)!";
+    }
+    if ($instr_line_num > $num_article_lines) {
+      die "The given editing instruction requests that line $instr_line_num be modified, but there aren't that many lines in the article!";
+    }
+    if ($instr_col_num < 0) {
+      die "The given editing instruction requests that column $instr_col_num be inspected, but that's negative!";
+    }
+
+    # distinguish between editing instuctions that ask us to modify
+    # the first of the region.  From the first line we have (in
+    # general) stripped off some initial substring, which (in general)
+    # renders the column information of the editing instruction
+    # incoherent, so that it needs to be adjusted.
+    if ($instr_line_num == $bl) {
+      $instr_col_num -= $bc;
+    }
+
+    # adjust column
+    #$instr_col_num++;
+
+    # now adjust the instruction's line numbers.  We need to do this
+    # because the information from which the editing instruction was
+    # generated makes sense relative to the whole file, but we are
+    # editing only a snippet of the file here.  Thus, if the editing
+    # instruction says to modify line 1000 in a certain way, and we
+    # are considering an item that spans lines 990 to 1010, we dealing
+    # only with those 21 lines; 990 gets mapped to 0, and 1010 gets
+    # mapped to 20, so line "1000" needs to get mapped to line 10.
+    
+    # DEBUG
+    # warn "We are asked to edit line $instr_line_num...";
+    $instr_line_num -= $bl;
+    # DEBUG
+    # warn "...which just got adjusted to $instr_line_num";
+    
+    # # DEBUG
+    # print "The text we're looking at is:\n";
+    # foreach my $line (@buffer) {
+    #   print "$line\n";
+    # }
+
+    my $line = $buffer[$instr_line_num];
+    unless (defined $line) {
+      die "There is no line number $instr_line_num in the current buffer\n\n@buffer\n\n!";
+    }
+    my $line_length = length $line;
+
+    # more sanity checking
+    if ($instr_col_num > $line_length) {
+      die "The given editing instruction requests that column $instr_col_num be inspected, but there aren't that many columns in the line\n\n$line\n\nthat we're supposed to look at!";
+    }
+
+    # DEBUG
+    warn "line before the instuction:\n\n$line\n";
+
+    # DEBUG
+    warn "column: $instr_col_num";
+
+    my $label_length = length $instr_label;
+    my $offset = $instr_col_num - $label_length;
+    if ($instruction_type eq 'scheme') {
+      $line =~ s/^(.{$offset})$instr_label(.*)$/$1ITEM$instr_item_num:sch 1$2/;
+    } elsif ($instruction_type eq 'theorem') {
+      $line =~ s/^(.{$offset})$instr_label(.*)$/$1ITEM$instr_item_num:1$2/;
+    } elsif ($instruction_type eq 'definition') {
+      my $instr_relative_item_number = $instruction[5];
+      $line =~ s/^(.{$offset})$instr_label(.*)$/$1ITEM$instr_item_num:def $instr_relative_item_number$2/;
+    } else {
+      die "Unknown instruction type $instruction_type";
+    }
+
+    # DEBUG
+    warn "line after the instuction:\n\n$line\n";
+
+    $buffer[$instr_line_num] = $line;
   }
-  foreach $out_line (@output) {
-    chomp ($out_line);
-    $region .= "$out_line\n";
-  }
-  return ($region);
+
+  return join ("\n", @buffer);
 }
+
+# sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
+#   my $item_kind = shift;
+#   my $label = shift;
+#   my $bl = shift;
+#   my $bc = shift;
+#   my $el = shift;
+#   my $ec = shift;
+#   my $schemes_ref = shift;
+#   my $definitions_ref = shift;
+#   my $theorems_ref = shift;
+#   my @schemes = @{$schemes_ref};
+#   my @definitions = @{$definitions_ref};
+#   my @theorems = @{$theorems_ref};
+
+#   my $emacs_command;
+#   if (scalar (@schemes) == 0 && scalar (@definitions) == 0 && scalar (@theorems) == 0) {
+#     $emacs_command = "emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval \"(extract-region-replacing-schemes-and-definitions-and-theorems '$item_kind \\\"$label\\\" $bl $bc $el $ec)\"";
+#   } else {
+#     # build the last argument to the EXTRACT-REGION-REPLACING-SCHEMES function
+#     my $instructions = '';
+#     foreach my $scheme_triple_ref (@schemes) {
+#       my @scheme_triple = @{$scheme_triple_ref};
+#       my $scheme_line = $scheme_triple[0];
+#       my $scheme_col = $scheme_triple[1];
+#       my $scheme_abs_num = $scheme_triple[2];
+#       $instructions .= "'(scheme $scheme_line $scheme_col $scheme_abs_num)";
+#       $instructions .= " ";
+#     }
+#     foreach my $definition_info_ref (@definitions) {
+#       my @definition_info = @{$definition_info_ref};
+#       my $def_line = $definition_info[0];
+#       my $def_col = $definition_info[1];
+#       my $def_abs_num = $definition_info[2];
+#       my $def_def_num = $definition_info[3];
+#       $instructions .= "'(definition $def_line $def_col $def_abs_num $def_def_num)";
+#       $instructions .= " ";
+#     }
+#     foreach my $theorem_triple_ref (@theorems) {
+#       my @theorem_triple = @{$theorem_triple_ref};
+#       my $theorem_line = $theorem_triple[0];
+#       my $theorem_col = $theorem_triple[1];
+#       my $theorem_abs_num = $theorem_triple[2];
+#       $instructions .= "'(theorem $theorem_line $theorem_col $theorem_abs_num)";
+#       $instructions .= " ";
+#     }
+
+#     $emacs_command = "emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval \"(extract-region-replacing-schemes-and-definitions-and-theorems '$item_kind \\\"$label\\\" $bl $bc $el $ec $instructions)\"";
+#   }
+
+#   my $region = ''; # empty string
+
+#   # DEBUG
+#   warn ("emacs command:\n\n  $emacs_command");
+#   my @output = `$emacs_command`;
+#   unless ($? == 0) {
+#     die ("Weird: emacs died: $!");
+#   }
+#   foreach $out_line (@output) {
+#     chomp ($out_line);
+#     $region .= "$out_line\n";
+#   }
+#   return ($region);
+# }
 
 # prepare_work_dirs ();
 init_reservation_table ();
 # DEBUG
-print_reservation_table ();
-# load_environment ();
+#print_reservation_table ();
 
 my %vid_to_theorem_num = ();
 my %theorem_num_to_vid = ();
@@ -959,28 +1161,29 @@ sub is_exported_deftheorem {
   return $prop_node->exists ('@vid');
 }
 
-sub itemize {
+sub load_deftheorems {
   my $doc = miz_xml ();
 
-  my @final_deftheorem_nodes = $doc->findnodes ('//Article/DefTheorem[name(following-sibling::*) != "DefTheorem"]');
-  # DEBUG
-  warn ("There are " . scalar (@final_deftheorem_nodes) . " final DefTheorem nodes to consider");
+  my $last_deftheorem_xpath_query
+    = '//Article/DefTheorem[name(following-sibling::*) != "DefTheorem"]';
+
+  my @final_deftheorem_nodes = $doc->findnodes ($last_deftheorem_xpath_query);
+  
   foreach my $i (1 .. scalar (@final_deftheorem_nodes)) {
     my $final_deftheorem_node = $final_deftheorem_nodes[$i-1];
-
-
+    
     # find the first DefTheorem after this definitionblock
     # DefinitionBlock that give rise to exported theorems
     my $current_node = $final_deftheorem_node;
     while ($current_node->nodeName () eq 'DefTheorem') {
       $current_node = $current_node->previousNonBlankSibling ();
     }
-
+    
     # now that we know how many exported DefTheorems this
     # DefinitionBlock gave rise to, we need to harvest the vid's of
     # the Proposition child elements of such DefTheorems; these are
     # the vid's that we'll need later.
-
+    
     # reuse $current_node from the previous loop -- it is the last
     # DefTheorem node generated by the DefinitionBlock.  We need to go
     # *forward* now to ensure that items getting the same label (i.e.,
@@ -999,11 +1202,16 @@ sub itemize {
       $current_node = $current_node->nextNonBlankSibling ();
       $num_exported_theorems++;
     }
-
-    # DEBUG
-    warn ("final deftheorem number $i generated $num_exported_theorems exported theorems");
   }
 
+  return;
+}
+
+load_deftheorems ();
+
+my @nodes = ();
+
+sub load_items {
   my @item_xpaths = ('JustifiedTheorem',
 		     'Proposition',
 		     'DefinitionBlock',
@@ -1014,39 +1222,42 @@ sub itemize {
 		     'Deffunc',
 		     'Reconsider',
 		     'Set');
+  my @toplevel_item_xpaths = map { "Article/$_" } @item_xpaths;
+  my $query = join (' | ', @toplevel_item_xpaths);
+  my $doc = miz_xml ();
+  @nodes = $doc->findnodes ($query);
+  return;
+}
 
-  my $query = join (' | ', map { "Article/$_" } @item_xpaths);
+load_items ();
 
-  @tpnodes = $doc->findnodes ($query);
+sub itemize {
+
   my $scheme_num = 0;
-  # DEBUG
-  warn ("we have to consider " . scalar (@tpnodes) . " nodes");
-  foreach my $i (1 .. scalar (@tpnodes)) {
-    my $node = $tpnodes[$i-1];
+  foreach my $i (1 .. scalar (@nodes)) {
+    my $node = $nodes[$i-1];
     my $node_name = $node->nodeName;
 
     # register a scheme, if necessary
     if ($node_name eq 'SchemeBlock') {
       $scheme_num++;
       $scheme_num_to_abs_num{$scheme_num} = $i;
-      # DEBUG
-      warn ("declaring that scheme $scheme_num is absolute item number $i...");
+      my $vid = $node->findvalue ('@vid');
+      unless (defined $vid) {
+	die "SchemeBlock node lacks a vid!";
+      }
+      $scheme_num_to_vid{$scheme_num} = $vid;
     }
 
     # register definitions, making sure to count the ones that
     # generate DefTheorems
     if ($node_name eq 'DefinitionBlock') {
       my @local_definition_nodes = $node->findnodes ('.//Definition');
-      # DEBUG
-      warn ("This node has " . scalar (@local_definition_nodes) . " Definition child elements");
       foreach my $local_definition_node (@local_definition_nodes) {
-	# my $nr = $local_definition_node->findvalue ('@nr');
 	my $vid = $local_definition_node->findvalue ('@vid');
 	# search for the Definiens following this node, if any
 	my $next = $node->nextNonBlankSibling ();
-	# $definition_nr_to_absnum{$nr} = $i;
 	$definition_vid_to_absnum{$vid} = $i;
-	# $definition_vid_to_thmnum{$vid} = 0;
       }
     }
 
@@ -1189,13 +1400,6 @@ sub itemize {
 	$end_col--;
       }
 
-      # kludge: the end column information for theorems is off by three.
-      # Sometimes.  (!)
-      # if ($node_name eq 'JustifiedTheorem') {
-      #   $begin_col = $begin_col + 3;
-      #   # $begin_col = position_of_theorem_keyword_before_pos ($begin_line, $begin_col);
-      # }
-
       # look into the node to find references that might need to be
       # rewritten.  First, distinguish between unexported toplevel
       # theorems and the rest; for the former, the references to be
@@ -1228,8 +1432,12 @@ sub itemize {
 	  my $local_scheme_col = $local_scheme_node->findvalue ('@col');
 	  my $local_scheme_sch_num = $local_scheme_node->findvalue ('@absnr');
 	  my $local_scheme_abs_num = $scheme_num_to_abs_num{$local_scheme_sch_num};
-	  my @local_scheme_triple = ($local_scheme_line, $local_scheme_col, $local_scheme_abs_num);
-	  push (@local_schemes, \@local_scheme_triple);
+	  my $scheme_vid = $scheme_num_to_vid{$local_scheme_sch_num};
+	  my $scheme_label = $idx_table{$scheme_vid};
+	  # DEBUG
+	  warn "scheme vid is $scheme_vid; its label is $scheme_label";
+	  my @local_scheme_info = ($local_scheme_line, $local_scheme_col, $scheme_label, $local_scheme_abs_num);
+	  push (@local_schemes, \@local_scheme_info);
 	  # DEBUG
 	  warn ("we found a scheme use starting at line $local_scheme_line and column $local_scheme_col, scheme $local_scheme_sch_num in the article, which is item number $local_scheme_abs_num");
 	}
@@ -1252,9 +1460,12 @@ sub itemize {
 	  if (defined ($absnum) && defined ($thm_num)) {
 	    # DEBUG
 	    warn ("this article-internal ref points to absolute item $absnum and theorem $thm_num of whatever definitionblock introduced it");
+	    my $def_label = $idx_table{$vid};
+	    # DEBUG
+	    warn "it's vid is $vid; its label is $def_label";
 	    my $line = $ref_node->findvalue ('@line');
 	    my $col = $ref_node->findvalue ('@col');
-	    my @local_definition_info = ($line,$col,$absnum,$thm_num);
+	    my @local_definition_info = ($line,$col,$def_label,$absnum,$thm_num);
 	    push (@local_definitions, \@local_definition_info);
 	  }
 	}
@@ -1282,8 +1493,11 @@ sub itemize {
 	    if ($theorem_nr_absnum == $theorem_vid_absnum) { # sanity check
 	      my $line = $ref_node->findvalue ('@line');
 	      my $col = $ref_node->findvalue ('@col');
-	      my @local_theorem_triple = ($line,$col,$theorem_nr_absnum);
-	      push (@local_theorems, \@local_theorem_triple);
+	      my $th_label = $idx_table{$vid};
+	      # DEBUG
+	      warn "the vid of this theorem is $vid; its label is $th_label";
+	      my @local_theorem_info = ($line,$col,$th_label,$theorem_nr_absnum);
+	      push (@local_theorems, \@local_theorem_info);
 	    }
 	  }
 	}
@@ -1338,7 +1552,7 @@ sub itemize {
     }
   }
 
-  return scalar @tpnodes;
+  return scalar @nodes;
 }
 
 my $num_items = itemize ();
