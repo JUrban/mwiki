@@ -1166,6 +1166,54 @@ sub load_items {
   return;
 }
 
+my %node_processors 
+  = (
+     'JustifiedTheorem' => &process_justifiedtheorem,
+     'Proposition' => &process_toplevel_proposition,
+     'DefinitionBlock' => &process_definitionblock,
+     'SchemeBlock' => &process_schemeblock,
+     'RegistrationBlock' => &process_registrationblock,
+     'NotationBlock' => &process_notationblock,
+     'Defpred' => &process_defpred,
+     'Deffunc' => &process_deffunc,
+     'Reconsider' => &process_reconsider,
+     'Set' => &process_set,
+    );
+
+sub process_justifiedtheorem {}
+sub process_toplevel_proposition {}
+
+sub process_definitionblock {
+  # register definitions, making sure to count the ones that
+  # generate DefTheorems
+  my @local_definition_nodes = $node->findnodes ('.//Definition');
+  foreach my $local_definition_node (@local_definition_nodes) {
+    my $vid = $local_definition_node->findvalue ('@vid');
+    # search for the Definiens following this node, if any
+    my $next = $node->nextNonBlankSibling ();
+    $definition_vid_to_absnum{$vid} = $i;
+  }
+}
+
+my $scheme_num = 0; # hmm...shouldn't this be encapsulated somehow?
+sub process_schemeblock {
+  # register a scheme, if necessary
+  $scheme_num++;
+  $scheme_num_to_abs_num{$scheme_num} = $i;
+  my $vid = $node->findvalue ('@vid');
+  unless (defined $vid) {
+    die "SchemeBlock node lacks a vid!";
+  }
+  $scheme_num_to_vid{$scheme_num} = $vid;
+}
+
+sub process_registrationblock {}
+sub process_notationblock {}
+sub process_defpred {}
+sub process_deffunc {}
+sub process_reconsider {}
+sub process_set {}
+
 load_items ();
 
 sub itemize {
