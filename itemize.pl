@@ -1067,11 +1067,11 @@ sub pretext_from_item_type_and_beginning {
   } elsif ($item_type eq 'SchemeBlock') {
     $pretext = 'scheme ' . scheme_before_position ($begin_line, $begin_col);
   } elsif ($item_type eq 'NotationBlock') {
-    $pretext = "notation\n";
+    $pretext = "notation ";
   } elsif ($item_type eq 'DefinitionBlock') {
-    $pretext = "definition\n";
+    $pretext = "definition ";
   } elsif ($item_type eq 'RegistrationBlock') {
-    $pretext = "registration\n";
+    $pretext = "registration ";
   } else {
     $pretext = '';
   }
