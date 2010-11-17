@@ -1022,25 +1022,6 @@ my %diffuse_lemmas_to_vid = ();
 my %vid_to_scheme_num = ();
 my %scheme_num_to_vid = ();
 
-sub article_local_references_from_nodes {
-  my @nodes = @{shift ()};
-  my %local_refs = ();
-  foreach my $node (@nodes) {
-    my @refs = $node->findnodes ('.//Ref');
-    foreach my $ref (@refs) {
-      unless ($ref->exists ('@articlenr')) { # this is a local ref
-	my $ref_item_vid = $ref->findvalue ('@vid');
-	my $ref_item_nr = $ref->findvalue ('@nr');
-	my $earlier_nr = $vid_to_theorem_num{$ref_item_vid};
-	if (defined ($earlier_nr)) {
-	  $local_refs{$ref_item_nr} = 0;
-	}
-      }
-    }
-  }
-  return (keys (%local_refs));
-}
-
 sub line_and_column {
   my $node = shift;
 
