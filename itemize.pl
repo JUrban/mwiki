@@ -1073,9 +1073,6 @@ sub pretext_from_item_type_and_beginning {
   my $pretext;
   if ($item_type eq 'JustifiedTheorem') {
     $pretext = theorem_before_position ($begin_line, $begin_col);
-    # DEBUG
-    warn "pretext is $pretext";
-    $pretext = 'theorem ' . $pretext;
   } elsif ($item_type eq 'Proposition') {
     my $vid = $item_node->findvalue ('@vid');
     # DEBUG
