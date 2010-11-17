@@ -749,7 +749,7 @@ sub extract_region_as_array {
   }
 
   # get intermediate lines between $beg_line and $end_line
-  foreach my $i ($beg_line .. $end_line - 1) {
+  foreach my $i ($beg_line .. $end_line - 2) {
     push (@buffer, $article_lines[$i]);
   }
 
