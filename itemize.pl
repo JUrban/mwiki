@@ -1173,16 +1173,18 @@ sub process_definitionblock {
   }
 }
 
-my $scheme_num = 0; # hmm...shouldn't this be encapsulated somehow?
-sub process_schemeblock {
-  # register a scheme, if necessary
-  $scheme_num++;
-  $scheme_num_to_abs_num{$scheme_num} = $i;
-  my $vid = $node->findvalue ('@vid');
-  unless (defined $vid) {
-    die "SchemeBlock node lacks a vid!";
+{
+  my $scheme_num = 0;
+  sub process_schemeblock {
+    # register a scheme, if necessary
+    $scheme_num++;
+    $scheme_num_to_abs_num{$scheme_num} = $i;
+    my $vid = $node->findvalue ('@vid');
+    unless (defined $vid) {
+      die "SchemeBlock node lacks a vid!";
+    }
+    $scheme_num_to_vid{$scheme_num} = $vid;
   }
-  $scheme_num_to_vid{$scheme_num} = $vid;
 }
 
 sub process_registrationblock {}
