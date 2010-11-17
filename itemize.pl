@@ -1168,16 +1168,16 @@ sub load_items {
 
 my %node_processors 
   = (
-     'JustifiedTheorem' => &process_justifiedtheorem,
-     'Proposition' => &process_toplevel_proposition,
-     'DefinitionBlock' => &process_definitionblock,
-     'SchemeBlock' => &process_schemeblock,
-     'RegistrationBlock' => &process_registrationblock,
-     'NotationBlock' => &process_notationblock,
-     'Defpred' => &process_defpred,
-     'Deffunc' => &process_deffunc,
-     'Reconsider' => &process_reconsider,
-     'Set' => &process_set,
+     'JustifiedTheorem' => \&process_justifiedtheorem,
+     'Proposition' => \&process_toplevel_proposition,
+     'DefinitionBlock' => \&process_definitionblock,
+     'SchemeBlock' => \&process_schemeblock,
+     'RegistrationBlock' => \&process_registrationblock,
+     'NotationBlock' => \&process_notationblock,
+     'Defpred' => \&process_defpred,
+     'Deffunc' => \&process_deffunc,
+     'Reconsider' => \&process_reconsider,
+     'Set' => \&process_set,
     );
 
 sub process_justifiedtheorem {}
