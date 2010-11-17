@@ -960,7 +960,7 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
     }
 
     # weird special case: the editing instruction says to go to the
-    # END of the line, which doesn't really make sense.  See line 100
+    # END of the line.  See line 100
     # of xbool_0.miz for an example of what can go wrong.  What we
     # need to do when we detect this kind of case is adust $line so
     # that it is the first line that contains something not commented
