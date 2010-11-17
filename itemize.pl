@@ -557,7 +557,7 @@ sub export_item {
   }
 
   # the item proper
-  print ITEM_MIZ ("$text;");
+  print ITEM_MIZ ("$text");
 
   print ITEM_MIZ ("\n");
 
