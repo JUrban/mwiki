@@ -1144,7 +1144,7 @@ sub load_items {
   return;
 }
 
-my %node_processors 
+my %node_processors
   = (
      'JustifiedTheorem' => \&process_justifiedtheorem,
      'Proposition' => \&process_toplevel_proposition,
