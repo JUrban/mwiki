@@ -967,16 +967,22 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
     if ($instr_col_num == $line_length) {
       # DEBUG
       warn "This is the weird whitespace case!";
-      $instr_line_num++;
-      $line = $buffer[$instr_line_num];
-      while ($line =~ /^[ ]*::/) {
+
+      # we need to specially treat multiple equations
+      if ($instruction_type eq 'scheme') { # fragile, incorrect
 	$instr_line_num++;
 	$line = $buffer[$instr_line_num];
+	while ($line =~ /^[ ]*::/) {
+	  $instr_line_num++;
+	  $line = $buffer[$instr_line_num];
+	}	
+	# we've found the right line; now go to the right column
+	$line =~ m/^[ ]*[^ ]/g;
+	$instr_col_num = (pos $line) - 2; # back up 2 because of pos
+      } else {
+	# DEBUG
+	print "yes, but it is a multiple equation case\n";
       }
-
-      # we've found the right line; now go to the right column
-      $line =~ m/^[ ]*[^ ]/g;
-      $instr_col_num = (pos $line) - 2; # back up 2 because of the way pos works
 
       # DEBUG
       warn "Done dealing with the whitepsace case: the current line is\n\n$line\n\nand the current column is $instr_col_num"
