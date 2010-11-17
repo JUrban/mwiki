@@ -979,7 +979,7 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
       $instr_col_num = (pos $line) - 2; # back up 2 because of the way pos works
 
       # DEBUG
-      warn "Done dealing with the whitepsace case: the current line is $line, and the current column is $instr_col_num"
+      warn "Done dealing with the whitepsace case: the current line is\n\n$line\n\nand the current column is $instr_col_num"
     }
 
     my $label_length = length $instr_label;
