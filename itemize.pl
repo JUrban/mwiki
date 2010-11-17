@@ -758,7 +758,7 @@ sub extract_region_as_array {
     my $last_line_full = $article_lines[$end_line-1]; # count lines from 1
     my $last_line_length = length $last_line_full;
     if ($end_col < $last_line_length) {
-      push (@buffer, substr $last_line_full, 0, $end_col); # count cols from 0
+      push (@buffer, substr $last_line_full, 0, $end_col + 1); # cols from 1
     } else {
       die "Cannot extract text from beyond the end of the line\n(the last line of the requested region has length $last_line_length, but we were asked to extract up to column $end_col)";
     }
