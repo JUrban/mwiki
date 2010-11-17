@@ -825,6 +825,10 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
   my @sorted_instructions
     = sort instruction_greater_than @instructions; # apply in REVERSE order
 
+  if ($item_kind eq 'canceled') {
+    return 'not contradiction;';
+  }
+
   # do it
   my @buffer = @{extract_region_as_array ($bl, $bc, $el, $ec)};
 
