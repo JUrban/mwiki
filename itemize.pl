@@ -1431,6 +1431,9 @@ sub itemize {
 	$end_col--;
       }
 
+      # DEBUG
+      print "the region of interest is ($begin_line,$begin_col)-($end_line,$end_col)\n";
+
       # look into the node to find references that might need to be
       # rewritten.  First, distinguish between unexported toplevel
       # theorems and the rest; for the former, the references to be
