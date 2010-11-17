@@ -1545,11 +1545,12 @@ sub itemize {
 
       my $text
 	= extract_article_region_replacing_schemes_and_definitions_and_theorems ($node_keyword, $label, $begin_line, $begin_col, $end_line, $end_col, \@local_schemes, \@local_definitions, \@local_theorems);
+
       chomp $text;
       print ("Item $i: $node_name: ($begin_line,$begin_col)-($end_line,$end_col)\n");
       print ("======================================================================\n");
       print ("$pretext$text");
-      print (";\n");
+      print ("\n");
       print ("======================================================================\n");
 
       export_item ($i, $begin_line, "$pretext$text");
