@@ -202,25 +202,27 @@ copy ($article_miz_path, $article_in_workdir)
 
 ## But first check whether it already exists.  If it does, stop; we
 ## don't want to potentially overwrite anything.
-my $local_db = catdir ($result_dir, $article_name);
-if (-x $local_db) {
+my $local_db_in_workdir = catdir ($workdir, $article_name);
+my $local_db_in_resultdir = catdir ($result_dir, $article_name);
+
+if (-x $local_db_in_resultdir) {
   die "Error: there is already a directory called '$article_name' in the result directory ($result_dir); refusing to overwrite its contents";
 }
 
 if ($be_verbose) {
-  print "Article fragments will be stored in '$local_db'\n";
+  print "Article fragments will be stored in '$local_db_in_workdir'\n";
 }
 
-mkdir $local_db
+mkdir $local_db_in_workdir
   or die "Error: Unable to make the local database directory: $!";
 my @local_db_subdirs = ('dict', 'prel', 'text');
-my $article_text_dir = catdir ($local_db, 'text');
-my $article_prel_dir = catdir ($local_db, 'prel');
+my $article_text_dir = catdir ($local_db_in_workdir, 'text');
+my $article_prel_dir = catdir ($local_db_in_workdir, 'prel');
 
-foreach my $local_db_subdir (@local_db_subdirs) {
-  my $local_db_path = catfile ($local_db, $local_db_subdir);
-  mkdir $local_db_path
-    or die "Error: Unable to make local database subdirectory $local_db_subdir: $!";
+foreach my $local_db_in_workdir_subdir (@local_db_subdirs) {
+  my $local_db_in_workdir_path = catfile ($local_db_in_workdir, $local_db_in_workdir_subdir);
+  mkdir $local_db_in_workdir_path
+    or die "Error: Unable to make local database subdirectory $local_db_in_workdir_subdir: $!";
 }
 
 ######################################################################
@@ -1569,7 +1571,7 @@ sub verify_item_with_number {
   my $err = catfile ('text', "item$item_number.err");
 
   # where we'll work
-  chdir $local_db;
+  chdir $local_db_in_workdir;
 
   # sanity check: article exists and is readable
   unless (-e $miz) {
@@ -1615,7 +1617,7 @@ sub export_item_with_number {
   my $err = catfile ('text', "item$item_number.err");
 
   # where we'll work
-  chdir $local_db;
+  chdir $local_db_in_workdir;
 
   # sanity check: article exists and is readable
   unless (-e $miz) {
@@ -1764,11 +1766,19 @@ foreach my $item_number (1 .. $num_items) {
   export_item_with_number ($item_number);
 }
 
+
 ######################################################################
 ### Cleanup
 ######################################################################
 
+# move the local db in $workdir to $result_dir
+
+move ($local_db_in_workdir, $local_db_in_resultdir) == 1
+  or die ("Something went wrong transferring our work from\n\n  $local_db_in_workdir\n\nto\n\n  $local_db_in_resultdir");
+
 if ($cleanup_afterward) {
+
+  # trash the entire working directory
   remove_tree ($workdir);
   # according to File::Path, error handling for remove_tree is done
   # via the Carp module, and not through the return value (which just
@@ -1777,6 +1787,20 @@ if ($cleanup_afterward) {
   # lazy to investigate how to take over error handling and reporting;
   # in any case, how to do that is described in the File::Path
   # documentation.
+
+  # cleanup any non-.miz, non-.xml files in the recently-moved local
+  # db
+
+  # just use find
+  my $text_subdir_of_local_db_in_resultdir
+    = catdir ($local_db_in_resultdir, 'text');
+  system ("find $text_subdir_of_local_db_in_resultdir -type f -and \\( -not -name '*.miz' -o -name '*.xml' \\) -exec rm {} ';'");
+  print "we did it\n";
+
+  unless ($? == 0) {
+    die "find did not terminate properly deleting the non-.miz and non-.xml files in the text directory! The error was:\n\n  $!";
+  }
+
 } else {
   print "Not clearning up the work directory; auxiliary files can be found in the directory\n\n  $workdir\n\nfor your inspection.\n";
 }
