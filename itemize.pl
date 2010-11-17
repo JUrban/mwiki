@@ -1126,24 +1126,6 @@ load_deftheorems ();
 
 my @nodes = ();
 
-sub load_items {
-  my @item_xpaths = ('JustifiedTheorem',
-		     'Proposition',
-		     'DefinitionBlock',
-		     'SchemeBlock',
-		     'RegistrationBlock',
-		     'NotationBlock',
-		     'Defpred',
-		     'Deffunc',
-		     'Reconsider',
-		     'Set');
-  my @toplevel_item_xpaths = map { "Article/$_" } @item_xpaths;
-  my $query = join (' | ', @toplevel_item_xpaths);
-  my $doc = miz_xml ();
-  @nodes = $doc->findnodes ($query);
-  return;
-}
-
 my %node_processors
   = (
      'JustifiedTheorem' => \&process_justifiedtheorem,
@@ -1157,6 +1139,15 @@ my %node_processors
      'Reconsider' => \&process_reconsider,
      'Set' => \&process_set,
     );
+
+sub load_items {
+  my @item_xpaths = keys %node_processors;
+  my @toplevel_item_xpaths = map { "Article/$_" } @item_xpaths;
+  my $query = join (' | ', @toplevel_item_xpaths);
+  my $doc = miz_xml ();
+  @nodes = $doc->findnodes ($query);
+  return;
+}
 
 sub process_justifiedtheorem {}
 sub process_toplevel_proposition {}
