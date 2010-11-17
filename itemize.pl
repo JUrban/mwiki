@@ -202,7 +202,7 @@ copy ($article_miz_path, $article_in_workdir)
 
 ## But first check whether it already exists.  If it does, stop; we
 ## don't want to potentially overwrite anything.
-my $local_db = catfile ($result_dir, $article_name);
+my $local_db = catdir ($result_dir, $article_name);
 if (-x $local_db) {
   die "Error: there is already a directory called '$article_name' in the result directory ($result_dir); refusing to overwrite its contents";
 }
