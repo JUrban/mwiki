@@ -1053,7 +1053,8 @@ sub pretext_from_item_type_and_beginning {
 
   my $pretext;
   if ($item_type eq 'JustifiedTheorem') {
-    $pretext = theorem_before_position ($begin_line, $begin_col);
+    # $pretext = theorem_before_position ($begin_line, $begin_col);
+    $pretext = 'theorem ';
   } elsif ($item_type eq 'Proposition') {
     my $vid = $item_node->findvalue ('@vid');
     # DEBUG
@@ -1343,8 +1344,8 @@ sub itemize {
       }
       ($begin_line, $begin_col) = line_and_column ($theorem_proposition);
       # weird: this might not be accurate!
-      # ($begin_line, $begin_col)
-      # 	= from_keyword_to_position ('theorem', $begin_line, $begin_col);
+      ($begin_line, $begin_col)
+       	= from_keyword_to_position ('theorem', $begin_line, $begin_col);
     }
 
     # now find the end, if there is such a thing in the text
