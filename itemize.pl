@@ -89,50 +89,6 @@ if ($be_verbose) {
   print "Setting the result directory to '$result_dir'\n";
 }
 
-### --emacs-lisp-dir
-
-# First, extract or assign a value.  As was the case for the
-# --result-dir option, a default value has already been specified
-# using Getopt::Euclid, so there's no need to compute a default.
-my $elisp_dir = $ARGV{'--emacs-lisp-dir'};
-unless (defined $elisp_dir) { # weird: typo on my part or bug in Getopt::Euclid
-  die 'Error: No value for the --emacs-lisp-dir option is present in the %ARGV table!';
-}
-
-if ($be_verbose) {
-  print "Setting elisp directory to $elisp_dir\n";
-}
-
-# Ensure that the value is sensible, which in this case means: it
-# exists, it's a directory, it's readable, and it contains all the
-# needed helper elisp code
-unless (-e $elisp_dir) {
-  die "Error: The given emacs lisp directory\n\n  $elisp_dir\n\ndoes not exist!";
-}
-unless (-d $elisp_dir) {
-  die "Error: The given emacs lisp directory\n\n$elisp_dir\n\nis not actually a directory!";
-}
-unless (-r $elisp_dir) {
-  die "Error: The given emacs lisp directory\n\n$elisp_dir\n\nis not readable!";
-}
-my @elisp_files = ('reservations.elc');
-foreach my $elisp_file (@elisp_files) {
-  my $elisp_file_path = catfile ($elisp_dir, $elisp_file);
-  unless (-e $elisp_file_path) {
-    die "Error: The required emacs lisp file\n\n  $elisp_file\n\ncannot be found under the emacs lisp directory\n\n$elisp_dir";
-  }
-  unless (-r $elisp_file_path) {
-    die "Error: The required emacs lisp file\n\n  $elisp_file\n\nunder the emacs lisp directory\n\n$elisp_dir\n\nis not readable!";
-  }
-}
-my $reservations_elc_path = catfile ($elisp_dir, 'reservations.elc');
-unless (-e $reservations_elc_path) {
-  die "Error: reservations.elc does not exist under $elisp_dir";
-}
-unless (-r $reservations_elc_path) {
-  die "Error: reservations.elc under $elisp_dir is not readable";
-}
-
 ### --with-stylesheets-in
 
 # First, extract or assign a value.
@@ -222,7 +178,7 @@ if (defined $ARGV{'--no-cleanup'}) {
 ######################################################################
 ### Prepare result directories:
 ###
-### 1. The work directory, where sed, JA1, emacs, etc., will be run.
+### 1. The work directory, where sed, JA1, etc., will be run.
 ###
 ### 2. The local article database.
 ######################################################################
@@ -1893,14 +1849,6 @@ writable.
 
 =for Euclid:
 
-=item --emacs-lisp-dir=<ELISP-DIR>
-
-The directory in which to look for the Emacs Lisp code that this
-program uses.  The default is to use the current directory.
-
-=for Euclid:
-     ELISP-DIR.default: '.'
-
 =item --with-stylesheets-in=<STYLESHEET-DIRECTORY>
 
 The directory that contains the relevant stylesheets applied to the
@@ -2041,13 +1989,6 @@ ensures only that the article fragmens make sense to the mizar
 tools. We should plug in to Josef's code; it requires far more
 computation than simply checking the existence of suitable files, but
 that is the way we cut things down as far as possible.
-
-=item Emacs
-
-It would be good to move away from emacs, which, I'm sure, makes
-things much slower than they need to be.  We are using emacs only in a
-limited capacity: extracting regions of text.  We can certainly do
-this in perl, and likely much faster.
 
 =item Mizar module
 
