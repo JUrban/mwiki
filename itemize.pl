@@ -1072,7 +1072,15 @@ sub pretext_from_item_type_and_beginning {
     my $prop_label = $idx_table{$vid};
     # DEBUG
     warn ("unexported toplevel theorem has label $prop_label...");
-    # my $theorem = extract_toplevel_unexported_theorem_with_label ($begin_line, $begin_col, $prop_label);
+    # DEBUG
+    print "this unexported toplevel theorem begins at ($begin_line,$begin_col)\n";
+    my ($lemma_begin_line,$lemma_begin_col)
+      = from_keyword_to_position ($prop_label, $begin_line, $begin_col);
+    $lemma_begin_col++; # because of the colon after the keyword
+    # DEBUG
+    print "this unexported toplevel theorem actually starts at ($lemma_begin_line,$lemma_begin_col)\n";
+    my $theorem = extract_region ($lemma_begin_line, $lemma_begin_col,
+				  $begin_line, $begin_col);
     # $pretext = "theorem $theorem\n";
     $pretext = "theorem $theorem ";
   } elsif ($item_type eq 'SchemeBlock') {
