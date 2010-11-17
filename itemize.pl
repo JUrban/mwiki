@@ -1801,7 +1801,7 @@ if ($cleanup_afterward) {
   }
 
 } else {
-  print "Not clearning up the work directory; auxiliary files can be found in the directory\n\n  $workdir\n\nfor your inspection.\n";
+  print "Not clearning up the work directory; all auxiliary files can be found in the directory\n\n  $result_dir\n\nfor your inspection.\n";
 }
 
 __END__
