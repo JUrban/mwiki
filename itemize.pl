@@ -1794,7 +1794,7 @@ if ($cleanup_afterward) {
   # just use find
   my $text_subdir_of_local_db_in_resultdir
     = catdir ($local_db_in_resultdir, 'text');
-  system ("find $text_subdir_of_local_db_in_resultdir -type f -and \\( -not -name '*.miz' -o -name '*.xml' \\) -exec rm {} ';'");
+  system ("find $text_subdir_of_local_db_in_resultdir -type f -and -not -name '*.miz' -and -not -name '*.xml' -exec rm {} ';'");
 
   unless ($? == 0) {
     die "find did not terminate properly deleting the non-.miz and non-.xml files in the text directory! The error was:\n\n  $!";
