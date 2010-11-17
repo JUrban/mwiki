@@ -1063,9 +1063,10 @@ sub pretext_from_item_type_and_beginning {
     warn ("unexported toplevel theorem has label $prop_label...");
     # my $theorem = extract_toplevel_unexported_theorem_with_label ($begin_line, $begin_col, $prop_label);
     # $pretext = "theorem $theorem\n";
-    $pretext = "theorem ";
+    $pretext = "theorem $theorem ";
   } elsif ($item_type eq 'SchemeBlock') {
-    $pretext = 'scheme ' . scheme_before_position ($begin_line, $begin_col);
+    # $pretext = 'scheme ' . scheme_before_position ($begin_line, $begin_col);
+    $pretext = 'scheme ';
   } elsif ($item_type eq 'NotationBlock') {
     $pretext = "notation ";
   } elsif ($item_type eq 'DefinitionBlock') {
