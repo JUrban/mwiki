@@ -1232,7 +1232,6 @@ sub process_notationblock {}
 
 sub process_defpred {
   print "Don't know yet how to handle toplevel defpred statements.";
-    }
 }
 
 sub process_deffunc {
