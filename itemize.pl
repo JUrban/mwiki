@@ -1209,10 +1209,23 @@ sub process_schemeblock {
 
 sub process_registrationblock {}
 sub process_notationblock {}
-sub process_defpred {}
-sub process_deffunc {}
-sub process_reconsider {}
-sub process_set {}
+
+sub process_defpred {
+  print "Don't know yet how to handle toplevel defpred statements.";
+    }
+}
+
+sub process_deffunc {
+  print "Don't know yet how to handle toplevel deffunc statements.\n";
+}
+
+sub process_reconsider {
+  print "Don't know how yet how to handle toplevel reconsider statements.\n";
+}
+
+sub process_set {
+  print "Don't know yet how to handle set statements.\n";
+}
 
 load_items ();
 
