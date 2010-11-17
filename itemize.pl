@@ -1058,7 +1058,7 @@ sub pretext_from_item_type_and_beginning {
     my $vid = $item_node->findvalue ('@vid');
     # DEBUG
     warn ("unexported toplevel theorem with vid $vid...");
-    my $prop_label = $vid_table{$vid};
+    my $prop_label = $idx_table{$vid};
     # DEBUG
     warn ("unexported toplevel theorem has label $prop_label...");
     # my $theorem = extract_toplevel_unexported_theorem_with_label ($begin_line, $begin_col, $prop_label);
@@ -1319,11 +1319,22 @@ sub itemize {
     if ($node_name eq 'DefinitionBlock' ||
 	$node_name eq 'SchemeBlock' ||
         $node_name eq 'RegistrationBlock' ||
-	$node_name eq 'NotationBlock' ||
-        $node_name eq 'Proposition') {
+	$node_name eq 'NotationBlock') {
 
       ($begin_line,$begin_col) = line_and_column ($node);
 
+    } elsif ($node_name eq 'Proposition') {
+      my $vid = $node->findvalue ('@vid');
+      unless (defined $vid) {
+	die "ouch!";
+      }
+      # DEBUG
+      warn ("unexported toplevel theorem with vid $vid...");
+      my $prop_label = $idx_table{$vid};
+      ($begin_line, $begin_col) = line_and_column ($node);
+      # weird: this might not be accurate!
+      # ($begin_line, $begin_col)
+      #  	= from_keyword_to_position ($prop_label, $begin_line, $begin_col);
     } else { # JustifiedTheorem
       my ($theorem_proposition) = $node->findnodes ('Proposition[position()=1]');
       unless (defined ($theorem_proposition)) {
@@ -1517,7 +1528,10 @@ sub itemize {
 	my $vid = $node->findvalue ('@vid');
 	# DEBUG
 	warn ("unexported toplevel theorem with vid $vid...");
-	$label = $vid_table{$vid};
+	$label = $idx_table{$vid};
+	unless (defined $label) {
+	  die "ouch!";
+	}
 	# DEBUG
 	warn ("unexported toplevel theorem has label $label...");
       } else {
