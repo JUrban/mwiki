@@ -1061,22 +1061,6 @@ sub line_and_column {
   return ($line,$col);
 }
 
-# sub extract_toplevel_unexported_theorem_with_label {
-#   my $end_line = shift;
-#   my $end_col = shift;
-#   my $label = shift;
-#   my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(toplevel-unexported-theorem-before-position-with-label $end_line $end_col \"$label\")'`;
-#   unless ($? == 0) {
-#     die ("Weird: emacs died extracting the unexported theorem with label $label before position ($end_line,$end_col): the error was: $!");
-#   }
-#   chomp (@output);
-#   my $result = '';
-#   foreach my $line (@output) {
-#     $result .= $line;
-#   }
-#   return $result;
-# }
-
 sub pretext_from_item_type_and_beginning {
   my $item_type = shift;
   my $begin_line = shift;
