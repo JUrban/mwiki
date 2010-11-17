@@ -17,6 +17,7 @@ use File::Copy qw / copy move /;
 use File::Path qw / remove_tree /;
 use XML::LibXML;
 use Fatal qw / open /;
+use List::MoreUtils qw / all /;
 
 ######################################################################
 ### Process the command line
@@ -626,99 +627,84 @@ sub reservations_before_line {
   return (\@reservations);
 }
 
-# sub scheme_before_position {
-#   my $line_num_to_begin = shift;
-#   my $col_num_to_begin = shift;
-  
-#   my $line_num = $line_num_to_begin;
-#   my $scheme_keyword_encountered = 0;
-  
-#   my ($goal_line, $goal_col_beg, $goal_col_end);
-  
-#   until ($scheme_keyword_encountered) {
-#     my $line = $article_lines[$line_num];
-#     my $line_len = length $line;
-#     my $col = ($line_num_to_begin == $line_num ? $col_num_to_begin : $line_len);
-#     my $line_up_to_col = substr $line, 0, $col;
-#     if ($line_up_to_col =~ m/^scheme[ ]+[^ ]|[ ]scheme[ ]+[^ ]/g) {
-#       my $end_of_scheme = pos $line_up_to_col;
-#       my $up_to_scheme = substr $line_up_to_col, 0, $end_of_scheme;
+sub from_keyword_to_position {
+  my $keyword = shift;
+  my $line = shift;
+  my $col = shift;
+  # find the maximal line and column in @article_lines before column
+  # $col of line $line that starts with $keyword.
 
-#       # check whether the 'scheme' on this line is commented out; if
-#       # so, keep going back
-#       if ($up_to_scheme =~ m/::/) {
-# 	$line_num--;
-#       } else {
-# 	$scheme_keyword_encountered = 1;
-# 	$goal_line = $line;
-# 	$goal_line_num = $line_num;
-# 	# we know the line, but we don't yet know the column: there
-# 	# may be more than one scheme on this line; we need to find
-# 	# the LAST one.  Use the \G anchor from the previous m/.../g
-# 	# match.
-# 	while ($line_up_to_col =~ m/\G[ ]scheme[ ]+[^ ]/g) {
-# 	  $goal_col_num = pos $line_up_to_col;
-# 	}
-#       }
-#     }
-#   }
+  # first, check whether the current line already contains the keyword.
+  my $first_line = $article_lines[$line-1]; # count lines from 1
+  my $first_line_length = length $first_line;
 
-#   return substr $goal_line, $goal;
-# }
+  # sanity
+  if ($col > $first_line_length) {
+    die "We cannot inspect column $col of line $line, because there aren't that many columns in the line!";
+  }
 
-# sub scheme_before_position {
-#   my $line = shift;
-#   my $col = shift;
-#   my $scheme = '';		# empty string
-#   # DEBUG
-#   my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(scheme-before-position $line $col)'`;
-#   unless ($? == 0) {
-#     die ("Weird: emacs died: $!");
-#   }
-#   chomp (@output);
-#   foreach my $i (0 .. scalar (@output) - 1) {
-#     my $out_line = $output[$i];
-#     $scheme .= $out_line;
-#     if ($i == scalar (@output) - 1) {
-#       $scheme .= " ";
-#     } else {
-#       $scheme .= "\n";
-#     }
-#   }
-#   return ($scheme);
-# }
+  my $truncated_first_line = substr $first_line, 0, $col - 1; # from 1, not 0
 
-# sub theorem_before_position {
-#   my $line = shift;
-#   my $col = shift;
-#   my $theorem = '';		# empty string
-#   # DEBUG
-#   my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(theorem-before-position $line $col)'`;
-#   unless ($? == 0) {
-#     die ("Weird: emacs died: $!");
-#   }
-#   foreach $out_line (@output) {
-#     chomp ($out_line);
-#     $theorem .= "$out_line\n";
-#   }
-#   return ($theorem);
-# }
+  my $target_line_num = $line;
+  my $pos;
 
-# sub definition_before_position {
-#   my $line = shift;
-#   my $col = shift;
-#   my $definition = '';		# empty string
-#   # DEBUG
-#   my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval '(definition-before-position $line $col)'`;
-#   unless ($? == 0) {
-#     die ("Weird: emacs died: $!");
-#   }
-#   foreach $out_line (@output) {
-#     chomp ($out_line);
-#     $definition .= "$out_line\n";
-#   }
-#   return ($definition);
-# }
+  my $target_line = undef;
+
+  until (defined $target_line) {
+    $target_line_num--;
+
+    my $current_line;
+    if ($target_line_num == $line - 1) { # look at the truncated first line
+      $current_line = $truncated_first_line;
+    } else {
+      $current_line = $article_lines[$target_line_num];
+    }
+
+    my $match_pos;
+    if ($current_line =~ m/^$keyword|[ ]$keyword$|[ ]$keyword[ ]/g) {
+      # check this this occurrence of $keyword isn't commented out
+      my $match_pos = pos $current_line;
+      my $truncated_current_line = substr $current_line, 0, $match_pos;
+      if ($truncated_current_line !~ m/::/) {
+	$target_line = $current_line;
+      }
+    }
+  }
+
+  # we have found our line; now find the LAST use of $keyword
+  while ($target_line =~ m/^$keyword|[ ]$keyword$|[ ]$keyword[ ]/g) {
+    $pos = pos $target_line;
+  }
+
+  $target_line_num++; # off by one?!
+
+  return ($target_line_num, $pos);
+}
+
+sub theorem_before_position {
+  my $end_line = shift;
+  my $end_col = shift;
+  my ($begin_line,$begin_col)
+    = from_keyword_to_position ('theorem', $end_line, $end_col);
+  # DEBUG
+  warn "For this theorem, we started at line $end_line and column $end_col";
+  warn "For this theorem, the begin_line is $begin_line and the begin_col is $begin_col";
+  my $theorem = extract_region ($begin_line,$begin_col,$end_line,$end_col);
+  # DEBUG
+  warn "Just extracted theorem: $theorem";
+  return $theorem;
+}
+
+sub scheme_before_position {
+  my $end_line = shift;
+  my $end_col = shift;
+  my ($begin_line,$begin_col)
+    = from_keyword_to_position ('scheme', $end_line, $end_col);
+  my $scheme = extract_region ($begin_line,$begin_col,$end_line,$end_col);
+  # DEBUG
+  warn "here's our scheme: $scheme";
+  return $scheme;
+}
 
 sub extract_region {
   my $beg_line = shift;
@@ -753,35 +739,54 @@ sub extract_region_as_array {
     = $article_lines[$beg_line-1]; # count lines from 1
   my $first_line_length = length $first_line_full;
   if ($beg_col <= $first_line_length) {
-    push (@buffer, substr $first_line_full, $beg_col); # count cols from 1
+    if ($beg_line == $end_line) {
+      push (@buffer, substr $first_line_full, $beg_col, $end_col - $beg_col + 1);
+    } else {
+      push (@buffer, substr $first_line_full, $beg_col); # count from 1
+    }
   } else {
     die "Cannot extract text from beyond the end of the line\n(the line of the file that was first requested,\n\n  $first_line_full\n\nhas length $first_line_length, but we were asked to start at column $beg_col)";
   }
 
   # get intermediate lines between $beg_line and $end_line
-  for (my $i = $beg_line; $i < $end_line - 1; $i++) {
+  foreach my $i ($beg_line .. $end_line - 1) {
     push (@buffer, $article_lines[$i]);
   }
 
-  # get the last line
-  my $last_line_full = $article_lines[$end_line-1]; # count lines from 1
-  my $last_line_length = length $last_line_full;
-  if ($end_col < $last_line_length) {
-    push (@buffer, substr $last_line_full, 0, $end_col); # count cols from 0
-  } else {
-    die "Cannot extract text from beyond the end of the line\n(the last line of the requested region has length $last_line_length, but we were asked to extract up to column $end_col)";
+  if ($beg_line != $end_line) {
+    # get the last line
+    my $last_line_full = $article_lines[$end_line-1]; # count lines from 1
+    my $last_line_length = length $last_line_full;
+    if ($end_col < $last_line_length) {
+      push (@buffer, substr $last_line_full, 0, $end_col); # count cols from 0
+    } else {
+      die "Cannot extract text from beyond the end of the line\n(the last line of the requested region has length $last_line_length, but we were asked to extract up to column $end_col)";
+    }
   }
+
   return \@buffer;
 }
 
 sub instruction_greater_than {
-  my @instruction_a = @{shift ()};
-  my @instruction_b = @{shift ()};
+  my @instruction_a = @{$a};
+  my @instruction_b = @{$b};
   my $line_a = $instruction_a[1];
   my $line_b = $instruction_b[1];
   my $col_a = $instruction_a[2];
   my $col_b = $instruction_b[2];
-  return (($line_a > $line_b) || ($line_a == $line_b && $col_a > $col_b));
+  if ($line_a < $line_b) {
+    return 1;
+  } elsif ($line_a == $line_b) {
+    if ($col_a < $col_b) {
+      return 1
+    } elsif ($col_a == $col_b) {
+      return 0;
+    } else {
+      return -1;
+    }
+  } else {
+    return -1;
+  }
 }
 
 sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
@@ -822,6 +827,19 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
 
   # do it
   my @buffer = @{extract_region_as_array ($bl, $bc, $el, $ec)};
+
+  # DEBUG print instructions
+  print "Instructions:\n";
+  foreach my $instruction_ref (@sorted_instructions) {
+    my @instruction = @{$instruction_ref};
+    my $instruction_type = $instruction[0];
+    my $instr_line_num = $instruction[1];
+    my $instr_col_num = $instruction[2];
+    my $instr_label = $instruction[3];
+    my $instr_item_num = $instruction[4];
+    print "($instruction_type $instr_line_num $instr_col_num $instr_label $instr_item_num) in the region ($bl,$bc,$el,$ec)\n";
+  }
+
 
   foreach my $instruction_ref (@sorted_instructions) {
     my @instruction = @{$instruction_ref};
@@ -882,7 +900,11 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
     my $instr_item_num = $instruction[4];
 
     # DEBUG
-    warn "Applying instruction ($instruction_type $instr_line_num $instr_col_num $instr_item_num $instr_label)";
+    print "Applying instruction ($instruction_type $instr_line_num $instr_col_num $instr_label $instr_item_num) in the region ($bl,$bc,$el,$ec)\n";
+    print "The buffer looks like this:\n";
+    foreach (@buffer) {
+      print "$_\n";
+    }
 
     # sanity checks
     if ($instr_line_num < 1) {
@@ -904,8 +926,8 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
       $instr_col_num -= $bc;
     }
 
-    # adjust column
-    #$instr_col_num++;
+    # DEBUG
+    warn "instruction column number is now $instr_col_num";
 
     # now adjust the instruction's line numbers.  We need to do this
     # because the information from which the editing instruction was
@@ -915,18 +937,12 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
     # are considering an item that spans lines 990 to 1010, we dealing
     # only with those 21 lines; 990 gets mapped to 0, and 1010 gets
     # mapped to 20, so line "1000" needs to get mapped to line 10.
-    
+
     # DEBUG
-    # warn "We are asked to edit line $instr_line_num...";
+    warn "We are asked to edit line $instr_line_num...";
     $instr_line_num -= $bl;
     # DEBUG
-    # warn "...which just got adjusted to $instr_line_num";
-    
-    # # DEBUG
-    # print "The text we're looking at is:\n";
-    # foreach my $line (@buffer) {
-    #   print "$line\n";
-    # }
+    warn "...which just got adjusted to $instr_line_num";
 
     my $line = $buffer[$instr_line_num];
     unless (defined $line) {
@@ -939,14 +955,40 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
       die "The given editing instruction requests that column $instr_col_num be inspected, but there aren't that many columns in the line\n\n$line\n\nthat we're supposed to look at!";
     }
 
-    # DEBUG
-    warn "line before the instuction:\n\n$line\n";
+    # weird special case: the editing instruction says to go to the
+    # END of the line, which doesn't really make sense.  See line 100
+    # of xbool_0.miz for an example of what can go wrong.  What we
+    # need to do when we detect this kind of case is adust $line so
+    # that it is the first line that contains something not commented
+    # out.
+    #
+    # this is a case where what I'm doing crucially depends on how the
+    # mizar parser keeps track of whitespace.  Annoying.
+    if ($instr_col_num == $line_length) {
+      # DEBUG
+      warn "This is the weird whitespace case!";
+      $instr_line_num++;
+      $line = $buffer[$instr_line_num];
+      while ($line =~ /^[ ]*::/) {
+	$instr_line_num++;
+	$line = $buffer[$instr_line_num];
+      }
 
-    # DEBUG
-    warn "column: $instr_col_num";
+      # we've found the right line; now go to the right column
+      $line =~ m/^[ ]*[^ ]/g;
+      $instr_col_num = (pos $line) - 2; # back up 2 because of the way pos works
+
+      # DEBUG
+      warn "Done dealing with the whitepsace case: the current line is $line, and the current column is $instr_col_num"
+    }
 
     my $label_length = length $instr_label;
-    my $offset = $instr_col_num - $label_length;
+
+    # weird special case! thanks Josef :-p
+    my $offset = $instruction_type eq 'scheme' ? $instr_col_num + 1
+                                               : $instr_col_num - $label_length;
+
+    my $before_line = $line;
     if ($instruction_type eq 'scheme') {
       $line =~ s/^(.{$offset})$instr_label(.*)$/$1ITEM$instr_item_num:sch 1$2/;
     } elsif ($instruction_type eq 'theorem') {
@@ -959,7 +1001,11 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
     }
 
     # DEBUG
-    warn "line after the instuction:\n\n$line\n";
+    print "line after the instuction:\n\n$line\n";
+
+    if ($before_line eq $line) {
+      die "We were supposed to do an editig operation, but NOTHING HAPPENED!";
+    }
 
     $buffer[$instr_line_num] = $line;
   }
@@ -967,74 +1013,7 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
   return join ("\n", @buffer);
 }
 
-# sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
-#   my $item_kind = shift;
-#   my $label = shift;
-#   my $bl = shift;
-#   my $bc = shift;
-#   my $el = shift;
-#   my $ec = shift;
-#   my $schemes_ref = shift;
-#   my $definitions_ref = shift;
-#   my $theorems_ref = shift;
-#   my @schemes = @{$schemes_ref};
-#   my @definitions = @{$definitions_ref};
-#   my @theorems = @{$theorems_ref};
-
-#   my $emacs_command;
-#   if (scalar (@schemes) == 0 && scalar (@definitions) == 0 && scalar (@theorems) == 0) {
-#     $emacs_command = "emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval \"(extract-region-replacing-schemes-and-definitions-and-theorems '$item_kind \\\"$label\\\" $bl $bc $el $ec)\"";
-#   } else {
-#     # build the last argument to the EXTRACT-REGION-REPLACING-SCHEMES function
-#     my $instructions = '';
-#     foreach my $scheme_triple_ref (@schemes) {
-#       my @scheme_triple = @{$scheme_triple_ref};
-#       my $scheme_line = $scheme_triple[0];
-#       my $scheme_col = $scheme_triple[1];
-#       my $scheme_abs_num = $scheme_triple[2];
-#       $instructions .= "'(scheme $scheme_line $scheme_col $scheme_abs_num)";
-#       $instructions .= " ";
-#     }
-#     foreach my $definition_info_ref (@definitions) {
-#       my @definition_info = @{$definition_info_ref};
-#       my $def_line = $definition_info[0];
-#       my $def_col = $definition_info[1];
-#       my $def_abs_num = $definition_info[2];
-#       my $def_def_num = $definition_info[3];
-#       $instructions .= "'(definition $def_line $def_col $def_abs_num $def_def_num)";
-#       $instructions .= " ";
-#     }
-#     foreach my $theorem_triple_ref (@theorems) {
-#       my @theorem_triple = @{$theorem_triple_ref};
-#       my $theorem_line = $theorem_triple[0];
-#       my $theorem_col = $theorem_triple[1];
-#       my $theorem_abs_num = $theorem_triple[2];
-#       $instructions .= "'(theorem $theorem_line $theorem_col $theorem_abs_num)";
-#       $instructions .= " ";
-#     }
-
-#     $emacs_command = "emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --eval \"(extract-region-replacing-schemes-and-definitions-and-theorems '$item_kind \\\"$label\\\" $bl $bc $el $ec $instructions)\"";
-#   }
-
-#   my $region = ''; # empty string
-
-#   # DEBUG
-#   warn ("emacs command:\n\n  $emacs_command");
-#   my @output = `$emacs_command`;
-#   unless ($? == 0) {
-#     die ("Weird: emacs died: $!");
-#   }
-#   foreach $out_line (@output) {
-#     chomp ($out_line);
-#     $region .= "$out_line\n";
-#   }
-#   return ($region);
-# }
-
-# prepare_work_dirs ();
 init_reservation_table ();
-# DEBUG
-#print_reservation_table ();
 
 my %vid_to_theorem_num = ();
 my %theorem_num_to_vid = ();
@@ -1082,8 +1061,6 @@ sub line_and_column {
   return ($line,$col);
 }
 
-
-
 # sub extract_toplevel_unexported_theorem_with_label {
 #   my $end_line = shift;
 #   my $end_col = shift;
@@ -1105,10 +1082,16 @@ sub pretext_from_item_type_and_beginning {
   my $begin_line = shift;
   my $begin_col = shift;
   my $item_node = shift;
+
+  # DEBUG
+  warn "Looking for pretext starting from $begin_line and $begin_col";
+
   my $pretext;
   if ($item_type eq 'JustifiedTheorem') {
-    # $pretext = theorem_before_position ($begin_line, $begin_col);
-    $pretext = 'theorem ';
+    $pretext = theorem_before_position ($begin_line, $begin_col);
+    # DEBUG
+    warn "pretext is $pretext";
+    $pretext = 'theorem ' . $pretext;
   } elsif ($item_type eq 'Proposition') {
     my $vid = $item_node->findvalue ('@vid');
     # DEBUG
@@ -1120,9 +1103,7 @@ sub pretext_from_item_type_and_beginning {
     # $pretext = "theorem $theorem\n";
     $pretext = "theorem ";
   } elsif ($item_type eq 'SchemeBlock') {
-    $pretext = 'scheme '; # scheme_before_position ($begin_line, $begin_col);
-    # DEBUG
-    warn ("we're dealing with a scheme, and the pretext is $pretext\n");
+    $pretext = 'scheme ' . scheme_before_position ($begin_line, $begin_col);
   } elsif ($item_type eq 'NotationBlock') {
     $pretext = "notation\n";
   } elsif ($item_type eq 'DefinitionBlock') {
@@ -1132,7 +1113,7 @@ sub pretext_from_item_type_and_beginning {
   } else {
     $pretext = '';
   }
-  return ($pretext);
+  return $pretext;
 }
 
 my %scheme_num_to_abs_num = ();
@@ -1141,12 +1122,6 @@ my %definition_vid_to_absnum = ();
 my %definition_vid_to_thmnum = ();
 my %theorem_nr_to_absnum = ();
 my %theorem_vid_to_absnum = ();
-
-# sub position_of_theorem_keyword_before_pos {
-#   my $line = shift;
-#   my $col = shift;
-#   my @output = `emacs23 --quick --batch --load $reservations_elc_path --visit $article_miz --funcall (position-of-theorem-keyword-before-position)`;
-# }
 
 sub is_exported_deftheorem {
   my $deftheorem_node = shift;
@@ -1332,6 +1307,9 @@ sub itemize {
 	die ("Weird: node $i, a JustifiedTheorem, lacks a Proposition child element");
       }
       ($begin_line, $begin_col) = line_and_column ($theorem_proposition);
+      # weird: this might not be accurate!
+      # ($begin_line, $begin_col)
+      # 	= from_keyword_to_position ('theorem', $begin_line, $begin_col);
     }
 
     # now find the end, if there is such a thing in the text
@@ -1504,8 +1482,11 @@ sub itemize {
       }
 
       # compute any lost "pretext" information
-      # my $pretext
-      #   = pretext_from_item_type_and_beginning ($node_name, $begin_line, $begin_col, $node);
+      my $pretext
+	 = pretext_from_item_type_and_beginning ($node_name, $begin_line, $begin_col, $node);
+
+      # DEBUG
+      print "the pretext is '$pretext'\n";
 
       # check for whether we're dealing with one of those annoying unexported toplevel theorems, for which we need to know its label
       my $label;
@@ -1544,11 +1525,11 @@ sub itemize {
       chomp $text;
       print ("Item $i: $node_name: ($begin_line,$begin_col)-($end_line,$end_col)\n");
       print ("======================================================================\n");
-      print ("$text");
+      print ("$pretext$text");
       print (";\n");
       print ("======================================================================\n");
 
-      export_item ($i, $begin_line, $text);
+      export_item ($i, $begin_line, "$pretext$text");
     }
   }
 
