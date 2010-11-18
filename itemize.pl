@@ -2024,6 +2024,25 @@ From FINSEQ_1 (of MML 4.150.1103):
 
 defpred P[set,set] means ex k st $1 = k & $2 = k+1;
 
+=item consider
+
+Consider this bad boy from AFVECT01 (of MML 4.150.1103):
+
+consider AFV0 being WeakAffVect;
+set X = the carrier of AFV0;
+set XX = [:X,X:];
+defpred P[set,set] means ex a,b,c,d being Element of X st $1=[a,b] & $2=[c,d]
+& a,b '||' c,d;
+consider P being Relation of XX,XX such that
+Lm13: for x,y being set holds [x,y] in P iff x in XX & y in XX & P[x,y]
+from RELSET_1:sch 1;
+
+Hairy!
+
+For a less hairy example, look at BHSP_1 (from MML 4.150.1103):
+
+consider V0 being RealLinearSpace;
+
 =item reconsider
 
 From RAT_1 (of MML 4.150.1103):
