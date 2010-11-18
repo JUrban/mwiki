@@ -2013,11 +2013,36 @@ module rather than here.
 
 =item deffunc
 
+From ABCMIZ_1 (of MML 4.150.1103):
+
+deffunc F(set,set) =
+{[varcl A, j] where A is Subset of $2, j is Element of NAT: A is finite};
+
 =item defpred
+
+From FINSEQ_1 (of MML 4.150.1103):
+
+defpred P[set,set] means ex k st $1 = k & $2 = k+1;
 
 =item reconsider
 
+From RAT_1 (of MML 4.150.1103):
+
+then reconsider 09 = 0 as Element of REAL+ by ARYTM_2:2;
+
+(The "then" links the reconsider with the previous statement, an
+unexported toplevel theorem
+
+  0 in omega;
+
+with no proof.)
+
 =item set
+
+From ARYTM_2 (from MML 4.150.1103):
+
+set IR = { A where A is Subset of RAT+: r in A implies (for s st s <=' r holds
+s in A) & ex s st s in A & r < s}, RA = {{ s: s < t}: t <> {}};
 
 =back
 
