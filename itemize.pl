@@ -557,12 +557,6 @@ sub init_reservation_table {
   return;
 }
 
-sub reservations_from_xml {
-  my $doc = miz_xml ();
-  my @reservations = $doc->findnodes ('/Reservation');
-  return (\@reservations);
-}
-
 sub print_reservation_table {
   # DEBUG
   warn "Here is the reservation table:";
