@@ -1501,7 +1501,8 @@ sub itemize {
 	warn ("unexported toplevel theorem with vid $vid...");
 	$label = $idx_table{$vid};
 	unless (defined $label) {
-	  die "ouch!";
+	  warn "Don't know how to handle toplevel unexported theorems without labels!";
+	  exit 2;
 	}
 	# DEBUG
 	warn ("unexported toplevel theorem has label $label...");
