@@ -778,7 +778,7 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
     = sort instruction_greater_than @instructions; # apply in REVERSE order
 
   if ($item_kind eq 'canceled') {
-    return 'not contradiction;';
+    return ''; # the pretext is already 'canceled;'
   }
 
   # do it
@@ -1005,10 +1005,12 @@ sub line_and_column {
 }
 
 sub pretext_from_item_type_and_beginning {
-  my $item_type = shift;
+  my $node = shift;
   my $begin_line = shift;
   my $begin_col = shift;
   my $item_node = shift;
+
+  my $item_type = $node->nodeName;
 
   # DEBUG
   warn "Looking for pretext starting from $begin_line and $begin_col";
@@ -1016,7 +1018,11 @@ sub pretext_from_item_type_and_beginning {
   my $pretext;
   if ($item_type eq 'JustifiedTheorem') {
     # $pretext = theorem_before_position ($begin_line, $begin_col);
-    $pretext = 'theorem ';
+    if ($node->exists ('SkippedProof')) {
+      $pretext = 'canceled;'; # in this case, the pretext is the whole text
+    } else {
+      $pretext = 'theorem ';
+    }
   } elsif ($item_type eq 'Proposition') {
     my $vid = $item_node->findvalue ('@vid');
     # DEBUG
@@ -1485,11 +1491,13 @@ sub itemize {
 	  }
 	}
       }
-
-      # compute any lost "pretext" information
+      
       my $pretext
-	 = pretext_from_item_type_and_beginning ($node_name, $begin_line, $begin_col, $node);
-
+	= pretext_from_item_type_and_beginning ($node,
+						$begin_line,
+						$begin_col,
+						$node);
+    
       # DEBUG
       print "the pretext is '$pretext'\n";
 
