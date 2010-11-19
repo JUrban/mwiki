@@ -1143,7 +1143,8 @@ my @unhandled_node_types = ('DefFunc',
 			    'Defpred',
 			    'Set',
 			    'Consider',
-			    'Reconsider'); 
+			    'Reconsider',
+			    'Proposition[not(@vid)]');
 
 sub load_items {
   my $doc = miz_xml ();
