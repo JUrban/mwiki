@@ -1134,18 +1134,33 @@ my %node_processors
      'SchemeBlock' => \&process_schemeblock,
      'RegistrationBlock' => \&process_registrationblock,
      'NotationBlock' => \&process_notationblock,
-     'Defpred' => \&process_defpred,
-     'Deffunc' => \&process_deffunc,
-     'Reconsider' => \&process_reconsider,
-     'Set' => \&process_set,
     );
 
+my @handled_node_types = keys %node_processors;
+
+# I wish I knew how to deal with these :-<
+my @unhandled_node_types = ('DefFunc',
+			    'Defpred',
+			    'Set',
+			    'Consider',
+			    'Reconsider'); 
+
 sub load_items {
-  my @item_xpaths = keys %node_processors;
-  my @toplevel_item_xpaths = map { "Article/$_" } @item_xpaths;
-  my $query = join (' | ', @toplevel_item_xpaths);
   my $doc = miz_xml ();
+  # check for unhandled nodes; die quickly
+  my $unhandled_query = join (' | ', @unhandled_node_types);
+
+
+  if ($doc->exists ($unhandled_query)) {
+    warn "There's an unhandled node type in this article; sorry";
+    exit 2;
+  }
+
+  my @toplevel_item_xpaths = map { "Article/$_" } @handled_node_types;
+  my $query = join (' | ', @toplevel_item_xpaths);
   @nodes = $doc->findnodes ($query);
+  # DEBUG
+  print 'we found ', scalar @nodes, ' nodes', "\n";
   return;
 }
 
@@ -1180,22 +1195,6 @@ sub process_definitionblock {
 
 sub process_registrationblock {}
 sub process_notationblock {}
-
-sub process_defpred {
-  print "Don't know yet how to handle toplevel defpred statements.";
-}
-
-sub process_deffunc {
-  print "Don't know yet how to handle toplevel deffunc statements.\n";
-}
-
-sub process_reconsider {
-  print "Don't know how yet how to handle toplevel reconsider statements.\n";
-}
-
-sub process_set {
-  print "Don't know yet how to handle set statements.\n";
-}
 
 load_items ();
 
