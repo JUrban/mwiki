@@ -1069,7 +1069,6 @@ sub pretext_from_item_type_and_beginning {
 }
 
 my %scheme_num_to_abs_num = ();
-my %definition_nr_to_absnum = ();
 my %definition_vid_to_absnum = ();
 my %definition_vid_to_thmnum = ();
 my %theorem_nr_to_absnum = ();
