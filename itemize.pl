@@ -674,17 +674,6 @@ sub theorem_before_position {
   return $theorem;
 }
 
-sub scheme_before_position {
-  my $end_line = shift;
-  my $end_col = shift;
-  my ($begin_line,$begin_col)
-    = from_keyword_to_position ('scheme', $end_line, $end_col);
-  my $scheme = extract_region ($begin_line,$begin_col,$end_line,$end_col);
-  # DEBUG
-  warn "here's our scheme: $scheme";
-  return $scheme;
-}
-
 sub extract_region {
   my $beg_line = shift;
   my $beg_col = shift;
@@ -1067,7 +1056,6 @@ sub pretext_from_item_type_and_beginning {
     # $pretext = "theorem $theorem\n";
     $pretext = "theorem $theorem";
   } elsif ($item_type eq 'SchemeBlock') {
-    # $pretext = 'scheme ' . scheme_before_position ($begin_line, $begin_col);
     $pretext = 'scheme ';
   } elsif ($item_type eq 'NotationBlock') {
     $pretext = "notation ";
