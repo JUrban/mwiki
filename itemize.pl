@@ -1128,7 +1128,7 @@ my @nodes = ();
 
 my %node_processors
   = (
-     'JustifiedTheorem' => \&process_justifiedtheorem,
+     'JustifiedTheorem[not(SkippedProof)]' => \&process_justifiedtheorem,
      'Proposition' => \&process_toplevel_proposition,
      'DefinitionBlock' => \&process_definitionblock,
      'SchemeBlock' => \&process_schemeblock,
