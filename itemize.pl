@@ -1225,18 +1225,22 @@ sub itemize {
 
     if ($node_name eq 'Defpred') {
       warn "Node $i is a global defpred statement; we don't know how to handle these yet.";
+      exit 2;
     }
 
     if ($node_name eq 'Deffunc') {
       warn "Node $i is a global deffunc statement; we don't know how to handle these yet.";
+      exit 2;
     }
 
     if ($node_name eq 'Reconsider') {
       warn "Node $i is a global reconsider statement; we don't know how to handle these yet.";
+      exit 2;
     }
 
     if ($node_name eq 'Set') {
       warn "Node $i is a global reconsider statement; we don't know how to handle these yet.";
+      exit 2;
     }
 
     # deal with Definiens elements corresponding to Definition
