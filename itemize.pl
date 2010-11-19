@@ -1148,8 +1148,10 @@ my @unhandled_node_types = ('DefFunc',
 sub load_items {
   my $doc = miz_xml ();
   # check for unhandled nodes; die quickly
-  my $unhandled_query = join (' | ', @unhandled_node_types);
 
+  my @toplevel_unhandled_item_xpaths
+    = map { "Article/$_" } @unhandled_node_types;
+  my $unhandled_query = join (' | ', @toplevel_unhandled_item_xpaths);
 
   if ($doc->exists ($unhandled_query)) {
     warn "There's an unhandled node type in this article; sorry";
