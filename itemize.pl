@@ -975,8 +975,6 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
   return join ("\n", @buffer);
 }
 
-init_reservation_table ();
-
 my %vid_to_theorem_num = ();
 my %theorem_num_to_vid = ();
 my %vid_to_diffuse_lemma_num = ();
@@ -1122,8 +1120,6 @@ sub load_deftheorems {
   return;
 }
 
-load_deftheorems ();
-
 my @nodes = ();
 
 my %node_processors
@@ -1200,6 +1196,8 @@ sub process_registrationblock {}
 sub process_notationblock {}
 
 load_items ();
+load_deftheorems ();
+init_reservation_table ();
 
 sub itemize {
 
