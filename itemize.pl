@@ -1053,7 +1053,6 @@ sub pretext_from_item_type_and_beginning {
     print "this unexported toplevel theorem actually starts at ($lemma_begin_line,$lemma_begin_col)\n";
     my $theorem = extract_region ($lemma_begin_line, $lemma_begin_col,
 				  $begin_line, $begin_col - 1);
-    # $pretext = "theorem $theorem\n";
     $pretext = "theorem $theorem";
   } elsif ($item_type eq 'SchemeBlock') {
     $pretext = 'scheme ';
