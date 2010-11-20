@@ -584,7 +584,7 @@ sub reservations_before_line {
       push (@reservations, $reservation_table{$key});
     }
   }
-  return (\@reservations);
+  return \@reservations;
 }
 
 sub from_keyword_to_position {
