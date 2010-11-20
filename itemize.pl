@@ -197,6 +197,30 @@ unless (-x $verifier) {
   die "The verifier at '$verifier' is not executable!";
 }
 
+### --with-makeenv
+my $makeenv;
+if (defined $ARGV{'--with-makeenv'}) {
+  $makeenv = $ARGV{'--with-makeenv'};
+} else {
+  my $which_makeenv = `which "makeenv"`;
+  unless ($? == 0) {
+    die 'Unable to find the makeenv!  which died, somehow';
+  }
+  chomp $which_makeenv;
+  $makeenv = $which_makeenv;
+}
+
+# Sanity check: the makeenv needs to exist as a file and be executable
+unless (-e $makeenv) {
+  die "There is no makeenv binary at '$makeenv'!";
+}
+if (-d $makeenv) {
+  die "The path '$makeenv' to the makeenv isn't a file, but a directory!";
+}
+unless (-x $makeenv) {
+  die "The makeenv at '$makeenv' is not executable!";
+}
+
 ######################################################################
 ### End command-line processing.
 ###
@@ -1977,6 +2001,12 @@ processing.  The default is its value in the current environment.
 Use the program located at PATH-TO-VERIFIER as the mizar verifier.  By
 default, whatever 'verifier' is according to the current PATH
 environment variable will be used.
+
+=item --with-makeenv=<PATH-TO-MAKEENV>
+
+Use the program located at PATH-TO-MAKEENV as the mizar makeenv
+program.  By default, whatever 'makeenv' is according to the current
+PATH environment variable will be used.
 
 =item --article-source-dir=<DIRECTORY>
 
