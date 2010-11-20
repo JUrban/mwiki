@@ -614,7 +614,7 @@ sub from_keyword_to_position {
   # $col of line $line that starts with $keyword.
 
   # first, check whether the current line already contains the keyword.
-  my $first_line = $article_lines[$line-1]; # count lines from 1
+  my $first_line = $article_lines[$line -1]; # count lines from 1
   my $first_line_length = length $first_line;
 
   # sanity
@@ -704,7 +704,7 @@ sub extract_region_as_array {
 
   # get the first line
   my $first_line_full
-    = $article_lines[$beg_line-1]; # count lines from 1
+    = $article_lines[$beg_line -1]; # count lines from 1
   my $first_line_length = length $first_line_full;
   if ($beg_col <= $first_line_length) {
     if ($beg_line == $end_line) {
@@ -723,7 +723,7 @@ sub extract_region_as_array {
 
   if ($beg_line != $end_line) {
     # get the last line
-    my $last_line_full = $article_lines[$end_line-1]; # count lines from 1
+    my $last_line_full = $article_lines[$end_line -1]; # count lines from 1
     my $last_line_length = length $last_line_full;
     if ($end_col < $last_line_length) {
       push (@buffer, substr $last_line_full, 0, $end_col + 1); # cols from 1
@@ -1737,7 +1737,7 @@ sub trim_item_with_number {
   unlink $miz;
   open my $miz_out, '>', $miz
     or die "Couldn' open write-only filehandle for $miz: $!";
-  while (defined (my $line = <$miz_in>)) {
+  while (defined (my $line = < $miz_in >)) {
     chomp $line;
     if ($line =~ /^notations /) {
       print {$miz_out} ('notations ' . join (', ', @trimmed_notations) . ";\n")
