@@ -1704,13 +1704,15 @@ sub trim_item_with_number {
   push (@schemes, @earlier_item_numbers);
 
   # Now that we've ballooned each of the directives, cut them down to
-  # something more sensible.
-  my @trimmed_notations = @{trim_directive ('notations', 'dno', \@notations)};
-  my @trimmed_constructors = @{trim_directive ('constructors', 'dco', \@constructors)};
-  my @trimmed_registrations = @{trim_directive ('registrations', 'dcl', \@registrations)};
-  my @trimmed_definitions = @{trim_directive ('definitions', 'def', \@definitions)};
-  my @trimmed_theorems = @{trim_directive ('theorems', 'the', \@theorems)};
-  my @trimmed_schemes = @{trim_directive ('schemes', 'sch', \@schemes)};
+  # something more sensible.  Notice that we're not doing anything
+  # with the vocabularies and requirements directives; these are
+  # special cases.
+  @notations = @{trim_directive ('notations', 'dno', \@notations)};
+  @constructors = @{trim_directive ('constructors', 'dco', \@constructors)};
+  @registrations = @{trim_directive ('registrations', 'dcl', \@registrations)};
+  @definitions = @{trim_directive ('definitions', 'def', \@definitions)};
+  @theorems = @{trim_directive ('theorems', 'the', \@theorems)};
+  @schemes = @{trim_directive ('schemes', 'sch', \@schemes)};
 
   # we're going to overwrite the .miz with the trimmed environment
   open my $miz_in, '<', $miz
@@ -1721,23 +1723,23 @@ sub trim_item_with_number {
   while (defined (my $line = <$miz_in>)) {
     chomp $line;
     if ($line =~ /^notations /) {
-      print {$miz_out} ('notations ' . join (', ', @trimmed_notations) . ";\n")
-	unless scalar @trimmed_notations == 0;
+      print {$miz_out} ('notations ' . join (', ', @notations) . ";\n")
+	unless scalar @notations == 0;
     } elsif ($line =~ /^constructors /) {
-      print {$miz_out} ('constructors ' . join (', ', @trimmed_constructors) . ";\n")
-	unless scalar @trimmed_constructors == 0;
+      print {$miz_out} ('constructors ' . join (', ', @constructors) . ";\n")
+	unless scalar @constructors == 0;
     } elsif ($line =~ /^registrations /) {
-      print {$miz_out} ('registrations ' . join (', ', @trimmed_registrations) . ";\n")
-	unless scalar @trimmed_registrations == 0;
+      print {$miz_out} ('registrations ' . join (', ', @registrations) . ";\n")
+	unless scalar @registrations == 0;
     } elsif ($line =~ /^definitions /) {
-      print {$miz_out} ('definitions ' . join (', ', @trimmed_definitions) . ";\n")
-	unless scalar @trimmed_definitions == 0;
+      print {$miz_out} ('definitions ' . join (', ', @definitions) . ";\n")
+	unless scalar @definitions == 0;
     } elsif ($line =~ /^theorems /) {
-      print {$miz_out} ('theorems ' . join (', ', @trimmed_theorems) . ";\n")
-	unless scalar @trimmed_theorems == 0;
+      print {$miz_out} ('theorems ' . join (', ', @theorems) . ";\n")
+	unless scalar @theorems == 0;
     } elsif ($line =~ /^schemes /) {
-      print {$miz_out} ('schemes ' . join (', ', @trimmed_schemes) . ";\n")
-	unless scalar @trimmed_schemes == 0;
+      print {$miz_out} ('schemes ' . join (', ', @schemes) . ";\n")
+	unless scalar @schemes == 0;
     } elsif ($line =~ /^requirements /) { # special case
       print {$miz_out} ('requirements ' . join (', ', @requirements) . ";\n")
 	unless scalar @requirements == 0;
