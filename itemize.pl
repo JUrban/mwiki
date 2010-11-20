@@ -1891,7 +1891,7 @@ sub TestXMLElems ($$$)
     my ($xmlbeg,$xmlnodes,$xmlend) = $_ =~ m/(.*?)([<]$xml_elem\b.*[<]\/$xml_elem>)(.*)/s or die "not matched: $xml_elem";
     ## call Mizar parser to get the tp positions
     my @xmlelems = $xmlnodes =~ m/(<$xml_elem\b.*?<\/$xml_elem>)/sg; # this is a multiline match
-    die "Verification errors" if(system("$verifier $glflag $gquietflag  $filestem") != 0);
+    die "Verification errors" if(system("$verifier -l -q $filestem") != 0);
     my %removed = (); ## indeces of removed elements
 
     ## ok, the first simple heuristic is to remove consecutive chunks
@@ -1908,7 +1908,7 @@ sub TestXMLElems ($$$)
 	    $removed{$chunk * $chunksize + $elem} = 1;
 	}
 	PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
-	if(system("$verifier $glflag $gquietflag  $filestem") != 0)
+	if(system("$verifier -l -q $filestem") != 0)
 	{
 	    foreach my $elem (0 .. $chunksize -1)
 	    {
@@ -1923,7 +1923,7 @@ sub TestXMLElems ($$$)
 		{
 		    $removed{$chunk * $chunksize + $elem} = 1;
 		    PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
-		    if(system("$verifier $glflag $gquietflag  $filestem") != 0)
+		    if(system("$verifier -l -q $filestem") != 0)
 		    {
 			delete $removed{$chunk * $chunksize + $elem};
 			$found = 1;
@@ -1938,7 +1938,7 @@ sub TestXMLElems ($$$)
     # {
     # 	$removed{$chunk} = 1;
     # 	PrepareXml($filestem,$file_ext,$xmlelems,$removed,$xmlbeg,$xmlend);
-    # 	delete $removed{$chunk} if(system("$verifier $glflag $gquietflag  $filestem") !=0);
+    # 	delete $removed{$chunk} if(system("$verifier -l -q $filestem") !=0);
     # }
     ## print the final form
     my $needed = PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
