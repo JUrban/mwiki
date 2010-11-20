@@ -1877,10 +1877,10 @@ sub TestXMLElems ($$$)
 {
     my ($xml_elem,$file_ext,$filestem) = @_;
     print $filestem;
-    print $gmakeenv;
+    print $makeenv;
     print getcwd();
 
-    die "Accomodation errors" if(system("$gmakeenv $filestem") != 0);
+    die "Accomodation errors" if(system("$makeenv $filestem") != 0);
 
     my $xitemfile = $filestem . $file_ext;
     {
