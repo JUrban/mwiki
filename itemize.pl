@@ -2124,8 +2124,8 @@ the mizar verifier, a version of the same thing with more information.
 
 =head1 INCOMPATIBILITIES
 
-Be careful with the version of envget being used: we need that tool to
-produce XML, rather than cryptic plain text.
+This program uses some unix trickery; it almost certainly doesn't work
+on Windows.  Sorry.
 
 =head1 BUGS AND LIMITATIONS
 
