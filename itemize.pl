@@ -1718,7 +1718,7 @@ sub trim_item_with_number {
   unlink $miz;
   open my $miz_out, '>', $miz
     or die "Couldn' open write-only filehandle for $miz: $!";
-  while (defined (my $line = < $miz_in >)) {
+  while (defined (my $line = <$miz_in>)) {
     chomp $line;
     if ($line =~ /^notations /) {
       print {$miz_out} ('notations ' . join (', ', @trimmed_notations) . ";\n")
