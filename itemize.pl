@@ -449,104 +449,85 @@ sub read_mml_lar {
 read_mml_lar ();
 
 sub export_item {
-  my $number = shift;
-  my $begin_line = shift;
-  my $text = shift;
+  my ($number, $begin_line, $text) = @_;
 
+  # copy the environment
+  my @vocabularies = @vocabularies;
+  my @notations = @notations;
+  my @constructors = @constructors;
+  my @registrations = @registrations;
+  my @requirements = @requirements;
+  my @definitions = @definitions;
+  my @theorems = @theorems;
+  my @schemes = @schemes;
+
+  # pad the copied environment with references to ALL earlier items
+  # special case: vocabularies, requirements; don't pad these (we will
+  # get errors from the mizar tools otherwise).
+  @earlier_items = map { "ITEM$_" } 1 .. $number - 1;
+  push (@notations, @earlier_items);
+  push (@constructors, @earlier_items);
+  push (@registrations, @earlier_items);
+  push (@definitions, @earlier_items);
+  push (@theorems, @earlier_items);
+  push (@schemes, @earlier_items);
+
+  # now let's print this thing
   my $item_path = catfile ($article_text_dir, "item$number.miz");
-  open (ITEM_MIZ, '>', $item_path)
-    or die ("Unable to open an output filehandle at $item_path:\n\n  $!");
-  print ITEM_MIZ ("environ\n");
+  open my $item_miz, '>', $item_path
+    or die "Unable to open an output filehandle at $item_path:\n\n  $!";
 
-  # vocabularies are easy
-  my @this_item_vocabularies = @vocabularies;
-  unless (@this_item_vocabularies == 0) {
-    print ITEM_MIZ ("vocabularies " . join (', ', @this_item_vocabularies) . ";");
-    print ITEM_MIZ ("\n");
-  }
+  print {$item_miz} 'environ', "\n";
 
-  # notations
-  my @this_item_notations = @notations;
-  foreach my $i (1 .. $number - 1) {
-    push (@this_item_notations, "ITEM$i");
-  }
-  unless (@this_item_notations == 0) {
-    print ITEM_MIZ ("notations " . join (', ', @this_item_notations) . ";");
-    print ITEM_MIZ ("\n");
-  }
+  print {$item_miz}
+    'vocabularies ', join (', ', @vocabularies), ';', "\n"
+      unless (@vocabularies == 0);
 
-  # constructors
-  my @this_item_constructors = @constructors;
-  foreach my $i (1 .. $number - 1) {
-    push (@this_item_constructors, "ITEM$i");
-  }
-  unless (@this_item_constructors == 0) {
-    print ITEM_MIZ ("constructors " . join (', ', @this_item_constructors) . ";");
-    print ITEM_MIZ ("\n");
-  }
+  print {$item_miz}
+    'notations ', join (', ', @notations), ';', "\n" 
+      unless (@notations == 0);
 
-  # registrations
-  my @this_item_registrations = @registrations;
-  foreach my $i (1 .. $number - 1) {
-    push (@this_item_registrations, "ITEM$i");
-  }
-  unless (@this_item_registrations == 0) {
-    print ITEM_MIZ ("registrations " . join (', ', @this_item_registrations) . ";");
-    print ITEM_MIZ ("\n");
-  }
+  print {$item_miz}
+    'constructors ', join (', ', @constructors), ';', "\n"
+      unless (@constructors == 0);
 
-  # requirements is "easy"
-  my @this_item_requirements = @requirements;
-  unless (@this_item_requirements == 0) {
-    print ITEM_MIZ ("requirements " . join (', ', @this_item_requirements) . ";");
-    print ITEM_MIZ ("\n");
-  }
+  print {$item_miz}
+    'registrations ', join (', ', @registrations), ';', "\n"
+      unless (@registrations == 0);
 
-  # handle the definitions directive just like the constructors directive
-  my @this_item_definitions = @definitions;
-  foreach my $i (1 .. $number - 1) {
-    push (@this_item_definitions, "ITEM$i");
-  }
-  unless (@this_item_definitions == 0) {
-    print ITEM_MIZ ("definitions " . join (', ', @this_item_definitions) . ";");
-    print ITEM_MIZ ("\n");
-  }
+  print {$item_miz}
+    'requirements ', join (', ', @requirements), ';', "\n"
+      unless (@requirements == 0);
 
-  # theorems
-  my @this_item_theorems = @theorems;
-  foreach my $i (1 .. $number - 1) {
-    push (@this_item_theorems, "ITEM$i");
-  }
-  unless (@this_item_theorems == 0) {
-    print ITEM_MIZ ("theorems " . join (', ', @this_item_theorems) . ";");
-    print ITEM_MIZ ("\n");
-  }
+  print {$item_miz}
+    'definitions ', join (', ', @definitions), ';', "\n"
+      unless (@definitions == 0);
 
-  # schemes
-  my @this_item_schemes = @schemes;
-  foreach my $i (1 .. $number - 1) {
-    push (@this_item_schemes, $i);
-  }
-  unless (@this_item_schemes == 0) {
-    print ITEM_MIZ ("schemes " . join (', ', @this_item_schemes) . ";");
-    print ITEM_MIZ ("\n");
-  }
+  print {$item_miz}
+    'theorems ', join (', ', @theorems), ';', "\n"
+      unless (@theorems == 0);
 
-  print ITEM_MIZ ("\n");
-  print ITEM_MIZ ("begin\n");
+  print {$item_miz}
+    'schemes ', join (', ', @schemes), ';', "\n"
+      unless (@schemes == 0);
+
+  print {$item_miz} "\n";
+  print {$item_miz} 'begin';
+  print {$item_miz} "\n";
 
   # reservations
   my @reservations = @{reservations_before_line ($begin_line)};
   foreach my $reservation (@reservations) {
-    print ITEM_MIZ ("reserve $reservation\n");
+    print {$item_miz} 'reserve ', $reservation, "\n";
   }
 
   # the item proper
-  print ITEM_MIZ ("$text");
+  print {$item_miz} $text;
 
-  print ITEM_MIZ ("\n");
+  print {$item_miz} "\n"; # hygenic end-of-file newline
 
-  close (ITEM_MIZ) or die ("Unable to close the filehandle for the path $item_path");
+  close $item_miz
+    or die "Unable to close the filehandle for the path $item_path";
 }
 
 sub miz_xml {
