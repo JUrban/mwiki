@@ -1800,9 +1800,6 @@ if ($cleanup_afterward) {
   print "Not clearning up the work directory; all auxiliary files can be found in the directory\n\n  $result_dir\n\nfor your inspection.\n";
 }
 
-sub min { my ($x,$y) = @_; ($x <= $y)? $x : $y }
-
-
 ## return the number of printed
 sub PrepareXml
 {
