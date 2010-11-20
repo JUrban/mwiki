@@ -451,7 +451,7 @@ read_mml_lar ();
 sub export_item {
   my ($number, $begin_line, $text) = @_;
 
-  # copy the environment
+  # copy the article environment
   my @vocabularies = @vocabularies;
   my @notations = @notations;
   my @constructors = @constructors;
