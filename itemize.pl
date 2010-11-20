@@ -1819,37 +1819,40 @@ foreach my $item_number (1 .. $num_items) {
 ### Cleanup
 ######################################################################
 
-# move the local db in $workdir to $result_dir
+sub cleanup {
 
-move ($local_db_in_workdir, $local_db_in_resultdir) == 1
-  or die ("Something went wrong transferring our work from\n\n  $local_db_in_workdir\n\nto\n\n  $local_db_in_resultdir");
+  # move the local db in $workdir to $result_dir
 
-if ($cleanup_afterward) {
+  move ($local_db_in_workdir, $local_db_in_resultdir) == 1
+    or die ("Something went wrong transferring our work from\n\n  $local_db_in_workdir\n\nto\n\n  $local_db_in_resultdir");
 
-  # trash the entire working directory
-  remove_tree ($workdir);
-  # according to File::Path, error handling for remove_tree is done
-  # via the Carp module, and not through the return value (which just
-  # counts the number of files and directories removed).  Deferring to
-  # this modules method for error handling is not ideal, but I'm too
-  # lazy to investigate how to take over error handling and reporting;
-  # in any case, how to do that is described in the File::Path
-  # documentation.
+  if ($cleanup_afterward) {
 
-  # cleanup any non-.miz, non-.xml files in the recently-moved local
-  # db
+    # trash the entire working directory
+    remove_tree ($workdir);
+    # according to File::Path, error handling for remove_tree is done
+    # via the Carp module, and not through the return value (which just
+    # counts the number of files and directories removed).  Deferring to
+    # this modules method for error handling is not ideal, but I'm too
+    # lazy to investigate how to take over error handling and reporting;
+    # in any case, how to do that is described in the File::Path
+    # documentation.
 
-  # just use find
-  my $text_subdir_of_local_db_in_resultdir
-    = catdir ($local_db_in_resultdir, 'text');
-  system ("find $text_subdir_of_local_db_in_resultdir -type f -and -not -name '*.miz' -and -not -name '*.xml' -exec rm {} ';'");
+    # cleanup any non-.miz, non-.xml files in the recently-moved local
+    # db
 
-  unless ($? == 0) {
-    die "find did not terminate properly deleting the non-.miz and non-.xml files in the text directory! The error was:\n\n  $!";
+    # just use find
+    my $text_subdir_of_local_db_in_resultdir
+      = catdir ($local_db_in_resultdir, 'text');
+    system ("find $text_subdir_of_local_db_in_resultdir -type f -and -not -name '*.miz' -and -not -name '*.xml' -exec rm {} ';'");
+
+    unless ($? == 0) {
+      die "find did not terminate properly deleting the non-.miz and non-.xml files in the text directory! The error was:\n\n  $!";
+    }
+
+  } else {
+    print "Not clearning up the work directory; all auxiliary files can be found in the directory\n\n  $result_dir\n\nfor your inspection.\n";
   }
-
-} else {
-  print "Not clearning up the work directory; all auxiliary files can be found in the directory\n\n  $result_dir\n\nfor your inspection.\n";
 }
 
 ## return the number of printed
@@ -1945,6 +1948,8 @@ sub TestXMLElems ($$$)
     ## print stats
     print ("total ", $xml_elem, ": ", $total, ", removed: ", $total - $needed, ", needed: ", $needed, "\n");
 }
+
+cleanup ();
 
 exit 0;
 
