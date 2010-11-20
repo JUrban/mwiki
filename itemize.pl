@@ -1855,6 +1855,98 @@ sub cleanup {
   }
 }
 
+sub trim_vocabularies_for_item {
+  my $item_number = shift;
+
+  my $item_miz_path = catfile ($workdir, 'text', "item$item_number.miz");
+  my $item_evl_path = catfile ($workdir, 'text', "item$item_number.evl");
+  my $item_err_path = catfile ($workdir, 'text', "item$item_number.err");
+
+  # read the evl
+  my $parser = XML::LibXML->new();
+  my $evl_doc = $parser->parse_file($item_evl_path);
+
+  my @idents
+    = $evl_doc->findnodes ('Environ/Directive[name="Vocabularies"]/Ident');
+
+  # forget about HIDDEN
+  @idents = grep (!/^HIDDEN$/, @idents);
+
+  # assume that everything in the vocabularies directive appears in one line
+  my %col_to_article = ();
+  foreach my $ident (@idents) {
+    my $col = $ident->findvalue ('@col');
+    my $name = $ident->findvalue ('@name');
+    %col_to_article{$col} = $name;
+  }
+
+  # now run irrvoc
+  chdir $workdir;
+  system ("irrvoc text/item$item_number");
+
+  # sanity
+  unless ($? == 0) {
+    die ("Something went wrong calling irrvoc on item $item_number under $workdir");
+  }
+
+  # read .err file that irrvoc just generated
+  open my $err_file, '<', $item_err_path
+    or die "Unable to open the .err file for item $item_number under $workdir: $!";
+
+  my @err_lines = ()
+  while (defined my $err_line = <$err_file>) {
+    chomp $err_line;
+    push (@err_lines, $err_line);
+  }
+
+  close $err_file
+    or die "Unable to close the input filehandle for $item_err_path! $!";
+
+  # the lines look like this:
+  #
+  # 2 19 709
+  #
+  # <line> <column> <error type>
+  #
+  # We are going to assume that all the <line> values are equal (that
+  # is, we are assuming that the contents of the vocabulary directive
+  # in the generated article fragment is contained on a single line,
+  # and we're going to ignore the error code: assuming that we got
+  # this far, we know that our article fragment is a valid mizar
+  # article, so we should always get the code 709, which means:
+  # unsused vocabulary item.  That's just what we're looking for.
+
+  my @unused_by_column = ();
+
+  foreach my $err_line (@err_lines) {
+    @line_column_errcode = split / /, $err_line;
+    unless (@line_column_errcode == 3) {
+      die "We found an error line that does not have exactly three fields: @line_column_errcode";
+    }
+    my $col = $line_column_errcode[1];
+    push (@unused_by_column, $col);
+  }
+
+  # now we know the column numbers on the unique line that contains
+  # the contents of this article fragment's vocabulary directive.
+  # Let's dump these.
+  foreach my $col_of_unused_voc_item (@unused_by_column) {
+    delete $col_to_article{$col_of_unused_voc_item};
+  }
+
+  # the keys of %col_to_article now contains the columns of all used
+  # vocabulary items.
+
+  my @used_vocabulary_items = keys %col_to_article;
+
+  if (scalar @used_vocabulary_items < scalar @idents) { # something was deleted
+    rewrite_vocabulary_directive_of_item ($item_number, \@used_vocabulary_items);
+  }
+
+  return;
+
+}
+
 ## return the number of printed
 sub PrepareXml
 {
