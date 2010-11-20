@@ -1,13 +1,5 @@
 #!/usr/bin/perl -w
 
-# First sanity check: make sure that MIZFILES is set.  We can't do
-# anything it is not set.  Let's not check whether it is a sensible
-# value, just that it has some value.
-my $mizfiles = $ENV{'MIZFILES'};
-unless (defined $mizfiles) {
-  die 'Error: The MIZFILES environment variable is unset; nothing more can be done';
-}
-
 use Getopt::Euclid; # load this first to set up our command-line parser
 
 use Cwd qw / getcwd /;
@@ -168,6 +160,19 @@ my $cleanup_afterward = 1;
 if (defined $ARGV{'--no-cleanup'}) {
   $cleanup_afterward = 0;
 }
+
+### --mizfiles
+# First sanity check: make sure that MIZFILES is set.  We can't do
+# anything it is not set.  Let's not check whether it is a sensible
+# value, just that it has some value.
+my $mizfiles = defined $ARGV{'--mizfiles'} ? $ARGV{'--mizfiles'}
+                                           : $ENV{'MIZFILES'};
+
+# Sanity check
+unless (defined $mizfiles) {
+  die 'Error: The --mizfiles option was not used, so we looked for MIZFILES in he current environment;\nbut that is likewise unset, so we cannot process any mizar texts';
+}
+
 
 ######################################################################
 ### End command-line processing.
@@ -1937,6 +1942,11 @@ excluding an optional ".miz" file extension.
 =head1 OPTIONS
 
 =over
+
+=item --mizfiles=<DIRECTORY>
+
+Sets the $MIZFILES environmental variable to <DIRECTORY> for Mizar
+processing.  The default is its value in the current environment.
 
 =item --article-source-dir=<DIRECTORY>
 
