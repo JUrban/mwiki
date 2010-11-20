@@ -1817,6 +1817,104 @@ if ($cleanup_afterward) {
   print "Not clearning up the work directory; all auxiliary files can be found in the directory\n\n  $result_dir\n\nfor your inspection.\n";
 }
 
+sub MAXLINENR ()  { 100000000 } # we will break on files with lines above this nr
+
+sub min { my ($x,$y) = @_; ($x <= $y)? $x : $y }
+
+
+## return the number of printed
+sub PrepareXml
+{
+    my ($filestem,$file_ext,$xmlelems,$removed,$xmlbeg,$xmlend) = @_;
+    my $res = 0;
+    open(XML1,">$filestem$file_ext");
+    print XML1 $xmlbeg;
+    foreach my $elemnr (0 .. scalar(@$xmlelems) -1)
+    {
+	if(! exists $removed->{$elemnr})
+	{
+	    print XML1 $xmlelems->[$elemnr];
+	    $res++;
+	}
+    }
+    print XML1 $xmlend;
+    close(XML1);
+    return $res;
+}
+
+
+sub TestXMLElems ($$$)
+{
+    my ($xml_elem,$file_ext,$filestem) = @_;
+    print $filestem;
+    print $gmakeenv;
+    print getcwd();
+
+    die "Accomodation errors" if(system("$gmakeenv $filestem") != 0);
+
+    my $xitemfile = $filestem . $file_ext;
+    {
+	open(XML, $xitemfile);
+	local $/; $_ = <XML>;
+	close(XML);
+    }
+    my ($xmlbeg,$xmlnodes,$xmlend) = $_ =~ m/(.*?)([<]$xml_elem\b.*[<]\/$xml_elem>)(.*)/s or die "not matched: $xml_elem";
+    ## call Mizar parser to get the tp positions
+    my @xmlelems = $xmlnodes =~ m/(<$xml_elem\b.*?<\/$xml_elem>)/sg; # this is a multiline match
+    die "Verification errors" if(system("$gverifier $glflag $gquietflag  $filestem") != 0);
+    my %removed = (); ## indeces of removed elements
+    ## ok, the first simple heuristic is to remove consecutive chunks
+    ## of sqrt size and to retract to one-by-one if the chunk fails
+    ## (not sure why better than logarithmic approach - perhaps
+    ## simpler to write)
+    my $total = scalar(@xmlelems);
+    my $chunksize = 1 + int(sqrt($total));
+    my $chunks = int($total / $chunksize);
+    foreach my $chunk (0 .. $chunks)
+    {
+	foreach my $elem (0 .. $chunksize -1)
+	{
+	    $removed{$chunk * $chunksize + $elem} = 1;
+	}
+	PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
+	if(system("$gverifier $glflag $gquietflag  $filestem") != 0)
+	{
+	    foreach my $elem (0 .. $chunksize -1)
+	    {
+		delete $removed{$chunk * $chunksize + $elem};
+	    }
+	    my $found = 0; ## when 1, at least one was found necessary already from these
+	    foreach my $elem (0 .. $chunksize -1)
+	    {
+		## if the first condition is unmet, we know the last elem is culprit and don't have to test
+		if(!(($elem == $chunksize -1) && ($found == 0)) && 
+		   ($chunk * $chunksize + $elem <= $#xmlelems))
+		{
+		    $removed{$chunk * $chunksize + $elem} = 1;
+		    PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
+		    if(system("$gverifier $glflag $gquietflag  $filestem") != 0)
+		    {
+			delete $removed{$chunk * $chunksize + $elem};
+			$found = 1;
+		    }
+		}
+	    }
+	}
+    }
+
+	
+    # foreach my $chunk (0 .. $#xmlelems)
+    # {
+    # 	$removed{$chunk} = 1;
+    # 	PrepareXml($filestem,$file_ext,$xmlelems,$removed,$xmlbeg,$xmlend);
+    # 	delete $removed{$chunk} if(system("$gverifier $glflag $gquietflag  $filestem") !=0);
+    # }
+    ## print the final form
+    my $needed = PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
+    ## print stats
+    print ("total ", $xml_elem, ": ", $total, ", removed: ", $total - $needed, ", needed: ", $needed, "\n");
+}
+
 exit 0;
 
 __END__
