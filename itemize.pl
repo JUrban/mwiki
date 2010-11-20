@@ -30,31 +30,16 @@ if (defined $ARGV{'--verbose'}) {
   $be_verbose = 1;
 }
 
-### --article-source-dir
+### --mizfiles
 
-# First, extract a value
-my $article_source_dir = $ARGV{'--article-source-dir'};
-if (defined $article_source_dir) {
-  if ($be_verbose) {
-    print "Setting the article source directory to '$article_source_dir', as requested\n";
-  }
-} else {
-  $article_source_dir = "$mizfiles/mml";
-  if ($be_verbose) {
-    print "Setting the article source directory to '$article_source_dir' (which is the default)\n";
-  }
-}
+## --mizfiles next, because some options, if unset, use this value.
 
-# Now ensure that this value for is sensible, which in this case
-# means: it exists, it's directory, and it's readable.
-unless (-e $article_source_dir) {
-  die "Error: The given article source directory\n\n  $article_source_dir\n\ndoes not exist!";
-}
-unless (-d $article_source_dir) {
-  die "Error: The given article source directory\n\n$article_source_dir\n\nis not actually a directory!";
-}
-unless (-r $article_source_dir) {
-  die "Error: The given article source directory\n\n$article_source_dir\n\nis not readable!";
+my $mizfiles = defined $ARGV{'--mizfiles'} ? $ARGV{'--mizfiles'}
+                                           : $ENV{'MIZFILES'};
+
+# Sanity check
+unless (defined $mizfiles) {
+  die 'Error: The --mizfiles option was not used, so we looked for MIZFILES in he current environment;\nbut that is likewise unset, so we cannot process any mizar texts';
 }
 
 ### --result-dir
@@ -137,6 +122,33 @@ if ($be_verbose) {
   print "Working with article '$article_name'\n";
 }
 
+### --article-source-dir
+
+# First, extract a value
+my $article_source_dir = $ARGV{'--article-source-dir'};
+if (defined $article_source_dir) {
+  if ($be_verbose) {
+    print "Setting the article source directory to '$article_source_dir', as requested\n";
+  }
+} else {
+  $article_source_dir = "$mizfiles/mml";
+  if ($be_verbose) {
+    print "Setting the article source directory to '$article_source_dir' (which is the default)\n";
+  }
+}
+
+# Now ensure that this value for is sensible, which in this case
+# means: it exists, it's directory, and it's readable.
+unless (-e $article_source_dir) {
+  die "Error: The given article source directory\n\n  $article_source_dir\n\ndoes not exist!";
+}
+unless (-d $article_source_dir) {
+  die "Error: The given article source directory\n\n$article_source_dir\n\nis not actually a directory!";
+}
+unless (-r $article_source_dir) {
+  die "Error: The given article source directory\n\n$article_source_dir\n\nis not readable!";
+}
+
 # Some common extensions we'll be using, and their paths
 my $article_miz = $article_name . '.miz';
 my $article_err = $article_name . '.err'; # for error checking with the mizar tools
@@ -161,18 +173,29 @@ if (defined $ARGV{'--no-cleanup'}) {
   $cleanup_afterward = 0;
 }
 
-### --mizfiles
-# First sanity check: make sure that MIZFILES is set.  We can't do
-# anything it is not set.  Let's not check whether it is a sensible
-# value, just that it has some value.
-my $mizfiles = defined $ARGV{'--mizfiles'} ? $ARGV{'--mizfiles'}
-                                           : $ENV{'MIZFILES'};
-
-# Sanity check
-unless (defined $mizfiles) {
-  die 'Error: The --mizfiles option was not used, so we looked for MIZFILES in he current environment;\nbut that is likewise unset, so we cannot process any mizar texts';
+### --with-verifier
+my $verifier;
+if (defined $ARGV{'--with-verifier'}) {
+  $verifier = $ARGV{'--with-verifier'};
+} else {
+  my $which_verifier = `which "verifier"`;
+  unless ($? == 0) {
+    die 'Unable to find the verifier!  which died, somehow';
+  }
+  chomp $which_verifier;
+  $verifier = $which_verifier;
 }
 
+# Sanity check: the verifier needs to exist as a file and be executable
+unless (-e $verifier) {
+  die "There is no verifier binary at '$verifier'!";
+}
+if (-d $verifier) {
+  die "The path '$verifier' to the verifier isn't a file, but a directory!";
+}
+unless (-x $verifier) {
+  die "The verifier at '$verifier' is not executable!";
+}
 
 ######################################################################
 ### End command-line processing.
@@ -329,12 +352,12 @@ close $miz
 my $num_article_lines = scalar @article_lines;
 
 ### 3. Verify (and generate article XML)
-system ("verifier -s -q -l $article_miz > /dev/null 2> /dev/null");
+system ("$verifier -s -q -l $article_miz > /dev/null 2> /dev/null");
 unless ($? == 0) {
   die "Error: something went wrong verifying $article_miz: the error was\n\n$!";
 }
 unless (-z $article_err) {
-  die "Error: although the verifier returned successfully, it nonetheless generated a non-empty error file";
+  die "Error: although the verifier at $verifier returned successfully, it nonetheless generated a non-empty error file";
 }
 
 ### 4. Generate the absolute reference version of the generated XML
@@ -1592,14 +1615,14 @@ sub verify_item_with_number {
   }
 
   # verify
-  system ("verifier -q -s -l $miz > /dev/null 2> /dev/null");
+  system ("$verifier -q -s -l $miz > /dev/null 2> /dev/null");
 
   # even more sanity checking
   unless ($? == 0) {
-    die "Error: Something went wrong when calling the verifier on $miz under $article_text_dir: the error was\n\n$!";
+    die "Error: Something went wrong when calling the verifier at $verifier on $miz under $article_text_dir: the error was\n\n$!";
   }
   if (-e $err && -s $err) {
-    die "Error: although the verifier returned successfully when run on $miz under $article_text_dir,\\it nonetheless generated a non-empty error file";
+    die "Error: although the verifier at $verifier returned successfully when run on $miz under $article_text_dir,\\it nonetheless generated a non-empty error file";
   }
 
   return;
@@ -1844,8 +1867,9 @@ sub TestXMLElems ($$$)
     my ($xmlbeg,$xmlnodes,$xmlend) = $_ =~ m/(.*?)([<]$xml_elem\b.*[<]\/$xml_elem>)(.*)/s or die "not matched: $xml_elem";
     ## call Mizar parser to get the tp positions
     my @xmlelems = $xmlnodes =~ m/(<$xml_elem\b.*?<\/$xml_elem>)/sg; # this is a multiline match
-    die "Verification errors" if(system("$gverifier $glflag $gquietflag  $filestem") != 0);
+    die "Verification errors" if(system("$verifier $glflag $gquietflag  $filestem") != 0);
     my %removed = (); ## indeces of removed elements
+
     ## ok, the first simple heuristic is to remove consecutive chunks
     ## of sqrt size and to retract to one-by-one if the chunk fails
     ## (not sure why better than logarithmic approach - perhaps
@@ -1860,7 +1884,7 @@ sub TestXMLElems ($$$)
 	    $removed{$chunk * $chunksize + $elem} = 1;
 	}
 	PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
-	if(system("$gverifier $glflag $gquietflag  $filestem") != 0)
+	if(system("$verifier $glflag $gquietflag  $filestem") != 0)
 	{
 	    foreach my $elem (0 .. $chunksize -1)
 	    {
@@ -1875,7 +1899,7 @@ sub TestXMLElems ($$$)
 		{
 		    $removed{$chunk * $chunksize + $elem} = 1;
 		    PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
-		    if(system("$gverifier $glflag $gquietflag  $filestem") != 0)
+		    if(system("$verifier $glflag $gquietflag  $filestem") != 0)
 		    {
 			delete $removed{$chunk * $chunksize + $elem};
 			$found = 1;
@@ -1890,7 +1914,7 @@ sub TestXMLElems ($$$)
     # {
     # 	$removed{$chunk} = 1;
     # 	PrepareXml($filestem,$file_ext,$xmlelems,$removed,$xmlbeg,$xmlend);
-    # 	delete $removed{$chunk} if(system("$gverifier $glflag $gquietflag  $filestem") !=0);
+    # 	delete $removed{$chunk} if(system("$verifier $glflag $gquietflag  $filestem") !=0);
     # }
     ## print the final form
     my $needed = PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
@@ -1945,8 +1969,14 @@ excluding an optional ".miz" file extension.
 
 =item --mizfiles=<DIRECTORY>
 
-Sets the $MIZFILES environmental variable to <DIRECTORY> for Mizar
+Sets the $MIZFILES environmental variable to DIRECTORY for Mizar
 processing.  The default is its value in the current environment.
+
+=item --with-verifier=<PATH-TO-VERIFIER>
+
+Use the program located at PATH-TO-VERIFIER as the mizar verifier.  By
+default, whatever 'verifier' is according to the current PATH
+environment variable will be used.
 
 =item --article-source-dir=<DIRECTORY>
 
