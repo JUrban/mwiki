@@ -454,7 +454,7 @@ sub export_item {
   my $text = shift;
 
   my $item_path = catfile ($article_text_dir, "item$number.miz");
-  open (ITEM_MIZ, q{>}, $item_path)
+  open (ITEM_MIZ, '>', $item_path)
     or die ("Unable to open an output filehandle at $item_path:\n\n  $!");
   print ITEM_MIZ ("environ\n");
 
