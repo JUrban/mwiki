@@ -1851,7 +1851,7 @@ sub cleanup {
     }
 
   } else {
-    print "Not clearning up the work directory; all auxiliary files can be found in the directory\n\n  $result_dir\n\nfor your inspection.\n";
+    print "Not clearning up the work directory; all auxiliary files can be found in the directory\n\n  $local_db_in_resultdir\n\nfor your inspection.\n";
   }
 }
 
