@@ -1947,6 +1947,20 @@ sub trim_vocabularies_for_item {
 
 }
 
+my %item_to_extension =
+  (
+   'Vocabulary' => 'vcl',
+   'Definiens' => 'dfs',
+   'RCluster' => 'ecl',
+   'CCluster' => 'ecl',
+   'FCluster' => 'ecl',
+   'Scheme' => 'esh',
+   'Constructor' => 'aco', # what about .atr?
+   'Theorem' => 'eth',
+   'Identify' => 'eid',
+   'Notation' => 'eno',
+  );
+
 ## return the number of printed
 sub PrepareXml
 {
