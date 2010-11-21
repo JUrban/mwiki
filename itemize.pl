@@ -1877,7 +1877,7 @@ sub trim_vocabularies_for_item {
   foreach my $ident (@idents) {
     my $col = $ident->findvalue ('@col');
     my $name = $ident->findvalue ('@name');
-    %col_to_article{$col} = $name;
+    $col_to_article{$col} = $name;
   }
 
   # now run irrvoc
@@ -1893,8 +1893,8 @@ sub trim_vocabularies_for_item {
   open my $err_file, '<', $item_err_path
     or die "Unable to open the .err file for item $item_number under $workdir: $!";
 
-  my @err_lines = ()
-  while (defined my $err_line = <$err_file>) {
+  my @err_lines = ();
+  while (defined (my $err_line = <$err_file>)) {
     chomp $err_line;
     push (@err_lines, $err_line);
   }
