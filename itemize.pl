@@ -24,11 +24,7 @@ use List::MoreUtils qw / all /;
 ## Process --verbose first, because if it is set, then we want to
 ## print stuff out as we process the rest of the command-line
 ## arguments.
-
-my $be_verbose = 0;
-if (defined $ARGV{'--verbose'}) {
-  $be_verbose = 1;
-}
+my $be_verbose = defined $ARGV{'--verbose'} ? 1 : 0;
 
 ### --debug
 my $debug = defined $ARGV{'--debug'} ? 1 : 0;
