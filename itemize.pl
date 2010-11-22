@@ -294,10 +294,8 @@ foreach my $local_db_in_workdir_subdir (@local_db_subdirs) {
 
 ### 1. Run the accomodator
 chdir $workdir;
-system ("accom -q -s -l $article_miz > /dev/null 2> /dev/null");
-unless ($? == 0) {
-  die "Error: Something went wrong when calling the accomodator on $article_name: the error was\n\n$!";
-}
+system ("accom -q -s -l $article_miz > /dev/null 2> /dev/null") == 0
+  or die "Error: Something went wrong when calling the accomodator on $article_name: the error was\n\n$!";
 if (-s $article_err) {
   die "Error: although the accomodator returned successfully, it nonetheless generated a non-empty error file";
 }
@@ -306,19 +304,15 @@ if (-s $article_err) {
 ### 2. Run JA1, edtfile, overwrite the non-JA1'd .miz, and load it
 
 # JA1
-system ("JA1 -q -s -l $article_miz > /dev/null 2> /dev/null");
-unless ($? == 0) {
-  die "Error: Something went wrong when calling JA1 on $article_name: the error was\n\n$!";
-}
+system ("JA1 -q -s -l $article_miz > /dev/null 2> /dev/null") == 0
+  or die "Error: Something went wrong when calling JA1 on $article_name: the error was\n\n$!";
 if (-s $article_err) {
   die "Error: although the JA1 tool returned successfully, it nonetheless generated a non-empty error file";
 }
 
 # edtfile
-system ("edtfile $article_name > /dev/null 2> /dev/null");
-unless ($? == 0) {
-  die ("Error: Something went wrong during the call to edtfile on $article_name:\n\n  $!");
-}
+system ("edtfile $article_name > /dev/null 2> /dev/null") == 0
+  or die "Error: Something went wrong during the call to edtfile on $article_name:\n\n  $!";
 if (-s $article_err) {
   die "Error: although the edtfile tool returned successfully, it nonetheless generated a non-empty error file";
 }
@@ -336,19 +330,15 @@ move ($article_tmp, $article_miz) == 1
   or die "Error: unable to rename the temporary file\n\n  $article_tmp\n\nto\n\n  $article_miz\n\nin the work directory\n\n  $workdir .\n\nThe error was\n\n  $!";
 
 # dellink
-system ("dellink -q -s -l $article_miz > /dev/null 2> /dev/null");
-unless ($? == 0) {
-  die "Error: Something went wrong when calling dellink on $article_name: the error was\n\n$!";
-}
+system ("dellink -q -s -l $article_miz > /dev/null 2> /dev/null") == 0
+  or die "Error: Something went wrong when calling dellink on $article_name: the error was\n\n$!";
 if (-s $article_err) {
   die "Error: although the dellink tool returned successfully, it nonetheless generated a non-empty error file";
 }
 
 # edtfile
-system ("edtfile $article_name > /dev/null 2> /dev/null");
-unless ($? == 0) {
-  die ("Error: Something went wrong during the call to edtfile on $article_name:\n\n  $!");
-}
+system ("edtfile $article_name > /dev/null 2> /dev/null") == 0
+  or die "Error: Something went wrong during the call to edtfile on $article_name:\n\n  $!";
 if (-s $article_err) {
   die "Error: although the edtfile tool returned successfully, it nonetheless generated a non-empty error file";
 }
@@ -376,10 +366,8 @@ close $miz
 my $num_article_lines = scalar @article_lines;
 
 ### 3. Verify (and generate article XML)
-system ("$verifier -s -q -l $article_miz > /dev/null 2> /dev/null");
-unless ($? == 0) {
-  die "Error: something went wrong verifying $article_miz: the error was\n\n$!";
-}
+system ("$verifier -s -q -l $article_miz > /dev/null 2> /dev/null") == 0
+  or die "Error: something went wrong verifying $article_miz: the error was\n\n$!";
 unless (-z $article_err) {
   die "Error: although the verifier at $verifier returned successfully, it nonetheless generated a non-empty error file";
 }
@@ -395,10 +383,8 @@ unless (-r $absrefs_stylesheet) {
   die "The absolute reference styesheet under $stylesheet_dir is not readable.";
 }
 chdir $workdir;
-system ("xsltproc $absrefs_stylesheet $article_xml 2> /dev/null > $article_xml_absrefs");
-unless ($? == 0) {
-  die ("Something went wrong when creating the absolute reference XML: the error was\n\n$!");
-}
+system ("xsltproc $absrefs_stylesheet $article_xml 2> /dev/null > $article_xml_absrefs") == 0 or
+  die "Something went wrong when creating the absolute reference XML: the error was\n\n$!";
 
 ### 5. Load the idx file
 my $article_idx = $article_name . '.idx';
@@ -433,7 +419,8 @@ sub fetch_directive {
   my $directive = shift;
 
   chdir $workdir;
-  system ("envget -l $article_miz > /dev/null 2> /dev/null");
+  system ("envget -l $article_miz > /dev/null 2> /dev/null") == 0
+    or die "envget died working on $article_miz in $workdir!";
 
   # This is the way things should be, but envget doesn't behave as expected!
 
@@ -1628,23 +1615,19 @@ sub verify_item_with_number {
   }
 
   # accomodate
-  system ("accom -q -s -l $miz > /dev/null 2> /dev/null");
+  system ("accom -q -s -l $miz > /dev/null 2> /dev/null") == 0
+    or die "Error: Something went wrong when calling the accomodator on $miz under $article_text_dir: the error was\n\n$!";
 
-  # more sanity checking
-  unless ($? == 0) {
-    die "Error: Something went wrong when calling the accomodator on $miz under $article_text_dir: the error was\n\n$!";
-  }
+  # sanity
   if (-e $err && -s $err) {
     die "Error: although the accomodator returned successfully when run on $miz under $article_text_dir,\\it nonetheless generated a non-empty error file";
   }
 
   # verify
-  system ("$verifier -q -s -l $miz > /dev/null 2> /dev/null");
+  system ("$verifier -q -s -l $miz > /dev/null 2> /dev/null") == 0
+    or die "Error: Something went wrong when calling the verifier at $verifier on $miz under $article_text_dir: the error was\n\n$!";
 
-  # even more sanity checking
-  unless ($? == 0) {
-    die "Error: Something went wrong when calling the verifier at $verifier on $miz under $article_text_dir: the error was\n\n$!";
-  }
+  # more sanity
   if (-e $err && -s $err) {
     die "Error: although the verifier at $verifier returned successfully when run on $miz under $article_text_dir,\\it nonetheless generated a non-empty error file";
   }
@@ -1674,21 +1657,15 @@ sub export_item_with_number {
   }
 
   # export
-  system ("exporter -q -s -l $miz > /dev/null 2> /dev/null");
-  unless ($? == 0) {
-    die "Error: Something went wrong when exporting $miz under $article_text_dir: the error was\n\n$!";
-  }
+  system ("exporter -q -s -l $miz > /dev/null 2> /dev/null") == 0
+    or die "Error: Something went wrong when exporting $miz under $article_text_dir: the error was\n\n$!";
   if (-e $err && -s $err) {
     die "Error: although the exporter terminated successfully after working on $miz (under $article_text_dir),\na non-empty error file was generated nonetheess!";
   }
 
   # transfer
-  system ("transfer -q -s -l $miz > /dev/null 2> /dev/null");
-
-  # even more sanity checking
-  unless ($? == 0) {
-    die "Error: Something went wrong when calling the transfer tool on $miz under $article_text_dir: the error was\n\n$!";
-  }
+  system ("transfer -q -s -l $miz > /dev/null 2> /dev/null") == 0
+    or die "Error: Something went wrong when calling the transfer tool on $miz under $article_text_dir: the error was\n\n$!";
   if (-e $err && -s $err) {
     die "Error: although transfer terminated successfully after working on $miz (under $article_text_dir),\na non-empty error file was generated nonetheess!";
   }
@@ -1844,12 +1821,8 @@ sub cleanup {
     # just use find
     my $text_subdir_of_local_db_in_resultdir
       = catdir ($local_db_in_resultdir, 'text');
-    system ("find $text_subdir_of_local_db_in_resultdir -type f -and -not -name '*.miz' -and -not -name '*.xml' -exec rm {} ';'");
-
-    unless ($? == 0) {
-      die "find did not terminate properly deleting the non-.miz and non-.xml files in the text directory! The error was:\n\n  $!";
-    }
-
+    system ("find $text_subdir_of_local_db_in_resultdir -type f -and -not -name '*.miz' -and -not -name '*.xml' -exec rm {} ';'") == 0
+      or die "find did not terminate properly deleting the non-.miz and non-.xml files in the text directory! The error was:\n\n  $!";
   } else {
     print "Not clearning up the work directory; all auxiliary files can be found in the directory\n\n  $local_db_in_resultdir\n\nfor your inspection.\n";
   }
@@ -1882,12 +1855,8 @@ sub trim_vocabularies_for_item {
 
   # now run irrvoc
   chdir $workdir;
-  system ("irrvoc text/item$item_number");
-
-  # sanity
-  unless ($? == 0) {
-    die ("Something went wrong calling irrvoc on item $item_number under $workdir");
-  }
+  system ("irrvoc text/item$item_number") == 0
+    or die ("Something went wrong calling irrvoc on item $item_number under $workdir");
 
   # read .err file that irrvoc just generated
   open my $err_file, '<', $item_err_path
