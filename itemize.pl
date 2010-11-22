@@ -31,9 +31,7 @@ if (defined $ARGV{'--verbose'}) {
 }
 
 ### --debug
-
-my $debug = $defined $ARGV{'--debug'} ? 1 : 0;
-
+my $debug = defined $ARGV{'--debug'} ? 1 : 0;
 
 ### --mizfiles
 
