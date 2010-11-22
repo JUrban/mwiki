@@ -2452,7 +2452,7 @@ item unlabeled unexported theorems
 
 The following 129 articles of MML 4.150.1103 contain, at the toplevel,
 either reconsider, set, defpred, deffunc, or unlabeled unexported
-therems:
+theorems:
 
 =over
 
