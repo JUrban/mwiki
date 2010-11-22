@@ -1916,20 +1916,6 @@ sub trim_vocabularies_for_item {
 
 }
 
-my %item_to_extension =
-  (
-   'Vocabulary' => 'vcl',
-   'Definiens' => 'dfs',
-   'RCluster' => 'ecl',
-   'CCluster' => 'ecl',
-   'FCluster' => 'ecl',
-   'Scheme' => 'esh',
-   'Constructor' => 'aco', # what about .atr?
-   'Theorem' => 'eth',
-   'Identify' => 'eid',
-   'Notation' => 'eno',
-  );
-
 ## return the number of printed
 sub PrepareXml
 {
@@ -1954,28 +1940,47 @@ sub PrepareXml
 sub TestXMLElems ($$$)
 {
     my ($xml_elem,$file_ext,$filestem) = @_;
-    print $filestem;
-    print $makeenv;
-    print getcwd();
+    # print $filestem, "\n";
+    # print $file_ext, "\n";
+    # print $makeenv, "\n";
+    # print getcwd(), "\n";
 
-    die "Accomodation errors" if(system("$makeenv $filestem") != 0);
+    die "makeenv errors"
+      unless system ("$makeenv -l $filestem > /dev/null 2> /dev/null") == 0;
 
+    my $xml_contents;
     my $xitemfile = $filestem . $file_ext;
-    {
+    if (-e $xitemfile) {
+      {
 	open(XML, $xitemfile);
-	local $/; $_ = <XML>;
+	local $/; $xml_contents = <XML>;
 	close(XML);
+      }
+    } else {
+      print "nothing to trim", "\n";
+      return;
     }
-    my ($xmlbeg,$xmlnodes,$xmlend) = $_ =~ m/(.*?)([<]$xml_elem\b.*[<]\/$xml_elem>)(.*)/s or die "not matched: $xml_elem";
-    ## call Mizar parser to get the tp positions
-    my @xmlelems = $xmlnodes =~ m/(<$xml_elem\b.*?<\/$xml_elem>)/sg; # this is a multiline match
-    die "Verification errors" if(system("$verifier -l -q $filestem") != 0);
-    my %removed = (); ## indeces of removed elements
 
-    ## ok, the first simple heuristic is to remove consecutive chunks
-    ## of sqrt size and to retract to one-by-one if the chunk fails
-    ## (not sure why better than logarithmic approach - perhaps
-    ## simpler to write)
+    my ($xmlbeg,$xmlnodes,$xmlend) = $xml_contents
+      =~ m/(.*?)([<]$xml_elem\b.*[<]\/$xml_elem>)(.*)/s;
+
+    if (!defined $xmlbeg) {
+      return;
+    }
+
+    ## call Mizar parser to get the tp positions
+    my @xmlelems = $xmlnodes
+      =~ m/(<$xml_elem\b.*?<\/$xml_elem>)/sg; # this is a multiline match
+
+    # sanity
+    die "Verification errors"
+      unless system ("$verifier -l -q $filestem > /dev/null 2>/dev/null") == 0;
+
+    my %removed = (); ## indices of removed elements
+
+    ## remove consecutive chunks of sqrt size and to retract to
+    ## one-by-one if the chunk fails (not sure why better than
+    ## logarithmic approach - perhaps simpler to write)
     my $total = scalar(@xmlelems);
     my $chunksize = 1 + int(sqrt($total));
     my $chunks = int($total / $chunksize);
@@ -1986,7 +1991,7 @@ sub TestXMLElems ($$$)
 	    $removed{$chunk * $chunksize + $elem} = 1;
 	}
 	PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
-	if(system("$verifier -l -q $filestem") != 0)
+	if (system ("$verifier -l -q $filestem > /dev/null 2>/dev/null") != 0)
 	{
 	    foreach my $elem (0 .. $chunksize -1)
 	    {
@@ -1995,13 +2000,14 @@ sub TestXMLElems ($$$)
 	    my $found = 0; ## when 1, at least one was found necessary already from these
 	    foreach my $elem (0 .. $chunksize -1)
 	    {
-		## if the first condition is unmet, we know the last elem is culprit and don't have to test
+		## if the first condition is unmet, we know the last
+		## elem is culprit and don't have to test
 		if(!(($elem == $chunksize -1) && ($found == 0)) && 
 		   ($chunk * $chunksize + $elem <= $#xmlelems))
 		{
 		    $removed{$chunk * $chunksize + $elem} = 1;
 		    PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
-		    if(system("$verifier -l -q $filestem") != 0)
+		    if (system ("$verifier -l -q $filestem > /dev/null 2>/dev/null") != 0)
 		    {
 			delete $removed{$chunk * $chunksize + $elem};
 			$found = 1;
@@ -2019,9 +2025,42 @@ sub TestXMLElems ($$$)
     # 	delete $removed{$chunk} if(system("$verifier -l -q $filestem") !=0);
     # }
     ## print the final form
-    my $needed = PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
+    my $needed 
+      = PrepareXml($filestem,$file_ext,\@xmlelems,\%removed,$xmlbeg,$xmlend);
     ## print stats
-    print ("total ", $xml_elem, ": ", $total, ", removed: ", $total - $needed, ", needed: ", $needed, "\n");
+    print 'total ', $xml_elem, ': ', $total, "\n";
+    print 'removed: ', $total - $needed, "\n";
+    print 'needed: ', $needed, "\n";
+}
+
+my %item_to_extension =
+  (
+   'Vocabulary' => ['vcl'],
+   'Definiens' => ['dfs'],
+   'RCluster' => ['ecl'],
+   'CCluster' => ['ecl'],
+   'FCluster' => ['ecl'],
+   'Scheme' => ['esh'],
+   'Constructor' => ['atr', 'aco'], # what's the difference?
+   'Theorem' => ['eth'],
+   'Identify' => ['eid'],
+   'Notation' => ['eno'],
+  );
+
+sub reduce_imported_items {
+  my $item_number = shift;
+
+  my $item_stem = catfile ($local_db_in_workdir, 'text', "item$item_number");
+  foreach my $item_type (keys %item_to_extension) {
+    my @extensions = @{$item_to_extension{$item_type}};
+    foreach my $extension (@extensions) {
+      TestXMLElems ($item_type, '.' . $extension, $item_stem);
+    }
+  }
+}
+
+foreach my $i (1 .. $num_items) {
+  reduce_imported_items ($i);
 }
 
 cleanup ();
