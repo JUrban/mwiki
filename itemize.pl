@@ -33,9 +33,7 @@ if (defined $ARGV{'--verbose'}) {
 ### --debug
 my $debug = defined $ARGV{'--debug'} ? 1 : 0;
 
-### --mizfiles
-
-## --mizfiles next, because some options, if unset, use this value.
+## --mizfiles next, because some of the other options use this value.
 
 my $mizfiles = defined $ARGV{'--mizfiles'} ? $ARGV{'--mizfiles'}
                                            : $ENV{'MIZFILES'};
