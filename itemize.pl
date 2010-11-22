@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-fuse Getopt::Euclid; # load this first to set up our command-line parser
+fffuse Getopt::Euclid; # load this first to set up our command-line parser
 
 use Cwd qw / getcwd /;
 use File::Temp qw / tempdir /;
