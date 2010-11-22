@@ -30,6 +30,11 @@ if (defined $ARGV{'--verbose'}) {
   $be_verbose = 1;
 }
 
+### --debug
+
+my $debug = $defined $ARGV{'--debug'} ? 1 : 0;
+
+
 ### --mizfiles
 
 ## --mizfiles next, because some options, if unset, use this value.
@@ -594,8 +599,10 @@ sub init_reservation_table {
 #                                   ^ - 1 for the previous non-whitespace char
 		     $semicolon - $after_reserve + 1;
 #                                                ^ + 1 for the semicolon
-	  # DEBUG
-	  warn "Computed reservation $reserve";
+	  if ($debug) {
+	    warn "Computed reservation $reserve";
+	  }
+
 	  $reservation_table{$line_num} = $reserve;
 	}
       }
@@ -605,8 +612,6 @@ sub init_reservation_table {
 }
 
 sub print_reservation_table {
-  # DEBUG
-  warn "Here is the reservation table:";
   foreach my $key (keys (%reservation_table)) {
     print "$key:\n";
     print ($reservation_table{$key});
@@ -685,12 +690,18 @@ sub theorem_before_position {
   my $end_col = shift;
   my ($begin_line,$begin_col)
     = from_keyword_to_position ('theorem', $end_line, $end_col);
-  # DEBUG
-  warn "For this theorem, we started at line $end_line and column $end_col";
-  warn "For this theorem, the begin_line is $begin_line and the begin_col is $begin_col";
+
+  if ($debug) {
+    warn "For this theorem, we started at line $end_line and column $end_col";
+    warn "For this theorem, the begin_line is $begin_line and the begin_col is $begin_col";
+  }
+
   my $theorem = extract_region ($begin_line,$begin_col,$end_line,$end_col);
-  # DEBUG
-  warn "Just extracted theorem: $theorem";
+
+  if ($debug) {
+    warn "Just extracted theorem: $theorem";
+  }
+
   return $theorem;
 }
 
@@ -820,18 +831,18 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
   # do it
   my @buffer = @{extract_region_as_array ($bl, $bc, $el, $ec)};
 
-  # DEBUG print instructions
-  print "Instructions:\n";
-  foreach my $instruction_ref (@sorted_instructions) {
-    my @instruction = @{$instruction_ref};
-    my $instruction_type = $instruction[0];
-    my $instr_line_num = $instruction[1];
-    my $instr_col_num = $instruction[2];
-    my $instr_label = $instruction[3];
-    my $instr_item_num = $instruction[4];
-    print "($instruction_type $instr_line_num $instr_col_num $instr_label $instr_item_num) in the region ($bl,$bc,$el,$ec)\n";
+  if ($debug) {
+    print "Instructions:\n";
+    foreach my $instruction_ref (@sorted_instructions) {
+      my @instruction = @{$instruction_ref};
+      my $instruction_type = $instruction[0];
+      my $instr_line_num = $instruction[1];
+      my $instr_col_num = $instruction[2];
+      my $instr_label = $instruction[3];
+      my $instr_item_num = $instruction[4];
+      print "($instruction_type $instr_line_num $instr_col_num $instr_label $instr_item_num) in the region ($bl,$bc,$el,$ec)\n";
+    }
   }
-
 
   foreach my $instruction_ref (@sorted_instructions) {
     my @instruction = @{$instruction_ref};
@@ -891,11 +902,12 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
     my $instr_label = $instruction[3];
     my $instr_item_num = $instruction[4];
 
-    # DEBUG
-    print "Applying instruction ($instruction_type $instr_line_num $instr_col_num $instr_label $instr_item_num) in the region ($bl,$bc,$el,$ec)\n";
-    print "The buffer looks like this:\n";
-    foreach (@buffer) {
-      print "$_\n";
+    if ($debug) {
+      print "Applying instruction ($instruction_type $instr_line_num $instr_col_num $instr_label $instr_item_num) in the region ($bl,$bc,$el,$ec)\n";
+      print "The buffer looks like this:\n";
+      foreach (@buffer) {
+	print "$_\n";
+      }
     }
 
     # sanity checks
@@ -918,8 +930,9 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
       $instr_col_num -= $bc;
     }
 
-    # DEBUG
-    warn "instruction column number is now $instr_col_num";
+    if ($debug) {
+      warn "instruction column number is now $instr_col_num";
+    }
 
     # now adjust the instruction's line numbers.  We need to do this
     # because the information from which the editing instruction was
@@ -930,11 +943,15 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
     # only with those 21 lines; 990 gets mapped to 0, and 1010 gets
     # mapped to 20, so line "1000" needs to get mapped to line 10.
 
-    # DEBUG
-    warn "We are asked to edit line $instr_line_num...";
+    if ($debug) {
+      warn "We are asked to edit line $instr_line_num...";
+    }
+
     $instr_line_num -= $bl;
-    # DEBUG
-    warn "...which just got adjusted to $instr_line_num";
+
+    if ($debug) {
+      warn "...which just got adjusted to $instr_line_num";
+    }
 
     my $line = $buffer[$instr_line_num];
     unless (defined $line) {
@@ -957,8 +974,10 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
     # this is a case where what I'm doing crucially depends on how the
     # mizar parser keeps track of whitespace.  Annoying.
     if ($instr_col_num == $line_length) {
-      # DEBUG
-      warn "This is the weird whitespace case!";
+
+      if ($debug) {
+	warn "This is the weird whitespace case!";
+      }
 
       # we need to specially treat multiple equations
       if ($instruction_type eq 'scheme') { # fragile, incorrect
@@ -972,12 +991,17 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
 	$line =~ m/^[ ]*[^ ]/g;
 	$instr_col_num = (pos $line) - 2; # back up 2 because of pos
       } else {
-	# DEBUG
-	print "yes, but it is a multiple equation case\n";
+
+	if ($debug) {
+	  print "yes, but it is a multiple equation case\n";
+	}
+
       }
 
-      # DEBUG
-      warn "Done dealing with the whitepsace case: the current line is\n\n$line\n\nand the current column is $instr_col_num"
+      if ($debug) {
+	warn "Done dealing with the whitepsace case: the current line is\n\n$line\n\nand the current column is $instr_col_num"
+      }
+
     }
 
     my $label_length = length $instr_label;
@@ -998,8 +1022,9 @@ sub extract_article_region_replacing_schemes_and_definitions_and_theorems {
       die "Unknown instruction type $instruction_type";
     }
 
-    # DEBUG
-    print "line after the instuction:\n\n$line\n";
+    if ($debug) {
+      print "line after the instuction:\n\n$line\n";
+    }
 
     if ($before_line eq $line) {
       die "We were supposed to do an editig operation, but NOTHING HAPPENED!";
@@ -1046,8 +1071,9 @@ sub pretext_from_item_type_and_beginning {
 
   my $item_type = $node->nodeName;
 
-  # DEBUG
-  warn "Looking for pretext starting from $begin_line and $begin_col";
+  if ($debug) {
+    warn "Looking for pretext starting from $begin_line and $begin_col";
+  }
 
   my $pretext;
   if ($item_type eq 'JustifiedTheorem') {
@@ -1059,18 +1085,26 @@ sub pretext_from_item_type_and_beginning {
     }
   } elsif ($item_type eq 'Proposition') {
     my $vid = $item_node->findvalue ('@vid');
-    # DEBUG
-    warn ("unexported toplevel theorem with vid $vid...");
+
+    if ($debug) {
+      warn ("unexported toplevel theorem with vid $vid...");
+    }
+
     my $prop_label = $idx_table{$vid};
-    # DEBUG
-    warn ("unexported toplevel theorem has label $prop_label...");
-    # DEBUG
-    print "this unexported toplevel theorem begins at ($begin_line,$begin_col)\n";
+
+    if ($debug) {
+      warn ("unexported toplevel theorem has label $prop_label...");
+      print "this unexported toplevel theorem begins at ($begin_line,$begin_col)\n";
+    }
+
     my ($lemma_begin_line,$lemma_begin_col)
       = from_keyword_to_position ($prop_label, $begin_line, $begin_col);
     $lemma_begin_col++; # because of the colon after the keyword
-    # DEBUG
-    print "this unexported toplevel theorem actually starts at ($lemma_begin_line,$lemma_begin_col)\n";
+
+    if ($debug) {
+      print "this unexported toplevel theorem actually starts at ($lemma_begin_line,$lemma_begin_col)\n";
+    }
+
     my $theorem = extract_region ($lemma_begin_line, $lemma_begin_col,
 				  $begin_line, $begin_col - 1);
     $pretext = "theorem $theorem";
@@ -1140,10 +1174,12 @@ sub load_deftheorems {
       if (is_exported_deftheorem ($current_node)) {
 	my ($prop_node) = $current_node->findnodes ('Proposition');
 	my $vid = $prop_node->findvalue ('@vid');
-	# DEBUG
 	$definition_vid_to_thmnum{$vid} = $num_exported_theorems;
-	# DEBUG
-	warn ("We just assigned vid $vid to exported thereom number $num_exported_theorems of this definition block (we don't know yet what the absolute number of this definitionblock is)");
+
+	if ($debug) {
+	  warn ("We just assigned vid $vid to exported thereom number $num_exported_theorems of this definition block (we don't know yet what the absolute number of this definitionblock is)");
+	}
+
       }
       $current_node = $current_node->nextNonBlankSibling ();
       $num_exported_theorems++;
@@ -1191,8 +1227,11 @@ sub load_items {
   my @toplevel_item_xpaths = map { "Article/$_" } @handled_node_types;
   my $query = join (' | ', @toplevel_item_xpaths);
   @nodes = $doc->findnodes ($query);
-  # DEBUG
-  print 'we found ', scalar @nodes, ' nodes', "\n";
+
+  if ($debug) {
+    print 'we found ', scalar @nodes, ' nodes', "\n";
+  }
+
   return;
 }
 
@@ -1311,8 +1350,11 @@ sub itemize {
 	if ($proposition_node->exists ('@nr') && $proposition_node->exists ('@vid')) {
 	  my $nr = $proposition_node->findvalue ('@nr');
 	  my $vid = $proposition_node->findvalue ('@vid');
-	  # DEBUG
-	  warn ("we found a theorem that gets referred to later! its nr is $nr and its vid is $vid");
+
+	  if ($debug) {
+	    warn ("we found a theorem that gets referred to later! its nr is $nr and its vid is $vid");
+	  }
+
 	  $theorem_nr_to_absnum{$nr} = $i;
 	  $theorem_vid_to_absnum{$vid} = $i;	
 	}
@@ -1335,8 +1377,11 @@ sub itemize {
       unless (defined $vid) {
 	die "ouch!";
       }
-      # DEBUG
-      warn ("unexported toplevel theorem with vid $vid...");
+
+      if ($debug) {
+	warn ("unexported toplevel theorem with vid $vid...");
+      }
+
       my $prop_label = $idx_table{$vid};
       ($begin_line, $begin_col) = line_and_column ($node);
       # weird: this might not be accurate!
@@ -1419,8 +1464,9 @@ sub itemize {
 	$end_col--;
       }
 
-      # DEBUG
-      print "the region of interest is ($begin_line,$begin_col)-($end_line,$end_col)\n";
+      if ($debug) {
+	print "the region of interest is ($begin_line,$begin_col)-($end_line,$end_col)\n";
+      }
 
       # look into the node to find references that might need to be
       # rewritten.  First, distinguish between unexported toplevel
@@ -1443,12 +1489,18 @@ sub itemize {
       # gather all local schemes
       my @local_schemes = ();
       my @local_scheme_nodes = $ref_containing_node->findnodes ('.//From');
-      # DEBUG
-      warn ("this node has " . scalar (@local_scheme_nodes) . " local scheme nodes");
+
+      if ($debug) {
+	warn ("this node has " . scalar (@local_scheme_nodes) . " local scheme nodes");
+      }
+
       foreach my $local_scheme_node (@local_scheme_nodes) {
 	my $articlenr = $local_scheme_node->findvalue ('@articlenr');
-	# DEBUG
-	warn ("articlenr of this From node is $articlenr");
+
+	if ($debug) {
+	  warn ("articlenr of this From node is $articlenr");
+	}
+
 	if ($articlenr == 0) {
 	  my $local_scheme_line = $local_scheme_node->findvalue ('@line');
 	  my $local_scheme_col = $local_scheme_node->findvalue ('@col');
@@ -1456,35 +1508,55 @@ sub itemize {
 	  my $local_scheme_abs_num = $scheme_num_to_abs_num{$local_scheme_sch_num};
 	  my $scheme_vid = $scheme_num_to_vid{$local_scheme_sch_num};
 	  my $scheme_label = $idx_table{$scheme_vid};
-	  # DEBUG
-	  warn "scheme vid is $scheme_vid; its label is $scheme_label";
+
+	  if ($debug) {
+	    warn "scheme vid is $scheme_vid; its label is $scheme_label";
+	  }
+
 	  my @local_scheme_info = ($local_scheme_line, $local_scheme_col, $scheme_label, $local_scheme_abs_num);
 	  push (@local_schemes, \@local_scheme_info);
-	  # DEBUG
-	  warn ("we found a scheme use starting at line $local_scheme_line and column $local_scheme_col, scheme $local_scheme_sch_num in the article, which is item number $local_scheme_abs_num");
+
+	  if ($debug) {
+	    warn ("we found a scheme use starting at line $local_scheme_line and column $local_scheme_col, scheme $local_scheme_sch_num in the article, which is item number $local_scheme_abs_num");
+	  }
+
 	}
       }
 
       my @local_definitions = ();
       my @local_ref_nodes = $ref_containing_node->findnodes ('.//Ref');
-      # DEBUG
-      warn ("this node has " . scalar (@local_ref_nodes) . " Ref elements");
+
+      if ($debug) {
+	warn ("this node has " . scalar (@local_ref_nodes) . " Ref elements");
+      }
+
       foreach my $ref_node (@local_ref_nodes) {
 	if ($ref_node->exists ('@aid')) {
-	  # DEBUG
-	  warn ("This ref node points to something outside the current article");
+
+	  if ($debug) {
+	    warn ("This ref node points to something outside the current article");
+	  }
+
 	} else {
-	  # DEBUG
-	  warn ("This ref node points to something in the current article");
+	  if ($debug) {
+	    warn ("This ref node points to something in the current article");
+	  }
+
 	  my $vid = $ref_node->findvalue ('@vid');
 	  my $absnum = $definition_vid_to_absnum{$vid};
 	  my $thm_num = $definition_vid_to_thmnum{$vid};
 	  if (defined ($absnum) && defined ($thm_num)) {
-	    # DEBUG
-	    warn ("this article-internal ref points to absolute item $absnum and theorem $thm_num of whatever definitionblock introduced it");
+
+	    if ($debug) {
+	      warn ("this article-internal ref points to absolute item $absnum and theorem $thm_num of whatever definitionblock introduced it");
+	    }
+
 	    my $def_label = $idx_table{$vid};
-	    # DEBUG
-	    warn "it's vid is $vid; its label is $def_label";
+
+	    if ($debug) {
+	      warn "it's vid is $vid; its label is $def_label";
+	    }
+
 	    my $line = $ref_node->findvalue ('@line');
 	    my $col = $ref_node->findvalue ('@col');
 	    my @local_definition_info = ($line,$col,$def_label,$absnum,$thm_num);
@@ -1495,58 +1567,79 @@ sub itemize {
 
       my @local_theorems = ();
       @local_ref_nodes = $ref_containing_node->findnodes ('.//Ref');
-      # DEBUG
-      warn ("searching for theorem references; this node has " . scalar (@local_ref_nodes) . " Ref elements");
+
+      if ($debug) {
+	warn ("searching for theorem references; this node has " . scalar (@local_ref_nodes) . " Ref elements");
+      }
+
       foreach my $ref_node (@local_ref_nodes) {
 	if ($ref_node->exists ('@aid')) {
-	  # DEBUG
-	  warn ("This ref node points to something outside the current article");
+
+	  if ($debug) {
+	    warn ("This ref node points to something outside the current article");
+	  }
+
 	} else {
-	  # DEBUG
-	  warn ("This ref node points to something in the current article");
+
+	  if ($debug) {
+	    warn ("This ref node points to something in the current article");
+	  }
+
 	  my $nr = $ref_node->findvalue ('@nr');
 	  my $vid = $ref_node->findvalue ('@vid');
 	  my $theorem_nr_absnum = $theorem_nr_to_absnum{$nr};
 	  my $theorem_vid_absnum = $theorem_vid_to_absnum{$vid};
 	  if (defined ($theorem_nr_absnum) && defined ($theorem_vid_absnum)) { # this Ref points to an article-local theorem
-	    # DEBUG
-	    warn ("wow");
-	    warn ("this article-internal ref points to theorem_nr_absnum $theorem_nr_absnum and theorem_vid_absnum $theorem_vid_absnum");
+
+	    if ($debug) {
+	      warn ("this article-internal ref points to theorem_nr_absnum $theorem_nr_absnum and theorem_vid_absnum $theorem_vid_absnum");
+	    }
+
 	    if ($theorem_nr_absnum == $theorem_vid_absnum) { # sanity check
 	      my $line = $ref_node->findvalue ('@line');
 	      my $col = $ref_node->findvalue ('@col');
 	      my $th_label = $idx_table{$vid};
-	      # DEBUG
-	      warn "the vid of this theorem is $vid; its label is $th_label";
+
+	      if ($debug) {
+		warn "the vid of this theorem is $vid; its label is $th_label";
+	      }
+
 	      my @local_theorem_info = ($line,$col,$th_label,$theorem_nr_absnum);
 	      push (@local_theorems, \@local_theorem_info);
 	    }
 	  }
 	}
       }
-      
+
       my $pretext
 	= pretext_from_item_type_and_beginning ($node,
 						$begin_line,
 						$begin_col,
 						$node);
-    
-      # DEBUG
-      print "the pretext is '$pretext'\n";
+
+      if ($debug) {
+	print "the pretext is '$pretext'\n";
+      }
 
       # check for whether we're dealing with one of those annoying unexported toplevel theorems, for which we need to know its label
       my $label;
       if ($node_name eq 'Proposition') {
 	my $vid = $node->findvalue ('@vid');
-	# DEBUG
-	warn ("unexported toplevel theorem with vid $vid...");
+
+	if ($debug) {
+	  warn ("unexported toplevel theorem with vid $vid...");
+	}
+
 	$label = $idx_table{$vid};
 	unless (defined $label) {
 	  warn "Don't know how to handle toplevel unexported theorems without labels!";
 	  exit 2;
 	}
-	# DEBUG
-	warn ("unexported toplevel theorem has label $label...");
+
+	if ($debug) {
+	  warn ("unexported toplevel theorem has label $label...");
+	}
+
       } else {
 	$label = '';
       }
@@ -2170,6 +2263,11 @@ deleted before terminating.)
 =item --verbose
 
 Indicate what's going on at notable points in the computation.
+
+=item --debug
+
+(For developers only.)  Print debugging information.  Warning: this
+may generate a lot of confusing output.
 
 =item --version
 
