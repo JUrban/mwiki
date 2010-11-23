@@ -98,7 +98,7 @@ my $special_regexp = '\.$special_ext\$';
 
 # Ensure that no non-mizar code is being pushed
 my @non_lib_files 
-    = `git show --pretty=oneline --name-only $new_sha | tail -n -1 | grep --invert-match '\.$article_ext\$' | grep --invert-match '\.$special_ext\$'`;
+    = `git show --pretty=oneline --name-only $new_sha | grep --invert-match '\.$article_ext\$' | grep --invert-match '\.$special_ext\$'`;
 unless (scalar @non_lib_files == 0) {
     pr_print ("Only .$article_ext and .$special_ext files are permitted to be committed: \"$non_lib_files[0]\"  Sorry.");
   exit 1;
@@ -110,7 +110,7 @@ unless (scalar @non_lib_files == 0) {
 # 2 they are actually files, i.e., blobs in git terminology
 # 3 their size is less than, say, one megabyte;
 # 4 they have mode 644 ("should never happen", given condition #2)
-my @lib_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | grep "\.$article_ext\$"`;
+my @lib_files = `git show --name-only --pretty=oneline $new_sha | grep "\.$article_ext\$"`;
 for my $lib_file (@lib_files) {
   chomp $lib_file;
   if ($lib_file !~ /\A mml \/ ([a-z0-9_]+\.miz) \z/xm) { # strip "mml/" prefix
@@ -120,7 +120,7 @@ for my $lib_file (@lib_files) {
   }
 }
 
-my @dict_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | grep "\.$special_ext\$"`;
+my @dict_files = `git show --name-only --pretty=oneline $new_sha | grep "\.$special_ext\$"`;
 for my $lib_file (@dict_files) {
   chomp $lib_file;
   if ($lib_file !~ /\A dict \/ ([a-z0-9_]+\.voc) \z/xm) { # strip "mml/" prefix
