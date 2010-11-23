@@ -112,9 +112,11 @@ my $makejobs = 1;
 my $tmp1 =  get_mwiki_var("makejobs");
 $makejobs = $tmp1 if( defined $tmp1 );
 
-# ALLOW_SKIPPED_PROOFS: if 0, skipped proofs (@proof) are not allowed, otherwise yes
+# ALLOW_SKIPPED_PROOFS: if 0, skipped proofs (@proof) are not allowed,
+# otherwise yes note that git-cnfig does not allow underscore, while
+# shell does not allow dash, so we keep it only alphanumeric.
 my $allow_skipped_proofs  = 1;
-$tmp1 =  get_mwiki_var("allow_skipped_proofs");
+$tmp1 =  get_mwiki_var("allowskippedproofs");
 $allow_skipped_proofs = $tmp1 if( defined $tmp1 );
 
 my @repo_path_dirs = File::Spec->splitdir ($cwd);

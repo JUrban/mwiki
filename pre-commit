@@ -114,7 +114,7 @@ $makejobs = $tmp1 if( defined $tmp1 );
 
 # ALLOW_SKIPPED_PROOFS: if 0, skipped proofs (@proof) are not allowed, otherwise yes
 my $allow_skipped_proofs  = 1;
-$tmp1 =  get_mwiki_var("allow_skipped_proofs");
+$tmp1 =  get_mwiki_var("allowskippedproofs");
 $allow_skipped_proofs = $tmp1 if( defined $tmp1 );
 
 

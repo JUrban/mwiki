@@ -24,7 +24,7 @@
 # - MAKEJOBS: default 1.  The degree of parallelization used by make
 #   when computing the initial HTML-ized presentation of the MML
 #
-# - ALLOW_SKIPPED_PROOFS: default 1.  Allow @proof (proof skipping) in
+# - ALLOWSKIPPEDPROOFS: default 1.  Allow @proof (proof skipping) in
 #   articles.
 #
 # - NUM_ARTICLES: default 10.  The length of the initial segment of
@@ -52,7 +52,7 @@ BARE_PUBLIC_REPO=$(PUBLIC_REPOS_BASE)/$(REPO_NAME).git
 REPOBIN=$(PUBLIC_REPO)/bin
 MIZBIN=$(MIZFILES)/bin
 MAKEJOBS=1
-ALLOW_SKIPPED_PROOFS=1
+ALLOWSKIPPEDPROOFS=1
 SHEETS=addabsrefs miz evl2dep
 CSS=article index
 JAVASCRIPT=article
@@ -161,7 +161,7 @@ public-repo-init: public-mwiki-user scratch
 	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.' \
            && git config mwiki.wikihost $(WIKIHOST) \
            && git config mwiki.makejobs $(MAKEJOBS) \
-           && git config mwiki.allow_skipped_proofs $(ALLOW_SKIPPED_PROOFS) \
+           && git config mwiki.allowskippedproofs $(ALLOW_SKIPPED_PROOFS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(REPO_NAME)
 
 	$(INSTALL) \
@@ -214,7 +214,7 @@ public-repo-export: public-repo-init
            && git config mwiki.backend $(PUBLIC_REPO)/ \
            && git config mwiki.wikihost $(WIKIHOST) \
            && git config mwiki.makejobs $(MAKEJOBS) \
-           && git config mwiki.allow_skipped_proofs $(ALLOW_SKIPPED_PROOFS) \
+           && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(REPO_NAME) 
 	cd $(PUBLIC_REPO) && git remote add frontend $(BARE_PUBLIC_REPO)
 
