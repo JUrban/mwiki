@@ -161,7 +161,7 @@ public-repo-init: public-mwiki-user scratch
 	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.' \
            && git config mwiki.wikihost $(WIKIHOST) \
            && git config mwiki.makejobs $(MAKEJOBS) \
-           && git config mwiki.allowskippedproofs $(ALLOW_SKIPPED_PROOFS) \
+           && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(REPO_NAME)
 
 	$(INSTALL) \
