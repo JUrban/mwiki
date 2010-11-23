@@ -304,13 +304,18 @@ maybe_die_if_make_errors_in_dir ($sandbox_mml, "$sandbox/make-xml-err",
 				 'Failure verifying and generating XML');
 
 # Ensure that the new articles do not have any "@proof" bits.
-chdir ($sandbox_mml);
-foreach my $lib_changed (@lib_changed) {
-  my $article_miz = $lib_changed . '.miz';
-  if (system ("grep '\@proof' $article_miz | grep --invert-match --max-count=1 '::'") == 0) {
-    pc_print ("You are not allowed to omit proofs from articles in the MML.");
-    exit 1;
-  }
+if($allow_skipped_proofs == 0)
+{
+    chdir ($sandbox_mml);
+    foreach my $lib_changed (@lib_changed) 
+    {
+	my $article_miz = $lib_changed . '.miz';
+	if (system ("grep '\@proof' $article_miz | grep --invert-match --max-count=1 '::'") == 0) 
+	{
+	    pc_print ("You are not allowed to omit proofs from articles in the MML.");
+	    exit 1;
+	}
+    }
 }
 
 # Export the computed prel data
