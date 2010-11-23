@@ -93,7 +93,7 @@ my $article_regexp = '\.$article_ext\$';
 
 # Ensure that no non-mizar code is being pushed
 my @non_lib_files 
-  = `git show --pretty=oneline --name-only $new_sha | tail -n -1 | grep --invert-match '\.$article_ext\$'`;
+  = `git show --pretty=oneline --name-only $new_sha | grep --invert-match '\.$article_ext\$'`;
 unless (scalar @non_lib_files == 0) {
   pr_print ("Only .$article_ext files are permitted to be committed: \"$non_lib_files[0]\"  Sorry.");
   exit 1;
@@ -105,7 +105,7 @@ unless (scalar @non_lib_files == 0) {
 # 2 they are actually files, i.e., blobs in git terminology
 # 3 their size is less than, say, one megabyte;
 # 4 they have mode 644 ("should never happen", given condition #2)
-my @lib_files = `git show --name-only --pretty=oneline $new_sha | tail -n -1 | grep "\.$article_ext\$"`;
+my @lib_files = `git show --name-only --pretty=oneline $new_sha | grep "\.$article_ext\$"`;
 for my $lib_file (@lib_files) {
   chomp $lib_file;
   if ($lib_file !~ /^(([A-Za-z0-9_]+\/[A-Za-z0-9_\/]+)[.]$article_ext)$/) {
