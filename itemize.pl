@@ -218,6 +218,9 @@ unless (-x $makeenv) {
   die "The makeenv at '$makeenv' is not executable!";
 }
 
+### --reduce-imported-items
+my $reduce_imported_items = defined $ARGV{'--reduce-imported-items'} ? 1 : 0;
+
 ######################################################################
 ### End command-line processing.
 ###
@@ -2144,8 +2147,10 @@ sub reduce_imported_items {
   }
 }
 
-foreach my $i (1 .. $num_items) {
-  reduce_imported_items ($i);
+if ($reduce_imported_items) {
+  foreach my $i (1 .. $num_items) {
+    reduce_imported_items ($i);
+  }
 }
 
 cleanup ();
@@ -2260,6 +2265,12 @@ Indicate what's going on at notable points in the computation.
 
 (For developers only.)  Print debugging information.  Warning: this
 may generate a lot of confusing output.
+
+=item --reduce-imported-items
+
+After the article is itemized, compute, for each item I, the minimal
+set of items from the MML and all items J < I, that need to be
+imported into the article.
 
 =item --version
 
