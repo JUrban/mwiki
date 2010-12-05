@@ -2372,17 +2372,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 =over
 
-=item Dependency computation
-
-trim_directive cuts down the contents of a specified directive by
-looking for files in the local prel database that have a given suffix.
-This approach is fairly fast, because it just depends on testing
-existence of files.  This is perhaps the laziest workable approach; it
-ensures only that the article fragmens make sense to the mizar
-tools. We should plug in to Josef's code; it requires far more
-computation than simply checking the existence of suitable files, but
-that is the way we cut things down as far as possible.
-
 =item Mizar module
 
 A fair amount of this code deals with just running mizar tools,
