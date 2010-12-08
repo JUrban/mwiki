@@ -74,6 +74,10 @@ APACHE_ROOT=
 HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
 PUBLIC_MWIKI_USER=mwiki
 
+# name and email for the web commits; note that this goes only into backend
+WEB_GIT_NAME="Web Committer"
+WEB_GIT_EMAIL=webcommit@none.none
+
 # .PHONY: all repo sandbox deps xml repo-miz repo-prel repo-perl repo-bin repo-xsl repo-export repo-gitinit repo-makefiles
 
 MIZBINARIES=accom envget exporter makeenv transfer verifier
@@ -159,6 +163,8 @@ public-repo-init: public-mwiki-user scratch
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
 	  public-repo-description $(PUBLIC_REPO)/.git/description
 	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.' \
+	   && git config  user.name $(WEB_GIT_NAME) \
+	   && git config  user.email $(WEB_GIT_EMAIL) \
            && git config mwiki.wikihost $(WIKIHOST) \
            && git config mwiki.makejobs $(MAKEJOBS) \
            && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
