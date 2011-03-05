@@ -83,6 +83,7 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 
 %.html: %-absrefs.xml %.hdr
 	@$(ECHO) $(html-tag) $*
+	@.perl/MizItemize.pl $*
 	@xsltproc \
 	  --param mk_header 1 \
 	  --param default_target \'_self\'  \
