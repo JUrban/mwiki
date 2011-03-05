@@ -19,12 +19,12 @@ my $xml = $filestem . ".xml";
 
 my @lines=();
 
-open(MIZ,$miz);
+open(MIZ,$miz) or die "No $miz!";
 while($_=<MIZ>) { push(@lines, $_); };
 close(MIZ);
 
 # Get theorem Propositions' positions
-open(XML, $xml);
+open(XML, $xml) or die "Mo $xml!";
 local $/;$_=<XML>;
 
 # Search XML for theorem positions,
