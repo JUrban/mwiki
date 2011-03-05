@@ -11,20 +11,35 @@ MizItemize.pl ~/a
 =cut
 
 use strict;
+use Getopt::Long;
+
+my ($goutdir, $gindir);
+
+Getopt::Long::Configure ("bundling");
+
+GetOptions('outdir|o=s'    => \$goutdir,
+	   'indir|i=s'    => \$gindir
+);
+
+pod2usage(2) if ($#ARGV != 0);
+
 
 my $filestem   = shift(@ARGV);
+
+$goutdir = "." unless(defined($goutdir));
+$gindir = "." unless(defined($gindir));
 
 my $miz = $filestem . ".miz";
 my $xml = $filestem . ".xmlvrf";
 
 my @lines=();
 
-open(MIZ,$miz) or die "No $miz!";
+open(MIZ,"$gindir/$miz") or die "No $miz!";
 while($_=<MIZ>) { push(@lines, $_); };
 close(MIZ);
 
 # Get theorem Propositions' positions
-open(XML, $xml) or die "Mo $xml!";
+open(XML, "$gindir/$xml") or die "Mo $xml!";
 local $/;$_=<XML>;
 
 # Search XML for theorem positions,
@@ -41,7 +56,7 @@ if($1=~m/<JustifiedTheorem.*[\n]<Proposition.*line=\"([0-9]+)\".*col=\"([0-9]+)\
     my $l0 = $l1;
     my $th = $lines[$l0];
     while(!($th =~ m/\btheorem\b/)) {$th = $lines[$l0--];}
-    open(F,">$thname");
+    open(F,">$goutdir/$thname") or die "Not writable: $goutdir/$thname" ;
     while(++$l0<=$l2) { print F $lines[$l0]; }
     close(F);
 }}
