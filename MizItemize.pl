@@ -15,7 +15,7 @@ use strict;
 my $filestem   = shift(@ARGV);
 
 my $miz = $filestem . ".miz";
-my $xml = $filestem . ".xml";
+my $xml = $filestem . ".xmlvrf";
 
 my @lines=();
 
