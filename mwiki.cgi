@@ -69,6 +69,7 @@ sub pr_die
 {
     pr_print(@_);
     print $query->end_html;
+    unlockwiki();
     exit;
 }
 
@@ -267,12 +268,12 @@ if($action eq "commit")
     my $possibly_new_dir_path = $1;
     `mkdir -p $backend_repo_path$possibly_new_dir_path`;
     my $received_path = $backend_repo_path . $input_file;
-    open(PFH, ">$received_path") or pr_die "$received_path not writable";
+    open(PFH, ">$received_path") or pr_die_unlock "$received_path not writable";
     printf(PFH "%s",$input_article);
     close(PFH);
     unless (-e $received_path)
     {
-	pr_die "We didn't output anything to $received_path";
+	pr_die_unlock"We didn't output anything to $received_path";
     }
 
 ## TODO: The current way of doing this is bad when the commit/add fails:
@@ -308,7 +309,7 @@ if($action eq "commit")
 
 	system ("$git reset --hard 2>&1");
 
-	pr_die "";
+	pr_die_unlock "";
     }
 
 # We've successful added new files to the repo -- let's commit!
@@ -324,7 +325,7 @@ if($action eq "commit")
 
 	system ("$git reset --hard 2>&1");
 
-	pr_die "";
+	pr_die_unlock "";
     }
 
 # now push to frontend, disabling pre-receive
@@ -337,7 +338,7 @@ if($action eq "commit")
     {
 	pr_print ("Error pushing to the frontend repository: $git_push_output :: $mv_out");
 	system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
-	pr_die ("The exit code was $git_push_exit_code");
+	pr_die_unlock ("The exit code was $git_push_exit_code");
 
     }
     system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
@@ -446,6 +447,7 @@ if($action eq "edit")
           <input type="hidden" name="p" value="$git_project">
           <input type="hidden" name="a" value="commit">
           <input type="hidden" name="f" value="$input_file">
+          <input type="hidden" name="s" value="$section">
         <!--	<td> <input type="radio" name="ProblemSource" value="URL" >URL to fetch article from<br> -->
         <!--	<input type="text" name="FormulaURL" tabindex="4"  size="80" /><TR VALIGN=TOP></TD> -->
         <!-- <td> <input type="checkbox" name="VocSource" value="UPLOAD"> -->
