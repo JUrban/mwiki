@@ -29,6 +29,9 @@ my $query	  = new CGI;
 # the file comes with relative path: mml/card_1.miz
 my $input_file	  = $query->param('f');
 my $action	  = $query->param('a');
+
+# the edited subsection, format: t1_23_45 (theorem 1, beginning line 23, end line 45)
+my $section	  = $query->param('s');
 my $git_project	  = $query->param('p');
 
 # these exist only when commiting
@@ -391,7 +394,17 @@ if($action eq "edit")
     if(-e $backend_repo_file)
     {
 	open(FILEHANDLE, $backend_repo_file) or pr_die "$backend_repo_file not readable!";
-	$old_content = do { local $/; <FILEHANDLE> };
+	if ((defined $section) && ($section=~m/t(\d+)_(\d+)_(\d+)/))
+	{
+	    my ($nr, $l1, $l2) = ($1, $2, $3);
+	    my @lines = ();
+	    while($_=<FILEHANDLE>) { push(@lines, $_); };
+	    my $l0 = $l1;
+	    my $th = $lines[$l0];
+	    while(!($th =~ m/\btheorem\b/)) {$th = $lines[$l0--];}
+	    $old_content = join("", @lines[++$l0 .. $l2]);
+	}
+	else { $old_content = do { local $/; <FILEHANDLE> }; }
 	close(FILEHANDLE);
     }
     elsif($this_ext eq $article_ext)

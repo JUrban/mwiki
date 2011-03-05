@@ -96,6 +96,7 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 	  --param ajax_proofs 1 \
 	  --param ajax_proof_dir \'proofs\' \
 	  --param wiki_links 1 \
+	  --param wiki_sections 1 \
 	  --param lwikihost \'$(WIKIHOST)\' \
 	  --param lgitproject \'$(GITPROJECT)\' \
 	  --output html/$*.html \
