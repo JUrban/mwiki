@@ -69,6 +69,13 @@ sub pr_die
 {
     pr_print(@_);
     print $query->end_html;
+    exit;
+}
+
+sub pr_die_unlock
+{
+    pr_print(@_);
+    print $query->end_html;
     unlockwiki();
     exit;
 }
@@ -258,6 +265,18 @@ if($action eq "commit")
     # remove the dos stuff
     $input_article =~ s/\r//g;
 
+
+    if ((defined $section) && ($section=~m/t(\d+)_(\d+)_(\d+)/))
+    {
+	open(FILEHANDLE, $backend_repo_file) or pr_die "$backend_repo_file not readable!";
+	my ($nr, $l1, $l2) = ($1, $2, $3);
+	my @lines = ();
+	while($_=<FILEHANDLE>) { push(@lines, $_); };
+	close(FILEHANDLE);
+	$input_article =  join("", @lines[0..$l1-1]) . $input_article . join("", @lines[$l2..$#lines]);
+    }
+
+
     chdir $backend_repo_path;              # before locking executing this hook!
 
     lockwiki();
@@ -403,7 +422,8 @@ if($action eq "edit")
 	    my $l0 = $l1;
 	    my $th = $lines[$l0];
 	    while(!($th =~ m/\btheorem\b/)) {$th = $lines[$l0--];}
-	    $old_content = join("", @lines[++$l0 .. $l2]);
+	    $old_content = join("", @lines[++$l0 .. $l2-1]);
+	    $section = "t$nr" . '_' . $l0 . '_' . $l2;  # so that we don't seek again on commit
 	}
 	else { $old_content = do { local $/; <FILEHANDLE> }; }
 	close(FILEHANDLE);
