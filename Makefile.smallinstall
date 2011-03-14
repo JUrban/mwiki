@@ -67,6 +67,9 @@ INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
 # this should be passed as arg - e.g. mws.cs.ru.nl
 WIKIHOST=localhost
 
+# this is an optional mirror repo, to which the frontend will be mirrored
+MIRROR=
+
 # path to you cgi-bin directory, where mwiki goes
 CGILIB=/usr/lib/cgi-bin
 
@@ -208,7 +211,7 @@ public-repo-export: public-repo-init
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
 	  public-repo-description $(BARE_PUBLIC_REPO)/description
 	for hookfile in pre-receive post-update; do \
-	  sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g" < $$hookfile.in \
+	  sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g; s|@@MIRROR@@|$(MIRROR)|g;" < $$hookfile.in \
 	    > $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
 	  chmod 755 $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
 	  chown $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
