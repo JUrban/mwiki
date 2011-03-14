@@ -24,6 +24,9 @@
 # - MAKEJOBS: default 1.  The degree of parallelization used by make
 #   when computing the initial HTML-ized presentation of the MML
 #
+# - ALLOWSKIPPEDPROOFS: default 1.  Allow @proof (proof skipping) in
+#   articles.
+#
 # - NUM_ARTICLES: default 10.  The length of the initial segment of
 #   mml.lar (taken from MIZFILES).  Set it to a big value to ensure
 #   that the entire current MML is used; set it to a low-value for
@@ -49,10 +52,11 @@ BARE_PUBLIC_REPO=$(PUBLIC_REPOS_BASE)/$(REPO_NAME).git
 REPOBIN=$(PUBLIC_REPO)/bin
 MIZBIN=$(MIZFILES)/bin
 MAKEJOBS=1
+ALLOWSKIPPEDPROOFS=1
 SHEETS=addabsrefs miz evl2dep
 CSS=article index
 JAVASCRIPT=article
-PERLSCRIPTS=mkxmlhead mkmmlindex duplicates
+PERLSCRIPTS=mkxmlhead mkmmlindex duplicates MizItemize
 PERLMODULES=mizar
 GITWEB_ROOT=/var/cache/git
 NUM_ARTICLES=10
@@ -69,6 +73,10 @@ CGILIB=/usr/lib/cgi-bin
 APACHE_ROOT=
 HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2
 PUBLIC_MWIKI_USER=mwiki
+
+# name and email for the web commits; note that this goes only into backend
+WEB_GIT_NAME="Web Committer"
+WEB_GIT_EMAIL=webcommit@none.none
 
 # .PHONY: all repo sandbox deps xml repo-miz repo-prel repo-perl repo-bin repo-xsl repo-export repo-gitinit repo-makefiles
 
@@ -155,8 +163,11 @@ public-repo-init: public-mwiki-user scratch
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
 	  public-repo-description $(PUBLIC_REPO)/.git/description
 	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.' \
+	   && git config  user.name $(WEB_GIT_NAME) \
+	   && git config  user.email $(WEB_GIT_EMAIL) \
            && git config mwiki.wikihost $(WIKIHOST) \
            && git config mwiki.makejobs $(MAKEJOBS) \
+           && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(REPO_NAME)
 
 	$(INSTALL) \
@@ -209,6 +220,7 @@ public-repo-export: public-repo-init
            && git config mwiki.backend $(PUBLIC_REPO)/ \
            && git config mwiki.wikihost $(WIKIHOST) \
            && git config mwiki.makejobs $(MAKEJOBS) \
+           && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(REPO_NAME) 
 	cd $(PUBLIC_REPO) && git remote add frontend $(BARE_PUBLIC_REPO)
 

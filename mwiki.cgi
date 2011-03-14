@@ -29,6 +29,9 @@ my $query	  = new CGI;
 # the file comes with relative path: mml/card_1.miz
 my $input_file	  = $query->param('f');
 my $action	  = $query->param('a');
+
+# the edited subsection, format: t1_23_45 (theorem 1, beginning line 23, end line 45)
+my $section	  = $query->param('s');
 my $git_project	  = $query->param('p');
 
 # these exist only when commiting
@@ -62,6 +65,14 @@ sub pr_die
 {
     pr_print(@_);
     print $query->end_html;
+    exit;
+}
+
+sub pr_die_unlock
+{
+    pr_print(@_);
+    print $query->end_html;
+    unlockwiki();
     exit;
 }
 
@@ -250,6 +261,18 @@ if($action eq "commit")
     # remove the dos stuff
     $input_article =~ s/\r//g;
 
+
+    if ((defined $section) && ($section=~m/t(\d+)_(\d+)_(\d+)/))
+    {
+	open(FILEHANDLE, $backend_repo_file) or pr_die "$backend_repo_file not readable!";
+	my ($nr, $l1, $l2) = ($1, $2, $3);
+	my @lines = ();
+	while($_=<FILEHANDLE>) { push(@lines, $_); };
+	close(FILEHANDLE);
+	$input_article =  join("", @lines[0..$l1-1]) . $input_article . join("", @lines[$l2..$#lines]);
+    }
+
+
     chdir $backend_repo_path;              # before locking executing this hook!
 
     lockwiki();
@@ -260,12 +283,12 @@ if($action eq "commit")
     my $possibly_new_dir_path = $1;
     `mkdir -p $backend_repo_path$possibly_new_dir_path`;
     my $received_path = $backend_repo_path . $input_file;
-    open(PFH, ">$received_path") or pr_die "$received_path not writable";
+    open(PFH, ">$received_path") or pr_die_unlock "$received_path not writable";
     printf(PFH "%s",$input_article);
     close(PFH);
     unless (-e $received_path)
     {
-	pr_die "We didn't output anything to $received_path";
+	pr_die_unlock"We didn't output anything to $received_path";
     }
 
 ## TODO: The current way of doing this is bad when the commit/add fails:
@@ -301,7 +324,7 @@ if($action eq "commit")
 
 	system ("$git reset --hard 2>&1");
 
-	pr_die "";
+	pr_die_unlock "";
     }
 
 # We've successful added new files to the repo -- let's commit!
@@ -317,7 +340,7 @@ if($action eq "commit")
 
 	system ("$git reset --hard 2>&1");
 
-	pr_die "";
+	pr_die_unlock "";
     }
 
 # now push to frontend, disabling pre-receive
@@ -330,7 +353,7 @@ if($action eq "commit")
     {
 	pr_print ("Error pushing to the frontend repository: $! :: $mv_out");
 	system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
-	pr_die ("The exit code was $git_push_exit_code");
+	pr_die_unlock ("The exit code was $git_push_exit_code");
 
     }
     system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
@@ -388,7 +411,18 @@ if($action eq "edit")
     if(-e $backend_repo_file)
     {
 	open(FILEHANDLE, $backend_repo_file) or pr_die "$backend_repo_file not readable!";
-	$old_content = do { local $/; <FILEHANDLE> };
+	if ((defined $section) && ($section=~m/t(\d+)_(\d+)_(\d+)/))
+	{
+	    my ($nr, $l1, $l2) = ($1, $2, $3);
+	    my @lines = ();
+	    while($_=<FILEHANDLE>) { push(@lines, $_); };
+	    my $l0 = $l1;
+	    my $th = $lines[$l0];
+	    while(!($th =~ m/\btheorem\b/)) {$th = $lines[$l0--];}
+	    $old_content = join("", @lines[++$l0 .. $l2-1]);
+	    $section = "t$nr" . '_' . $l0 . '_' . $l2;  # so that we don't seek again on commit
+	}
+	else { $old_content = do { local $/; <FILEHANDLE> }; }
 	close(FILEHANDLE);
     }
     elsif($this_ext eq $article_ext)

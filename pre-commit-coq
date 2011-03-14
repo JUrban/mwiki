@@ -81,15 +81,43 @@ my @lib_changed = ();
 my @non_lib_changed = ();
 
 
+# Get a value for a mwiki variable either from environment (uppercase)
+# or from git config (lower case).
+# The input is expected as lower case.
+sub get_mwiki_var
+{
+    my ($varname) = @_;
+    my $result;
+
+    if (defined ($ENV{uc($varname)})) 
+    {
+	$result = $ENV{uc($varname)};
+    } 
+    else 
+    {
+	my $git_output = `git config mwiki.$varname`;
+	my $git_exit_code = ($? >> 8);
+	if ($git_exit_code == 0) 
+	{
+	    chomp($git_output);
+	    $result = $git_output;
+	}
+	else { return undef; }
+    }
+    return $result;
+}
+
 # MAKEJOBS: number of different make jobs to run simultaneously
 my $makejobs = 1;
-if (defined ($ENV{"MAKEJOBS"})) {
-  $makejobs = $ENV{"MAKEJOBS"};
-}
-else {
-    $makejobs = `git config mwiki.makejobs`;
-    chomp($makejobs);
-}
+my $tmp1 =  get_mwiki_var("makejobs");
+$makejobs = $tmp1 if( defined $tmp1 );
+
+# ALLOW_SKIPPED_PROOFS: if 0, skipped proofs (@proof) are not allowed,
+# otherwise yes note that git-cnfig does not allow underscore, while
+# shell does not allow dash, so we keep it only alphanumeric.
+my $allow_skipped_proofs  = 1;
+$tmp1 =  get_mwiki_var("allowskippedproofs");
+$allow_skipped_proofs = $tmp1 if( defined $tmp1 );
 
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
@@ -285,7 +313,6 @@ maybe_die_if_make_errors_in_dir ($sandbox, "$sandbox/make-vrf-err",
 # Ensure that the new articles do not have any "@proof" (for Mizar) or "Admit(ted)" for Coq bits.
 # we do not do this check for Coq now - too limiting for developers. 
 
-my $allow_skipped_proofs = 1;
 my $mizar_skip_proof_regexp = '\@proof';
 my $coq_skip_proof_regexp = '\bAdmit\(ted\)\b';
 

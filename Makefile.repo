@@ -55,7 +55,7 @@ prels: $(patsubst %, %-prel, $(MMLLAR))
 	@$(ECHO) $(prel-tag) $*
 	@exporter -q -l mml/$*.miz > /dev/null 2>/dev/null
 	@transfer mml/$*.miz > /dev/null 2>/dev/null
-	@for ext in dno dcl dco def the sch; do \
+	@for ext in dno dcl dco def did the sch; do \
 		if test -f "mml/$*.$$ext"; then \
 			rm -f "mml/$*.$$ext"; \
 		fi \
@@ -95,6 +95,7 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 	  --param ajax_proofs 1 \
 	  --param ajax_proof_dir \'proofs\' \
 	  --param wiki_links 1 \
+	  --param wiki_sections 1 \
 	  --param lwikihost \'$(WIKIHOST)\' \
 	  --param lgitproject \'$(GITPROJECT)\' \
 	  --output html/$*.html \

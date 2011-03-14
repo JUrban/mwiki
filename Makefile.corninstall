@@ -23,6 +23,9 @@
 # - MAKEJOBS: default 1.  The degree of parallelization used by make
 #   when computing the initial HTML-ized presentation of the LIB
 #
+# - ALLOWSKIPPEDPROOFS: default 1.  Allow @proof (proof skipping) in
+#   articles.
+#
 # - NUM_ARTICLES: default 0.  The length of the initial segment of
 #   cornlist (taken from LIBFILES).  Set it to 0 to ensure
 #   that the whole library is used; set it to a low-value for
@@ -50,6 +53,7 @@ BARE_PUBLIC_REPO=$(PUBLIC_REPOS_BASE)/$(REPO_NAME).git
 REPOBIN=$(PUBLIC_REPO)/bin
 COQBIN=$(LIBFILES)/bin
 MAKEJOBS=1
+ALLOWSKIPPEDPROOFS=1
 CSS=article index
 JAVASCRIPT=article
 PERLSCRIPTS=
@@ -68,6 +72,10 @@ CGILIB=/usr/lib/cgi-bin
 APACHE_ROOT=
 HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
 PUBLIC_MWIKI_USER=mwiki
+
+# name and email for the web commits; note that this goes only into backend
+WEB_GIT_NAME="Web Committer"
+WEB_GIT_EMAIL=webcommit@none.none
 
 # .PHONY: all repo sandbox deps xml repo-miz repo-prel repo-perl repo-bin repo-xsl repo-export repo-gitinit repo-makefiles
 
@@ -144,8 +152,11 @@ public-repo-init: public-mwiki-user scratch
 	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
 	  public-repo-description $(PUBLIC_REPO)/.git/description
 	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.' \
+	   && git config  user.name $(WEB_GIT_NAME) \
+	   && git config  user.email $(WEB_GIT_EMAIL) \
            && git config mwiki.wikihost $(WIKIHOST) \
            && git config mwiki.makejobs $(MAKEJOBS) \
+           && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(REPO_NAME)
 
 	for i in pre-commit post-commit; do \
@@ -198,6 +209,7 @@ public-repo-export: public-repo-init
            && git config mwiki.backend $(PUBLIC_REPO)/ \
            && git config mwiki.wikihost $(WIKIHOST) \
            && git config mwiki.makejobs $(MAKEJOBS) \
+           && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(REPO_NAME) 
 	cd $(PUBLIC_REPO) && git remote add frontend $(BARE_PUBLIC_REPO)
 
