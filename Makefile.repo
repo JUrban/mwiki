@@ -5,6 +5,8 @@ MMLLAR=$(patsubst mml/%.miz, %, $(MMLMIZSTD))
 # MMLLAR=$(shell cat $(MIZFILES)/mml.lar) tarski
 DEP-MAKEFILES = $(patsubst %, mml/%.dep, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
+HDRS = $(patsubst %, %.hdr, $(MMLLAR))
+PRELS = $(patsubst %, %-prel, $(MMLLAR))
 VPATH = mml
 export SHELL=/bin/bash
 ECHO = /bin/echo
@@ -31,7 +33,7 @@ prel-tag   = "    PRL "
 absref-tag = "    ABS "
 html-tag   = "    HTM "
 
-hdrs: $(patsubst %, %.hdr, $(MMLLAR))
+hdrs: $(HDRS)
 %.hdr: %.miz
 	@$(ECHO) $(hdr-tag) $*
 	@.perl/mkxmlhead.pl mml/$*.miz > mml/$*.hdr
@@ -50,7 +52,7 @@ xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 
 # #TODO: we should not be touching foo-prel when nothing got changed -
 #        use the MD5/SHA1 testing?
-prels: $(patsubst %, %-prel, $(MMLLAR))
+prels: $(PRELS)
 %-prel: %.xmlvrf
 	@$(ECHO) $(prel-tag) $*
 	@exporter -q -l mml/$*.miz > /dev/null 2>/dev/null
@@ -101,5 +103,12 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 	  --output html/$*.html \
 	  xsl/miz.xsl mml/$*-absrefs.xml
 	@touch mml/$*.html
+
+# fine dependency magic - just touch it all in MMLLAR order
+touch-dependencies:
+	@for i in $(MMLLAR); do \
+	 touch mml/$$i.hdr; touch mml/$$i.xmlvrf; touch mml/$$i-prel; \
+	 touch mml/$$i-absrefs.xml; touch mml/$$i.html; \
+	done
 
 -include $(DEP-MAKEFILES)
