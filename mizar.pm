@@ -808,6 +808,54 @@
  }
 
  ######################################################################
+ ### Fine dependencies
+ ######################################################################
+
+
+## return three hash pointers - first for schemes, then theorems, then definitions
+sub ParseRef
+{
+    my ($filestem) = @_;
+    open(REF,'<', "$filestem.refx") or die "Unable to open an input filehandle for $filestem.refx: $!";
+    my @refs = ({},{},{});
+    my $i = 0;
+    while(<REF>)
+    {
+	if(/syThreeDots/)
+	{
+	    $_ = <REF>;
+	    $_ =~ /x=\"(\d+)\"/ or die "bad REFX file";
+	    my $articlenr = $1;
+	    $_ = <REF>;
+	    $_ =~ /x=\"(\d+)\"/ or die "bad REFX file";
+	    my $refnr = $1;
+	    <REF>; <REF>;
+	    $refs[$i]->{"$articlenr:$refnr"} = 0;
+	}
+	if(/sySemiColon/)
+	{
+	    $i++;
+	}
+    }
+    close(REF);
+    die "Wrong number of ref kinds: $i" if($i != 3);
+    
+    # DEBUG
+    # foreach my $i (0 .. 2) {
+    # my %hash = %{$refs[$i]};
+      # warn "ParseRef: hash number $i";
+      # foreach my $key (keys (%hash)) {
+# warn "key: $key, value ", $hash{$key};
+    # }
+    # }
+
+    return \@refs;
+}
+
+
+
+
+ ######################################################################
  ### Article dependencies
  ######################################################################
 
