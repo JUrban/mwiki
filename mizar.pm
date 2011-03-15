@@ -813,6 +813,10 @@
 
 
 ## return three hash pointers - first for schemes, then theorems, then definitions
+## usage:
+# my $parsed_ref = ParseRef ($article_fragment_name);
+# PruneRefXML ('Scheme', '.esh', $article_fragment_name, $parsed_ref);
+# PruneRefXML ('Theorem', '.eth', $article_fragment_name, $parsed_ref);
 sub ParseRef
 {
     my ($filestem) = @_;
