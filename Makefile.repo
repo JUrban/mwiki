@@ -3,7 +3,7 @@ MMLMIZALL=$(shell ls mml/*.miz)
 MMLMIZSTD=$(filter-out mml/hidden.miz, $(MMLMIZALL))
 MMLLAR=$(patsubst mml/%.miz, %, $(MMLMIZSTD))
 # MMLLAR=$(shell cat $(MIZFILES)/mml.lar) tarski
-DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
+DEP-MAKEFILES = $(patsubst %, mml/%.dep, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
 VPATH = mml
 export SHELL=/bin/bash
@@ -37,7 +37,7 @@ hdrs: $(patsubst %, %.hdr, $(MMLLAR))
 	@.perl/mkxmlhead.pl mml/$*.miz > mml/$*.hdr
 
 xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
-%.xmlvrf: %.miz %-dep
+%.xmlvrf: %.miz
 	@$(ECHO) $(verify-tag) $*
 	@makeenv mml/$*.miz > /dev/null 2> /dev/null;
 	@if [ "$*" == "tarski" ]; then \
@@ -102,4 +102,4 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 	  xsl/miz.xsl mml/$*-absrefs.xml
 	@touch mml/$*.html
 
-include mml/*.dep
+-include $(DEP-MAKEFILES)
