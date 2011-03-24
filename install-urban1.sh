@@ -16,6 +16,7 @@ make -f Makefile.smallinstall $targets \
     REPOS_BASE=$repos_base \
     MIZFILES=$mizfiles \
     XSL4MIZ=$xsl4miz \
+    MIRROR=git://mws.cs.ru.nl/fwiki/public/foo1.git \
     NUM_ARTICLES=$num_articles \
     PUBLIC_MWIKI_USER=www-data \
     MAKEJOBS=2 \
