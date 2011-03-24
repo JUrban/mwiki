@@ -36,7 +36,7 @@ html-tag   = "    HTM "
 hdrs: $(HDRS)
 %.hdr: %.miz
 	@$(ECHO) $(hdr-tag) $*
-	@.perl/mkxmlhead.pl mml/$*.miz > mml/$*.hdr
+	@.perl/mkxmlhead.pl -s mml/$*.miz > mml/$*.hdr
 
 xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 %.xmlvrf: %.miz
@@ -49,6 +49,8 @@ xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 	fi;
 	@mv mml/$*.xml mml/$*.xmlvrf
 
+# %.thdeps: %.xmlvrf
+#	@@perl -e .perl/mkxmlhead.pl mml/$*.miz > mml/$*.hdr
 
 # #TODO: we should not be touching foo-prel when nothing got changed -
 #        use the MD5/SHA1 testing?
@@ -104,6 +106,7 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 	  xsl/miz.xsl mml/$*-absrefs.xml
 	@touch mml/$*.html
 
+# this doesn't work: mmllar is not topologically sorted here
 # fine dependency magic - just touch it all in MMLLAR order
 touch-dependencies:
 	@for i in $(MMLLAR); do \
