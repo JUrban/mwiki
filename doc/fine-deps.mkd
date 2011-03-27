@@ -29,3 +29,21 @@
   and only changes the ones we need - this is better
 - after we recompile in the section mode, we have to touch all file-based dependent files 
   recursively (using .dep files to guide this, or just touch all using mml.lar - needs tsort)
+
+#### middle ground
+
+- as above, but articles depend on theorems/schemes - .fdep
+- we recompile whole articles, and touch things as above
+
+details:
+
+- a theorem T in article A gets edited - T.fdeps get updated
+- we grep for T in other .fdeps, and touch the found .miz files
+- we run make, not including the .dep files
+- if we fail, we rsync/rollback, otherwise we have to touch all
+  dependencies
+- for touching all dependencies, we need to store the topological
+  order each time the .dep files change
+  
+
+- when whole article A gets edited, we also update A.fdeps
