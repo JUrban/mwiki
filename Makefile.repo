@@ -6,6 +6,7 @@ MMLLAR=$(patsubst mml/%.miz, %, $(MMLMIZSTD))
 DEP-MAKEFILES = $(patsubst %, mml/%.dep, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
 HDRS = $(patsubst %, %.hdr, $(MMLLAR))
+FDEPS = $(patsubst %, %.fdeps, $(MMLLAR))
 PRELS = $(patsubst %, %-prel, $(MMLLAR))
 VPATH = mml
 export SHELL=/bin/bash
@@ -38,6 +39,8 @@ hdrs: $(HDRS)
 	@$(ECHO) $(hdr-tag) $*
 	@.perl/mkxmlhead.pl -s mml/$*.miz > mml/$*.hdr
 
+
+
 xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 %.xmlvrf: %.miz
 	@$(ECHO) $(verify-tag) $*
@@ -49,13 +52,18 @@ xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 	fi;
 	@mv mml/$*.xml mml/$*.xmlvrf
 
-# %.thdeps: %.xmlvrf
-#	@@perl -e .perl/mkxmlhead.pl mml/$*.miz > mml/$*.hdr
+
+# fine dependencies on schemes and theorems
+# they are reproduced when prels are
+
+fdeps: $(FDEPS)
+%.fdeps: %.xmlvrf
+	@@perl -e 'use mizar; mizar::PrintFDeps(shift);' mml/$* > mml/$*.fdeps
 
 # #TODO: we should not be touching foo-prel when nothing got changed -
 #        use the MD5/SHA1 testing?
 prels: $(PRELS)
-%-prel: %.xmlvrf
+%-prel: %.xmlvrf %.fdeps
 	@$(ECHO) $(prel-tag) $*
 	@exporter -q -l mml/$*.miz > /dev/null 2>/dev/null
 	@transfer mml/$*.miz > /dev/null 2>/dev/null
