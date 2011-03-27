@@ -17,7 +17,14 @@ evl-tag = "    EVL "
 
 .SECONDARY: $(patsubst %, %.evl, $(MMLLAR)) # don't auto-delete intermediate .dep files
 
+# the deps file is dynamically created mml.lar
+# dependencies in all .dep are printed as pairs and tsort-ed
+# the regexp assumes files like foo.bla or foo-bla only, stripping the extension
 deps: $(DEP-MAKEFILES)
+	@cat $(DEP-MAKEFILES)| perl -e \
+	'while(<>) {@a=m/([^-. :]+)[.-][a-z]+/g; foreach $$k (@a[1..$$#a]) {print $$a[0], " ", $$k,"\n";}}' \
+	 | tsort | tac > deps  
+
 evls: $(EVL-FILES)
 
 %.evl: %.miz
