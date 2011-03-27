@@ -32,6 +32,7 @@
 *.xml
 
 # extensions of other files created by us
+*.fdeps
 *.dep
 *.hdr
 *.html
@@ -39,6 +40,7 @@
 *.xmlvrf
 *-prel
 *-dep
+deps
 
 # the distro files
 .emacs
