@@ -58,7 +58,7 @@ xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 
 fdeps: $(FDEPS)
 %.fdeps: %.xmlvrf
-	@@perl -e 'use mizar; mizar::PrintFDeps(shift);' mml/$* > mml/$*.fdeps
+	@perl -e 'use lib ".perl"; use mizar; mizar::PrintFDeps(shift);' mml/$* > mml/$*.fdeps
 
 # #TODO: we should not be touching foo-prel when nothing got changed -
 #        use the MD5/SHA1 testing?

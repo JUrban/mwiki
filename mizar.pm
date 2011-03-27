@@ -930,9 +930,9 @@ sub PrintFDeps
     my @the = GetRefXML ('Theorem', '.eth', $filestem, $parsed_ref);
 
     open(FDEP,">$filestem.fdeps") or die "$filestem.fdep not writable";
-    print FDEP $filestem, ': ';
+    print FDEP (basename($filestem), ': ');
     print FDEP join(" ", (@sch, @the));
-    print "\n";
+    print FDEP "\n";
     close(FDEP);
 }
 
