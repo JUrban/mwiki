@@ -12,9 +12,8 @@
 - get items deps (.ideps) using .refx file in Mizar ( and Lionel's tools for Coq)
 - .ideps are item dependecies, containing lines like:
 
-   `t1_article3 depends on t3_art2 and t8_art1`
-   
-   `t2_article3 depends on t8_art1 and t1_art3`
+        t1_article3 depends on t3_art2 and t8_art1
+        t2_article3 depends on t8_art1 and t1_art3
      
 - .ideps are updated whenever a source file changes
 - now we have two options:
