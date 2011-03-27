@@ -814,9 +814,9 @@
 
 ## return three hash pointers - first for schemes, then theorems, then definitions
 ## usage:
-# my $parsed_ref = ParseRef ($article_fragment_name);
-# GetRefXML ('Scheme', '.esh', $article_fragment_name, $parsed_ref);
-# GetRefXML ('Theorem', '.eth', $article_fragment_name, $parsed_ref);
+# my $parsed_ref = ParseRef ($article_name);
+# GetRefXML ('Scheme', '.esh', $article_name, $parsed_ref);
+# GetRefXML ('Theorem', '.eth', $article_name, $parsed_ref);
 # <Theorem articlenr="1" nr="2" aid="TARSKI" kind="T">
 sub ParseRef
 {
@@ -919,6 +919,21 @@ sub GetRefXML
 	}
 	return @deps;
     }
+}
+
+sub PrintFDeps
+{
+    my ($filestem) = @_;
+    my $parsed_ref = ParseRef ($filestem);
+
+    my @sch = GetRefXML ('Scheme', '.esh', $filestem, $parsed_ref);
+    my @the = GetRefXML ('Theorem', '.eth', $filestem, $parsed_ref);
+
+    open(FDEP,">$filestem.fdeps") or die "$filestem.fdep not writable";
+    print FDEP $filestem, ': ';
+    print FDEP join(" ", (@sch, @the));
+    print "\n";
+    close(FDEP);
 }
 
 
