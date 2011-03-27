@@ -60,7 +60,28 @@ My objective is that the "run time" (loosely speaking, the parts that come into 
 
 Anyway the end result is that *you* (in your gitweb auth subroutine) need not parse anything. It's all done for you and sitting in a nice clean perl hash :-)
 
+#### Gitweb using apache authorization
 
+Taken from gitweb's INSTALL
 
+- Finally, it is possible to specify an arbitrary perl subroutine that
+  will be called for each project to determine if it can be exported.
+  The subroutine receives an absolute path to the project as its only
+  parameter.
 
+  For example, if you use mod_perl to run the script, and have dumb
+  http protocol authentication configured for your repositories, you
+  can use the following hook to allow access only if the user is
+  authorized to read the files:
 
+        $export_auth_hook = sub {
+            use Apache2::SubRequest ();
+            use Apache2::Const -compile => qw(HTTP_OK);
+            my $path = "$_[0]/HEAD";
+            my $r    = Apache2::RequestUtil->request;
+            my $sub  = $r->lookup_file($path);
+            return $sub->filename eq $path
+                && $sub->status == Apache2::Const::HTTP_OK;
+        };
+      
+    
