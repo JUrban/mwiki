@@ -1,18 +1,8 @@
-# -*- mode: conf; -*-
 Alias /mwiki "/var/cache/mwiki/public/compiled/html"
 <Directory /mwiki>
-  AllowOverride all
-  Options +Indexes -MultiViews
+  Options Indexes FollowSymLinks MultiViews
   DirectoryIndex 00INDEX.html
-  Order allow,deny
-  Allow from all
-</Directory>
-
-ScriptAlias /cgi-bin/mwiki/ /usr/lib/cgi-bin/mwiki
-<Directory "/usr/lib/cgi-bin/mwiki">
   AllowOverride None
-  Options +ExecCGI
-  SetHandler cgi-script
   Order allow,deny
-  Allow from all
+  allow from all
 </Directory>

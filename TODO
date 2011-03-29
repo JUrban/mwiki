@@ -3,16 +3,6 @@
 #+SEQ_TODO: BUG | FIXED
 #+TAGS: jesse josef
 #+STARTUP: overview
-* TODO A full-featured suite for saving one's own mizar notebooks
-** TODO Consider using weblocks for this
-   I've had some experience with the hunchentoot web engine
-   (http://weitz.de/hunchentoot/); weblocks is a very cool extension
-   of hunchentoot that could make this process very slick and full
-   featured. We could be the github of the formal mathematics world :->
-
-   http://weblocks.viridian-project.de/
-=======
->>>>>>> refs/remotes/urban/master
 * DONE Set up some perl tests
   As things stand now, I am testing this code by doing a lot of manual
   changes.  Setting up perl tests would help to make this process more
@@ -25,7 +15,7 @@
   sandbox.  This could be a script (similar to the setup_repo script)
   that unpacks the mml .tar distro and commits it to "stable". Could
   be also a cron job, checking the mizar download page periodically.
-* DONE Add the check for @proof in pre-commit
+* TODO Add the check for @proof in pre-commit
   We should forbid theorems with @proof at the master repo. Check it
   using the XML created by article - there should be no element "SkippedProof" 
 * DONE Add better error messages
@@ -36,9 +26,8 @@
   like in http://repo.or.cz/w/CellLocator.git - looks like
   gitweb can be configured nicely to have additional info for projects -
   look into the Girocco gitweb directory for the setup
-* TODO investigate using ScriptLog directive for logging the cgi I/O
-* DONE Better stage/unstage logic in pre-receive 
-  CLOSED: [2010-04-16 Fri 19:59]
+* TODO: investigate using ScriptLog directive for logging the cgi I/O
+* TODO Better stage/unstage logic in pre-receive 
   (and possibly st similar for pre-commit)
   The current way of doing this is bad when the commit/add fails:
   When we modify a file, and call git add, its current content is staged.
@@ -61,12 +50,7 @@
 * TODO Log the results of anonymous pushes to the system log.
   We should keep track of what's going on, both for web edits and
   anonymous git pushes.
-<<<<<<< HEAD
-* DONE Make HTML valid
-  CLOSED: [2010-04-16 Fri 19:59]
-=======
 * IN-PROGRESS Make HTML valid
->>>>>>> refs/remotes/urban/master
   If we want this to be web scrapable, etc., then it should at least
   be valid.  The frontend index.html, for example, is really bad
   (specifies HTML 2.0 -- from 1995), and in any case is invalid:
@@ -118,15 +102,14 @@
   my MacBook Pro and my new little eeepc, as well as my Portuguese
   server.
 
-* TODO Track the master and stable on GitHub.
+* TODO Track the master and stable on GitHub.x
   Just by post-commit hooks probably.
 * TODO Think if we really need the frontend repo
   We might be fine with just one, OTOH, ikiwiki also uses two repos,
   and we would have to investigate the pre-receive hook for handling
   bad pushes, and not be able to save incorrect work. This is what
   frontend might be useful for.
-* DONE Create an "edit" button, and the correspondin cgi
-  CLOSED: [2010-04-16 Fri 19:59]
+* TODO Create an "edit" button, and the correspondin cgi
   like in ikiwiki. This gets directly commited in the master, and on
   success, the page is updated. Otherwise, errors are shown to the
   user. We might save his work in some branch or frontend, and let him
@@ -144,8 +127,7 @@
   rebuild after this.
 * TODO Create the "clone" button
   and give people a way how to clone things and push to the frontend
-* DONE Implement proper locking, of the repos and sandboxes
-  CLOSED: [2010-04-16 Fri 20:00]
+* TODO Implement proper locking, of the repos and sandboxes
   Especially wrt to the online editing, because pushes and commits to
   frontends and master probably can rely on git's locking.
 * TODO Think of handling mutually incompatible, but correct, developments
@@ -167,34 +149,6 @@
   corresponding tools and work with us on their plugging-in and
   use. Without good testers and developers, it is not going to work.
 * DONE Factor out the CSS from the generated article HTML to a separate file
-<<<<<<< HEAD
-* DONE Don't use SkippedProofs, but rather "@proof"		      :jesse:
-  CLOSED: [2010-04-16 Fri 20:12]
-  The "@proof" should be preceded by whitespace, or at the beginning of a line,
-  and not in the context of a comment.
-* DONE Index file: what should it be called?
-  CLOSED: [2010-04-16 Fri 20:01]
-  The idea is to not restrict the names of articles submitted to the
-  wiki.  Since "index.miz" is a valid mizar name, which would generate
-  "index.html", we want to avoid "index.html" as the name of our
-  index.  Josef proposed "00INDEX.html", which has the advantage that
-  in a directory listing it shows up at the top.  But I think that's a
-  valid article name, too.  I propose "frontpage.html".  The basename
-  has nine characters, which makes it an invalid mizar article name.
-  But this has the advantage that it will not show up at the top of a
-  directory listing.  What about "0000index.html"?  Nine characters,
-  definitely at the top.
-* DONE Make sure we properly escape (X)HTML characters in mwiki.cgi   :jesse:
-  CLOSED: [2010-04-16 Fri 20:36] Escaping ampersands is just the
-  begining.  Solution: the function escapeHTML, conveniently provided
-  already in the CGI.pm perl module.
-* DONE Set up xsl4mizar as a git submodule of mwiki
-  CLOSED: [2010-04-27 Tue 16:19] 
-
-  JAA: I did this in my own private repo.  Does it make a difference
-  in other people's repos?
-=======
 * TODO Fix error message when environment is incorrect (inknown file)
 * TODO Enhance the deafult environ to work with empty (possibly more - templates for environs)
 * TODO ADD line numbers to the edit window (or allow seeing output with errors)
->>>>>>> refs/remotes/urban/master

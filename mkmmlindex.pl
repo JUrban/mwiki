@@ -59,11 +59,15 @@ sub print_one_html
 }
 
 my $header=<<END;
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <head>
 <title>Mizar Mathematical Library (current wiki state), Index of Identifiers</title>
-<link rel="stylesheet" href="index.css"/>
+<style type="text/css">
+	body {font-family: monospace; margin: 0px;}
+	.wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
+	.wikiactions li { display: inline; padding: .2em .4em; }
+        div.index {padding-left: 3mm;}
+</style>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>
@@ -73,23 +77,19 @@ my $header=<<END;
          <li> <a href="$lmwikicgi?a=register">Register</a> </li>
     </ul>
 </div>
-<div class="index">
-<div class="indexheading">
+<div class=index>
+<div class=indexheading>
 <form method="post" action="$lmwikicgi" enctype="multipart/form-data">
-<table align="right">
-<tr valign="top">
-<td>
-                <input type="text" name="f" value="mml/foo.miz" size="20"/>
+<table align=right>
+<tr>
+<td align=top>
+                <input type="text" name="f" value="mml/foo.miz" SIZE="20">
 </td>
-<td>
-<input type="hidden" name="p" value="$git_project"/>
-</td>
-<td>
-<input type="hidden" name="a" value="edit"/>
-</td>
+          <input type="hidden" name="p" value="$git_project">
+          <input type="hidden" name="a" value="edit">
 
-        <td align="right">
-          <input type="submit" value="Create/Edit"/>
+        <td align=right>
+          <input type="submit" value="Create/Edit">
          </td>
 </tr>
 </table>
@@ -146,14 +146,14 @@ my @names = sort keys %all;
 if($#names >= 0)
 {
     my $prevletter = uc(substr($names[0], 0, 1));
-    print ('<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a></dt><dd><dl>', "\n");
+    print ('<dt><A NAME="', $prevletter, '"><b>', $prevletter, '</B></A><dd><dl>', "\n");
 
     foreach my $name (@names)
     {
 	unless ($prevletter eq uc(substr($name, 0, 1)))
 	{
 	    $prevletter = uc(substr($name, 0, 1));
-	    print ('</dl></dd>', "\n", '<dt><a name="', $prevletter, '"><b>', $prevletter, '</b></a></dt><dd><dl>', "\n");
+	    print ('</dl>', "\n", '<dt><A NAME="', $prevletter, '"><b>', $prevletter, '</B></A><dd><dl>', "\n");
 	}
 	print_one_html($name);
     }

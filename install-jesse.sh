@@ -20,3 +20,4 @@ make -f Makefile.smallinstall $targets \
     NUM_ARTICLES=$num_articles \
     PUBLIC_MWIKI_USER=www-data \
     WIKIHOST="192.168.0.12";
+

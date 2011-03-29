@@ -72,9 +72,6 @@ DEVEL_MWIKI_USER=mizdev
 
 MIZBINARIES=accom envget exporter makeenv transfer verifier
 
-# this should be passed as arg - e.g. mws.cs.ru.nl
-WIKIHOST=localhost
-
 MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
 
 repos: public-repos devel-repos gitweb mwiki
@@ -189,17 +186,17 @@ devel-repo-init: devel-mwiki-user scratch
 	  pre-commit post-commit $(DEVEL_REPO)/.git/hooks
 
 
-# public-mwiki-user:
-# 	-adduser --shell=/usr/bin/git-shell \
-# 	  --home=$(PUBLIC_REPOS_BASE) \
-# 	  --disabled-password \
-# 	  $(PUBLIC_MWIKI_USER) \
-# 	    || echo "$(PUBLIC_MWIKI_USER) already exists"
-	# -git daemon \
-	#   --syslog \
-	#   --base-path=$(PUBLIC_REPOS_BASE) \
-	#   --user=$(PUBLIC_MWIKI_USER) \
-	#   --detach
+public-mwiki-user:
+	-adduser --shell=/usr/bin/git-shell \
+	  --home=$(PUBLIC_REPOS_BASE) \
+	  --disabled-password \
+	  $(PUBLIC_MWIKI_USER) \
+	    || echo "$(PUBLIC_MWIKI_USER) already exists"
+	-git daemon \
+	  --syslog \
+	  --base-path=$(PUBLIC_REPOS_BASE) \
+	  --user=$(PUBLIC_MWIKI_USER) \
+	  --detach
 
 devel-mwiki-user:
 	-adduser --shell=/usr/bin/git-shell \
@@ -239,8 +236,8 @@ public-repo-export: public-repo-init
 	chmod 755 $(BARE_PUBLIC_REPO)/hooks/pre-receive
 	chown $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
 	chgrp $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/pre-receive
-	# touch $(BARE_PUBLIC_REPO)/git-daemon-export-ok
-	# GIT_DIR=$(BARE_PUBLIC_REPO) git config --add daemon.receivepack true
+	touch $(BARE_PUBLIC_REPO)/git-daemon-export-ok
+	GIT_DIR=$(BARE_PUBLIC_REPO) git config --add daemon.receivepack true
 
 devel-repo-export: devel-repo-init
 	git clone --bare $(DEVEL_REPO) $(BARE_DEVEL_REPO)
@@ -273,7 +270,7 @@ clean:
 	rm -Rf $(REPOS_BASE)
 	rm -f $(GITWEB_ROOT)/mwiki-public.git
 	rm -f $(GITWEB_ROOT)/mwiki-devel.git
-	# -killall git-daemon
+	-killall git-daemon
 	deluser $(PUBLIC_MWIKI_USER) \
 	  || echo "user $(PUBLIC_MWIKI_USER) doesn't exist"
 	deluser $(DEVEL_MWIKI_USER) \
