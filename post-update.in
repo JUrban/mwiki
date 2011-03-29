@@ -28,7 +28,12 @@ sub pr_die {
 
 
 my $backend_repo_path = '@@BACKEND@@';
+my $mirror_repo = '@@MIRROR@@';
 
+if(!($mirror_repo eq ''))
+{
+    system("git push --mirror $mirror_repo 2>&1");
+}
 
 # All newly received mizar files are now in sitting in the backend
 # repo.  Now we add them.

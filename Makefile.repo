@@ -3,8 +3,11 @@ MMLMIZALL=$(shell ls mml/*.miz)
 MMLMIZSTD=$(filter-out mml/hidden.miz, $(MMLMIZALL))
 MMLLAR=$(patsubst mml/%.miz, %, $(MMLMIZSTD))
 # MMLLAR=$(shell cat $(MIZFILES)/mml.lar) tarski
-DEP-MAKEFILES = $(patsubst %, %.dep, $(MMLLAR))
+DEP-MAKEFILES = $(patsubst %, mml/%.dep, $(MMLLAR))
 MIZ = $(patsubst %, %.miz, $(MMLLAR))
+HDRS = $(patsubst %, %.hdr, $(MMLLAR))
+FDEPS = $(patsubst %, %.fdeps, $(MMLLAR))
+PRELS = $(patsubst %, %-prel, $(MMLLAR))
 VPATH = mml
 export SHELL=/bin/bash
 ECHO = /bin/echo
@@ -31,13 +34,15 @@ prel-tag   = "    PRL "
 absref-tag = "    ABS "
 html-tag   = "    HTM "
 
-hdrs: $(patsubst %, %.hdr, $(MMLLAR))
+hdrs: $(HDRS)
 %.hdr: %.miz
 	@$(ECHO) $(hdr-tag) $*
-	@.perl/mkxmlhead.pl mml/$*.miz > mml/$*.hdr
+	@.perl/mkxmlhead.pl -s mml/$*.miz > mml/$*.hdr
+
+
 
 xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
-%.xmlvrf: %.miz %-dep
+%.xmlvrf: %.miz
 	@$(ECHO) $(verify-tag) $*
 	@makeenv mml/$*.miz > /dev/null 2> /dev/null;
 	@if [ "$*" == "tarski" ]; then \
@@ -48,10 +53,17 @@ xmlvrfs: $(patsubst %, %.xmlvrf, $(MMLLAR))
 	@mv mml/$*.xml mml/$*.xmlvrf
 
 
+# fine dependencies on schemes and theorems
+# they are reproduced when prels are
+
+fdeps: $(FDEPS)
+%.fdeps: %.xmlvrf
+	@perl -e 'use lib ".perl"; use mizar; mizar::PrintFDeps(shift);' mml/$* > mml/$*.fdeps
+
 # #TODO: we should not be touching foo-prel when nothing got changed -
 #        use the MD5/SHA1 testing?
-prels: $(patsubst %, %-prel, $(MMLLAR))
-%-prel: %.xmlvrf
+prels: $(PRELS)
+%-prel: %.xmlvrf %.fdeps
 	@$(ECHO) $(prel-tag) $*
 	@exporter -q -l mml/$*.miz > /dev/null 2>/dev/null
 	@transfer mml/$*.miz > /dev/null 2>/dev/null
@@ -102,4 +114,12 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 	  xsl/miz.xsl mml/$*-absrefs.xml
 	@touch mml/$*.html
 
-include mml/*.dep
+# this doesn't work: mmllar is not topologically sorted here
+# fine dependency magic - just touch it all in MMLLAR order
+touch-dependencies:
+	@for i in $(MMLLAR); do \
+	 touch mml/$$i.hdr; touch mml/$$i.xmlvrf; touch mml/$$i-prel; \
+	 touch mml/$$i-absrefs.xml; touch mml/$$i.html; \
+	done
+
+-include $(DEP-MAKEFILES)
