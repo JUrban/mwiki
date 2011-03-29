@@ -213,6 +213,7 @@ REND
          $viewlinks
          <li> <a href="$htmldir/">Index</a> </li>
          <li> <a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
+         <li> <a href="?p=$git_project;a=register">Register</a> </li>
     </ul>
 </div>
 END
@@ -519,6 +520,7 @@ if($action eq "edit")
      <li><a href="?p=$git_project;a=dependencies;f=$input_file$sectparam">Dependencies</a> </li>
      <li><a href="$htmldir/">Index</a> </li>
      <li><a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
+     <li> <a href="?p=$git_project;a=register">Register</a> </li>
   </ul>
 </div>
 <dl>
