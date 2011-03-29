@@ -39,6 +39,11 @@ my $ProblemSource = $query->param('ProblemSource');
 my $input_article = $query->param('Formula');
 my $message       = $query->param('Message');
 
+# registering                                                                                                                                                                                                                             
+my $username      = $query->param('username');                                                                                                                                                                                            
+my $passwd        = $query->param('password');                                                                                                                                                                                            
+my $pubkey        = $query->param('pubkey');  
+
 # this is required to untaint backticks
 # $ENV{"PATH"} = "";
 
@@ -87,7 +92,9 @@ else { pr_die("The repository name \"$git_project\" is not allowed"); }
 
 if ((defined $action) 
     && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/) || ($action =~ /^(history)$/) 
-	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)))
+	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)
+	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)
+	|| ($action =~ /^(register)$/)))
 {
     $action = $1;
 }
@@ -110,6 +117,7 @@ if ((defined $input_file) && ($input_file =~ /^((mml|dict)\/([a-z0-9_]+)[.]($art
     ($aname, $this_ext) = ($3, $4);
 }
 elsif ($action =~ /^(gitweb)$/) { $aname=""; }
+elsif ($action =~ /^(register)$/) { } # do nothing, but for god's sake, don't go to the next clause!
 else { pr_die("The file name \"$input_file\" is not allowed"); }
 
 
@@ -478,6 +486,38 @@ if($action eq "edit")
  </dl>
 END
 
+}
+
+# "Register" with us by giving us your RSA public key.
+
+my $registration_form = <<REG_FORM;
+<form method="post" action="mwiki.cgi" enctype="multipart/form-data">
+Desired username: <input type="text" size="10" name="username" />
+Desired password: <input type="text" size="10" name="password" />
+<br />
+Your RSA public key: <input type="textarea" size="20" name="pubkey" />
+<input type="submit" value="Register" />
+<input type="reset" value="Reset" />
+<input type="hidden" name="p" value="$git_project">
+<input type="hidden" name="a" value="register">
+</form>
+REG_FORM
+
+if($action eq "register") {
+  if (defined ($username) && defined ($passwd) && defined ($pubkey)) {
+    print <<TRUST;
+<dl>
+<dt>Name</dt>
+<dd>$username</dd>
+<dt>Password</dt>
+<dd>$passwd</dd>
+<dt>Pubkey</dt>
+<dd>$pubkey</dd>
+</dl>
+TRUST
+  } else {
+    print $registration_form;
+  }
 }
 
 print $query->end_html;
