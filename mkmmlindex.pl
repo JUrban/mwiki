@@ -78,6 +78,7 @@ my $header=<<END;
  <div  class="wikiactions">
     <ul>
          <li> <a href="$lmwikicgi?p=$git_project;a=gitweb">Gitweb</a> </li>
+         <li> <a href="$lmwikicgi?p=$git_project;a=register">Register</a> </li>
     </ul>
 </div>
 <div class=index>

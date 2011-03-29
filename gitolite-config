@@ -1,0 +1,10 @@
+include "users.conf"
+
+repo gitolite-admin
+     RW+     =   www-data
+
+repo testing
+     RW+     =   @all
+
+repo mwiki
+     RW+     = @all

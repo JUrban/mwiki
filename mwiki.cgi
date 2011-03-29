@@ -39,6 +39,11 @@ my $ProblemSource = $query->param('ProblemSource');
 my $input_article = $query->param('Formula');
 my $message       = $query->param('Message');
 
+# registering
+my $username      = $query->param('username');
+my $passwd        = $query->param('password');
+my $pubkey        = $query->param('pubkey');
+
 # this is required to untaint backticks
 # $ENV{"PATH"} = "";
 
@@ -109,7 +114,8 @@ else { pr_die("The repository name \"$git_project\" is not allowed"); }
 
 if ((defined $action) 
     && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/) || ($action =~ /^(history)$/) 
-	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/) || ($action =~ /^(dependencies)$/)  ))
+	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/) 
+	|| ($action =~ /^(dependencies)$/) || ($action =~ /^(register)$/)))
 {
     $action = $1;
 }
@@ -132,6 +138,7 @@ if ((defined $input_file) && ($input_file =~ /^((mml|dict)\/([a-z0-9_]+)[.]($art
     ($aname, $this_ext) = ($3, $4);
 }
 elsif ($action =~ /^(gitweb)$/) { $aname=""; }
+ elsif ($action =~ /^(register)$/) { } # do nothing, but for god's sake, don't go to the next clause!
 else { pr_die("The file name \"$input_file\" is not allowed"); }
 
 
@@ -214,6 +221,7 @@ REND
          <li> <a href="$htmldir/">Index</a> </li>
          <li> <a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
          <li> <a href="?p=$git_project;a=register">Register</a> </li>
+         <li> <a href="?p=$git_project;a=users">Users</a> </li>
     </ul>
 </div>
 END
@@ -520,7 +528,8 @@ if($action eq "edit")
      <li><a href="?p=$git_project;a=dependencies;f=$input_file$sectparam">Dependencies</a> </li>
      <li><a href="$htmldir/">Index</a> </li>
      <li><a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
-     <li> <a href="?p=$git_project;a=register">Register</a> </li>
+     <li><a href="?p=$git_project;a=register">Register</a> </li>
+     <li><a href="?p=$git_project;a=users">Users</a> </li>
   </ul>
 </div>
 <dl>
@@ -570,4 +579,176 @@ END
 
 }
 
-print $query->end_html;
+# "Register" with us by giving us your RSA public key.
+
+my $registration_form = <<REG_FORM;
+<form method="post" action="mwiki.cgi" enctype="multipart/form-data">
+Desired username: <input type="text" size="10" name="username" />
+Desired password: <input type="text" size="10" name="password" />
+<br />
+Your RSA public key: <input type="textarea" size="20" name="pubkey" />
+<input type="submit" value="Register" />
+<input type="reset" value="Reset" />
+<input type="hidden" name="p" value="$git_project">
+<input type="hidden" name="a" value="register">
+</form>
+REG_FORM
+
+my $bad_username = <<BAD_USERNAME;
+<p>
+Your username, '$username', is invalid; it must be between 1 and 25 alphanumeric characters (dash '-' and underscore '_' are allowed).  Please go back and try again.</p>
+BAD_USERNAME
+
+my $gitolite_admin_dir = '/var/cache/mwiki/admin/gitolite-admin';
+my $gitolite_key_dir = $gitolite_admin_dir . '/keydir';
+my $gitolite_conf_dir = $gitolite_admin_dir . '/conf';
+my $gitolite_user_conf_file = $gitolite_conf_dir . '/users.conf';
+my $gitolite_user_list_file = '/var/cache/mwiki/admin/gitolite-users';
+
+sub print_successful_registration_message {
+  my $username = shift;
+  print <<SUCCESS;
+
+<p>
+Success!  You have registered with us.  We have made a new
+repository for you whose contents reflect the current state of the
+public wiki.  You can obtain a local copy of the repository by issuing
+the command on your machine:</p>
+
+<blockquote>
+git clone www-data\@$wikihost:mwiki
+</blockquote>
+
+<p>
+This will create a new directory called 'mwiki' in whatever
+directory you were in when you issued the git clone command. If you
+would like to store the repository under a different name (e.g., 'my-mizar-wiki-repo'), issue the
+command</p>
+
+<blockquote>
+git clone www-data\@$wikihost:mwiki my-mizar-wiki-repo
+</blockquote>
+
+<p>
+If this command does not work for you, please contact us.</p>
+
+<p>
+Feel free to make whatever changes you would like to your local
+copy of your repository.  To upload your changes to our server, issue the commands:</p>
+
+<blockquote>
+git add .<br/>
+git commit -m "(fill in some clever summary of what you did here)"<br/>
+git push
+</blockquote>
+
+<p>
+Your work will then be uploaded to the server.  Again, if any of these commands fail, please get in touch with us.</p>
+
+<p align="center">
+Happy Mizaring!</p>
+
+SUCCESS
+}
+
+if($action eq "register") {
+  if (defined ($username) && defined ($passwd) && defined ($pubkey)) {
+    if ($username =~ /[a-z0-9A-Z-_]{1,25}/) {
+      lockwiki ();
+      # first, add the user to the list of all users
+      open (USER_CONF_FILE, '>>', $gitolite_user_conf_file)
+	or pr_die_unlock ("<p>Uh oh: something went wrong while opening the gitolite user configuration file to register '$username':</p><blockquote>" . escapeHTML ($!) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
+      print USER_CONF_FILE <<USER_CONFIG;
+\@users = $username
+repo $username
+   R   = \@all
+   RW+ = $username
+
+USER_CONFIG
+      close USER_CONF_FILE
+	or pr_die_unlock ("Something went wrong closing the output filehandle for the user configuration file!");
+
+      # add the username to the list of all users (this introduces
+      # some redundancy in our data, but for the sake of convenience,
+      # it's easier to manage a flat list of usernames)
+      open (USERS, '>>', $gitolite_user_list_file)
+	or pr_die_unlock ("Uh oh: something went wrong opening the user list file at '$gitolite_user_list_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+      print USERS ("$username\n")
+	or pr_die_unlock ("Uh oh: something went wrong printing '$username' to the user list file:</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+      close USERS
+	or pr_die_unlock ("Uh oh: something went wrong closing the user list file at '$gitolite_user_list_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+
+      # clone the public repo for the newly registered user
+      my $user_gitolite_bare_repo = "/var/www/repositories/$username.git";
+      my $git_clone_exit_code =
+	system ('git', 'clone', '--bare', '/var/cache/mwiki/public/mwiki', $user_gitolite_bare_repo);
+      if ($git_clone_exit_code != 0) {
+	my $git_clone_error_message = $git_clone_exit_code >> 8;
+	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the public mwiki repository for '$username':</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
+      }
+      # tell gitweb about the new repo
+      my $user_gitweb_bare_repo = "/var/cache/git/$username.git";
+      link $user_gitolite_bare_repo, $user_gitweb_bare_repo
+        or pr_die_unlock ("Un oh: something went wrong linking '$user_gitweb_bare_repo' to '$user_gitweb_bare_repo':<blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.");
+      # copy the given public key to the keydir
+      my $user_key_file = $gitolite_key_dir . '/' . "$username" . '.pub';
+      open (USER_KEY_FILE, '>', $user_key_file) 
+	or pr_die_unlock ("<p>Uh oh: something went wrong while opening the an output filehandle at '$user_key_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
+      print USER_KEY_FILE ("$pubkey\n");
+      close (USER_KEY_FILE)
+	or pr_die_unlock ("<p>Uh oh: something went wrong when closing the output filehandle at '$user_key_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+      chdir $gitolite_admin_dir;
+      # add the changed files (we should probably lock things here, if not earlier)
+      my $git_add_exit_code = system ('git', 'add', '.');
+      if ($git_add_exit_code != 0) {
+	my $git_add_error_message = $git_add_exit_code >> 8;
+	pr_die_unlock ("<p>Uh oh: something went wrong staging the modified files in the gitolite admin repo:</p><blockquote>" . escapeHTML ($git_add_error_message) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+      }
+      # commit these changes to the gitolite admin repo
+      my $git_commit_exit_code = system ('git', 'commit', '--quiet', '-a', '-m', "Added public key '$pubkey' for user '$username'");
+      if ($git_commit_exit_code != 0) {
+	my $git_commit_error_message = $git_commit_exit_code >> 8;
+	pr_die_unlock ("<p>Uh oh: something went wrong commiting the changes to the gitolite admin repo:</p><blockqute>" . escapeHTML ($git_commit_error_message) . "</blockquote><p>Please complain loudly to the administrators.");
+      }
+      # push the changes to the real gitolite admin repo
+      my $git_push_exit_code = system ('git', 'push', '--quiet');
+      if ($git_push_exit_code == 0) {
+	print_successful_registration_message ($username);
+	unlockwiki ();
+      } else {
+	my $git_push_error_message = $git_push_exit_code >> 8;
+	pr_die_unlock ("<p>Uh oh: something went wrong pushing the changes we just made to to the gitolite admin repo:</p><blockqute>" . escapeHTML ($git_push_error_message) . "</blockquote><p>Please complain loudly to the administrators.");
+      }
+    } else {
+      pr_die_unlock ($bad_username);
+    }
+  } else {
+    print $registration_form;
+  }
+}
+
+if ($action eq 'users') {
+  my @users = ();
+  lockwiki ();
+  open (USERS, '<', $gitolite_user_list_file)
+    or pr_die_unlock ("Uh oh: cannot open the user list at '$gitolite_user_list_file:</p><blockquote" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administators.</p>");
+  while (defined (my $user = <USERS>)) {
+    chomp $user;
+    push (@users, $user);
+  }
+  close USERS
+    or pr_die_unlock ("Uh oh: cannot close the user list at '$gitolite_user_list_file':</p><blockquote" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+  print "<p>Below is a list of all users that have registered with us.  Follow the
+link associated with a user to see that user's repository.</p>\n";
+  if (scalar @users == 0) {
+    print "<p><em>(No users have registered yet.)</em></p>"
+  } else {
+    print "<ul>";
+    foreach my $user (@users) {
+      print "<a href=\"$lgitwebcgi?p=$git_project;r=$user.git\">$user</a>";
+    }
+  }
+  unlockwiki ();
+}
+
+  print $query->end_html;

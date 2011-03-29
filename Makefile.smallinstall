@@ -87,6 +87,37 @@ MIZBINARIES=accom envget exporter makeenv transfer verifier
 
 MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
 
+# gitolite
+GITOLITE_USER=$(PUBLIC_MWIKI_USER)
+GITOLITE_REPO=git://github.com/sitaramc/gitolite.git
+GITOLITE_SOURCE_DIR=/var/cache/mwiki/gitolite-source
+GITOLITE_INSTALL_DIR=/var/www
+GITOLITE_BIN_DIR=$(GITOLITE_INSTALL_DIR)/bin
+GITOLITE_CONF_DIR=$(GITOLITE_INSTALL_DIR)/gitolite/conf
+GITOLITE_HOOKS_DIR=$(GITOLITE_INSTALL_DIR)/gitolite/hooks
+MWIKI_ADMIN_DIR=/var/cache/mwiki/admin
+GITOLITE_ADMIN_DIR=$(MWIKI_ADMIN_DIR)/gitolite-admin
+
+gitolite:
+	chown -R www-data:www-data /var/cache/mwiki
+	sudo -u www-data git clone $(GITOLITE_REPO) $(GITOLITE_SOURCE_DIR)
+	sudo -u www-data mkdir -p $(GITOLITE_BIN_DIR)
+	sudo -u www-data mkdir -p $(GITOLITE_CONF_DIR)
+	sudo -u www-data mkdir -p $(GITOLITE_HOOKS_DIR)
+	cd $(GITOLITE_SOURCE_DIR) && sudo -u www-data ./src/gl-system-install $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)
+	cp /var/www/.ssh/id_rsa.pub /tmp/www-data.pub
+	sudo -i -u www-data $(GITOLITE_BIN_DIR)/gl-setup /tmp/www-data.pub
+	rm /tmp/www-data.pub
+	# import the mwiki into gitolite
+	sudo -u www-data git clone --bare $(PUBLIC_REPO) /var/www/repositories/mwiki.git
+	touch /var/www/.gitolite/conf/users.conf # initially empty list of users
+	chown -R www-data:www-data /var/cache/mwiki
+	mkdir -p $(GITOLITE_ADMIN_DIR)
+	chown -R www-data:www-data $(GITOLITE_ADMIN_DIR)
+	sudo -u www-data git clone www-data@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
+	cp gitolite-config $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
+	cd $(GITOLITE_ADMIN_DIR) && sudo -u www-data git commit -a -m 'Include users.conf in the config file and register the mwiki with gitolite.' && sudo -u www-data git push
+
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
 
@@ -269,3 +300,11 @@ clean:
 	sv down git-daemon
 	-mv -f /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
 	sv up git-daemon
+	# gitolite cleanup
+	rm -Rf /var/www/.gitolite
+	rm -Rf /var/www/gitolite
+	rm -Rf /var/www/repositories
+	rm -f /var/www/projects.list
+	rm -f /var/www/bin/gitolite*
+	rm -f /var/www/bin/gl-*
+	rm -f /var/www/bin/sshkeys-lint
