@@ -534,5 +534,6 @@ TRUST
   } else {
     print $registration_form;
   }
+}
 
 print $query->end_html;
