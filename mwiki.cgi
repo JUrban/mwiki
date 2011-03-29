@@ -599,11 +599,11 @@ my $bad_username = <<BAD_USERNAME;
 Your username, '$username', is invalid; it must be between 1 and 25 alphanumeric characters (dash '-' and underscore '_' are allowed).  Please go back and try again.</p>
 BAD_USERNAME
 
-my $gitolite_admin_dir = '/var/cache/mwiki/admin/gitolite-admin';
+my $gitolite_admin_dir =  $backend_repo_path . ' ../../admin/gitolite-admin';
 my $gitolite_key_dir = $gitolite_admin_dir . '/keydir';
 my $gitolite_conf_dir = $gitolite_admin_dir . '/conf';
 my $gitolite_user_conf_file = $gitolite_conf_dir . '/users.conf';
-my $gitolite_user_list_file = '/var/cache/mwiki/admin/gitolite-users';
+my $gitolite_user_list_file = $backend_repo_path . '../../admin/gitolite-users';
 
 sub print_successful_registration_message {
   my $username = shift;
@@ -681,7 +681,7 @@ USER_CONFIG
       # clone the public repo for the newly registered user
       my $user_gitolite_bare_repo = "/home/www/repositories/$username.git";
       my $git_clone_exit_code =
-	system ('git', 'clone', '--bare', '/var/cache/mwiki/public/mwiki', $user_gitolite_bare_repo);
+	system ('git', 'clone', '--bare', $frontend_repo, $user_gitolite_bare_repo);
       if ($git_clone_exit_code != 0) {
 	my $git_clone_error_message = $git_clone_exit_code >> 8;
 	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the public mwiki repository for '$username':</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
