@@ -89,7 +89,8 @@ MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
 
 # gitolite
 GITOLITE_USER=$(PUBLIC_MWIKI_USER)
-GITOLITE_REPO=git://github.com/sitaramc/gitolite.git
+GITOLITE_REPO=/home/urban/ec/gitolite
+#GITOLITE_REPO=git://github.com/sitaramc/gitolite.git
 GITOLITE_SOURCE_DIR=$(REPOS_BASE)/gitolite-source
 GITOLITE_INSTALL_DIR=/home/www
 GITOLITE_BIN_DIR=$(GITOLITE_INSTALL_DIR)/bin
@@ -106,17 +107,17 @@ gitolite:
 	sudo -u www-data mkdir -p $(GITOLITE_HOOKS_DIR)
 	cd $(GITOLITE_SOURCE_DIR) && sudo -u www-data ./src/gl-system-install $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)
 	cp $(GITOLITE_INSTALL_DIR)/.ssh/id_rsa.pub /tmp/www-data.pub
-	sudo -i -u www-data $(GITOLITE_BIN_DIR)/gl-setup /tmp/www-data.pub
+	sudo -u www-data sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && export PATH=$$PATH:$$HOME/bin && gl-setup  -q /tmp/www-data.pub'
 	rm /tmp/www-data.pub
 	# import the mwiki into gitolite
-	sudo -u www-data git clone --bare $(PUBLIC_REPO) $(GITOLITE_INSTALL_DIR)/repositories/mwiki.git
+	sudo -u www-data git clone --bare $(PUBLIC_REPO) $(GITOLITE_INSTALL_DIR)/repositories/$(REPO_NAME).git
 	touch $(GITOLITE_INSTALL_DIR)/.gitolite/conf/users.conf # initially empty list of users
 	chown -R www-data:www-data $(REPOS_BASE)
 	mkdir -p $(GITOLITE_ADMIN_DIR)
 	chown -R www-data:www-data $(GITOLITE_ADMIN_DIR)
-	sudo -u www-data git clone www-data@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
+	sudo -u www-data sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && git clone www-data@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)'
 	cp gitolite-config $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
-	cd $(GITOLITE_ADMIN_DIR) && sudo -u www-data git commit -a -m 'Include users.conf in the config file and register the mwiki with gitolite.' && sudo -u www-data git push
+	cd $(GITOLITE_ADMIN_DIR) && sudo -u www-data sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push'
 
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
