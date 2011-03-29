@@ -808,6 +808,136 @@
  }
 
  ######################################################################
+ ### Fine dependencies
+ ######################################################################
+
+
+## return three hash pointers - first for schemes, then theorems, then definitions
+## usage:
+# my $parsed_ref = ParseRef ($article_name);
+# GetRefXML ('Scheme', '.esh', $article_name, $parsed_ref);
+# GetRefXML ('Theorem', '.eth', $article_name, $parsed_ref);
+# <Theorem articlenr="1" nr="2" aid="TARSKI" kind="T">
+sub ParseRef
+{
+    my ($filestem) = @_;
+    open(REF,'<', "$filestem.refx") or die "Unable to open an input filehandle for $filestem.refx: $!";
+    my @refs = ({},{},{});
+    my $i = 0;
+    while(<REF>)
+    {
+	if(/syThreeDots/)
+	{
+	    $_ = <REF>;
+	    $_ =~ /x=\"(\d+)\"/ or die "bad REFX file";
+	    my $articlenr = $1;
+	    $_ = <REF>;
+	    $_ =~ /x=\"(\d+)\"/ or die "bad REFX file";
+	    my $refnr = $1;
+	    <REF>; <REF>;
+	    $refs[$i]->{"$articlenr:$refnr"} = 0;
+	}
+	if(/sySemiColon/)
+	{
+	    $i++;
+	}
+    }
+    close(REF);
+    die "Wrong number of ref kinds: $i" if($i != 3);
+    
+    # DEBUG
+    # foreach my $i (0 .. 2) {
+    # my %hash = %{$refs[$i]};
+      # warn "ParseRef: hash number $i";
+      # foreach my $key (keys (%hash)) {
+# warn "key: $key, value ", $hash{$key};
+    # }
+    # }
+
+    return \@refs;
+}
+
+## only callable with .eth or .esh; $refs is an array pointer of three hashes returned by ParseRef
+sub GetRefXML
+{
+    my ($xml_elem,$file_ext,$filestem,$refs_ref) = @_;
+    my @deps = ();   # array of dependencies like t1_abcmiz0
+    my @refs = @{$refs_ref};
+    my ($schs, $ths, $defs) = @refs;
+    my $res = 0;
+    my $xitemfile = $filestem . $file_ext;
+    if (-e $xitemfile)
+    {
+	open(XML, $xitemfile) or die "Unable to open an output filehandle for $xitemfile!";
+	local $/; $_ = <XML>;
+	close(XML);
+    }
+    else
+    {
+	return @deps;
+    }
+
+    my ($xmlbeg,$xmlnodes,$xmlend) = $_ =~ m/(.*?)([<]$xml_elem\b.*[<]\/$xml_elem>)(.*)/s;
+    if (defined $xmlbeg)
+    {
+	## call Mizar parser to get the tp positions
+	my @xmlelems = $xmlnodes =~ m/(<$xml_elem\b.*?<\/$xml_elem>)/sg; # this is a multiline match
+
+	if ($file_ext eq '.eth')
+	{
+	    foreach my $elemnr (0 .. scalar(@xmlelems)-1)
+	    {
+		my $first_line = (split /\n/, $xmlelems[$elemnr] )[0];
+
+		$first_line =~ m/.*articlenr=\"(\d+)\".* nr=\"(\d+)\".* aid=\"([A-Z0-9_]+)\".* kind=\"([DT])\"/ or die "bad element $first_line";
+
+		my ($ref, $nr, $aid, $kind) = ( "$1:$2", $2, $3, $4);
+		my $needed = ($kind eq 'T')? $ths : $defs;
+
+		if ( exists $needed->{$ref})
+		{
+		    push(@deps, lc($kind) . $nr . '_' . lc($aid));
+		    $res++;
+		}
+	    }
+	} elsif ($file_ext eq '.esh') 
+	{
+	    foreach my $elemnr (0 .. scalar(@xmlelems)-1) 
+	    {
+		my $first_line = (split /\n/, $xmlelems[$elemnr] )[0];
+		$first_line =~ m/.*articlenr=\"(\d+)\".* nr=\"(\d+)\".* aid=\"([A-Z0-9_]+)\".*/ or die "bad element $first_line";
+
+		if ( exists $schs->{"$1:$2"})
+		{
+		    push(@deps, 's' . $2 . '_' . lc($3));
+		    $res++;
+		}
+	    }
+	} else
+	{
+	    die "bad extension $file_ext";
+	}
+	return @deps;
+    }
+}
+
+sub PrintFDeps
+{
+    my ($filestem) = @_;
+    my $parsed_ref = ParseRef ($filestem);
+
+    my @sch = GetRefXML ('Scheme', '.esh', $filestem, $parsed_ref);
+    my @the = GetRefXML ('Theorem', '.eth', $filestem, $parsed_ref);
+
+    open(FDEP,">$filestem.fdeps") or die "$filestem.fdep not writable";
+    print FDEP (basename($filestem), ': ');
+    print FDEP join(" ", (@sch, @the));
+    print FDEP "\n";
+    close(FDEP);
+}
+
+
+ ######################################################################
  ### Article dependencies
  ######################################################################
 
