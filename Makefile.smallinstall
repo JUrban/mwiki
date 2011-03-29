@@ -87,6 +87,22 @@ MIZBINARIES=accom envget exporter makeenv transfer verifier
 
 MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
 
+# gitolite
+GITOLITE_USER=mwiki
+GITOLITE_REPO=git://github.com/sitaramc/gitolite.git
+GITOLITE_SOURCE_DIR=/var/cache/mwiki/gitolite-source
+GITOLITE_INSTALL_DIR=/var/cache/mwiki/gitolite
+GITOLITE_BIN_DIR=$(GITOLITE_INSTALL_DIR)/bin
+GITOLITE_CONF_DIR=$(GITOLITE_INSTALL_DIR)/conf
+GITOLITE_HOOKS_DIR=$(GITOLITE_INSTALL_DIR)/hooks
+
+gitolite:
+	git clone $(GITOLITE_REPO) $(GITOLITE_SOURCE_DIR)
+	mkdir -p $(GITOLITE_BIN_DIR)
+	mkdir -p $(GITOLITE_CONF_DIR)
+	mkdir -p $(GITOLITE_HOOKS_DIR)
+	cd $(GITOLITE_SOURCE_DIR) && ./src/gl-system-install $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)
+
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
 
