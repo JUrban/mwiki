@@ -335,7 +335,7 @@ if($action eq "commit")
 #    $ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
     chdir $backend_repo_path;              # before executing this hook!
     my $git_commit_output 
-	= system ("MW_SECTION=$section && MW_FILE=$input_file && $git commit -m '$message' 2>&1");
+	= system ("export MW_SECTION=$section && export MW_FILE=$input_file && $git commit -m '$message' 2>&1");
     my $git_commit_exit_code = ($? >> 8);
     unless ($git_commit_exit_code == 0) 
     {
