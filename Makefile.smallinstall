@@ -113,6 +113,7 @@ gitolite:
 	sudo -u www-data git clone www-data@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
 	echo 'include "users.conf"' >> $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
 	touch $(GITOLITE_ADMIN_DIR)/conf/users.conf # initially empty list of users
+	chown -R www-data:www-data /var/cache/mwiki
 
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
