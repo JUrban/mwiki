@@ -4,7 +4,7 @@ repos_base=/var/cache/mwiki
 #mizfiles=/home/mptp/mizwrk/7.11.05_4.133.1080
 mizfiles=/home/alama/mizinst/7.11.06_4.150.1103
 xsl4miz=/home/alama/xsl4mizar
-num_articles=5
+num_articles=2
 
 
 if test -z "$1"; then
