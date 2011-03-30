@@ -95,7 +95,8 @@ GITOLITE_INSTALL_DIR=/var/www
 GITOLITE_BIN_DIR=$(GITOLITE_INSTALL_DIR)/bin
 GITOLITE_CONF_DIR=$(GITOLITE_INSTALL_DIR)/gitolite/conf
 GITOLITE_HOOKS_DIR=$(GITOLITE_INSTALL_DIR)/gitolite/hooks
-GITOLITE_ADMIN_DIR=/var/cache/mwiki/admin
+MWIKI_ADMIN_DIR=/var/cache/mwiki/admin
+GITOLITE_ADMIN_DIR=$(MWIKI_ADMIN_DIR)/gitolite-admin
 
 gitolite:
 	chown -R www-data:www-data /var/cache/mwiki
@@ -109,7 +110,9 @@ gitolite:
 	rm /tmp/www-data.pub
 	mkdir -p $(GITOLITE_ADMIN_DIR)
 	chown -R www-data:www-data $(GITOLITE_ADMIN_DIR)
-	sudo -u www-data git clone www-data@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)/gitolite-admin
+	sudo -u www-data git clone www-data@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
+	echo 'include "users.conf"' >> $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
+	touch $(GITOLITE_ADMIN_DIR)/conf/users.conf # initially empty list of users
 
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
