@@ -519,9 +519,20 @@ Your RSA public key: <input type="textarea" size="20" name="pubkey" />
 </form>
 REG_FORM
 
+my $bad_username = <<BAD_USERNAME;
+<p>
+Your username, '$username', is invalid; it must be between 1 and 25 alphanumeric characters (dash '-' and underscore '_' are allowed).  Please go back and try again.</p>
+BAD_USERNAME
+
+my $gitolite_admin_dir = '/var/cache/mwiki/admin/gitolite-admin';
+my $gitolite_key_dir = $gitolite_admin_dir . '/keydir';
+my $gitolite_conf_dir = $gitolite_admin_dir . '/conf';
+my $gitolite_user_conf_file = $gitolite_conf_dir . '/users.conf';
+
 if($action eq "register") {
   if (defined ($username) && defined ($passwd) && defined ($pubkey)) {
-    print <<TRUST;
+    if ($username =~ /[a-z0-9A-Z-_]{1,25}/) {
+      print <<TRUST;
 <dl>
 <dt>Name</dt>
 <dd>$username</dd>
@@ -531,6 +542,20 @@ if($action eq "register") {
 <dd>$pubkey</dd>
 </dl>
 TRUST
+      # first, add the user to the list of all users
+      if (open (USER_CONF_FILE, '>>', $gitolite_user_conf_file)) {
+	print USER_CONF_FILE ("$username\n");
+	if (close USER_CONF_FILE) {
+	  print "<p>Success!</p>";
+	} else {
+	  print "<p>Uh oh: something went wrong adding '$username' to the gitolite user file: unable to close to output filehandle.  The precise error is:</p><blockquote>", escapeHTML ($!), "</blockquote> <p>Please complain loudly to the administrators.</p>";
+	}
+      } else {
+	print "<p>Uh oh: something went wrong while opening the gitolite user configuration file to register '$username':</p><blockquote>", escapeHTML ($!), "</blockquote> <p>Please complain loudly to the administrators.</p>";
+      }
+    } else {
+      print $bad_username;
+    }
   } else {
     print $registration_form;
   }
