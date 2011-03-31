@@ -544,31 +544,39 @@ if($action eq "register") {
 TRUST
       # first, add the user to the list of all users
       if (open (USER_CONF_FILE, '>>', $gitolite_user_conf_file) != 0) {
-	print USER_CONF_FILE ("$username\n");
+	print USER_CONF_FILE ('@users = ', "$username\n");
 	if (close USER_CONF_FILE) {
 	  # second, copy the given public key to the keydir
 	  my $user_key_file = $gitolite_key_dir . '/' . "$username" . '.pub';
 	  if (open (USER_KEY_FILE, '>', $user_key_file) != 0) {
 	    print USER_KEY_FILE ("$pubkey\n");
 	    if (close (USER_KEY_FILE)) {
-	      # third, commit these changes to the gitolite admin repo
-	      # we should probably lock things here (if not earlier)
 	      chdir $gitolite_admin_dir;
-	      my $git_commit_exit_code
-		= system ('git', 'commit', '--quiet', '-a', '-m', "Added public key '$pubkey' for user '$username'");
-	      if ($git_commit_exit_code == 0) {
-		# fourth, push the changes to the real gitolite admin repo
-		my $git_push_exit_code
-		  = system ('git', 'push', '--quiet');
-		if ($git_push_exit_code == 0) {
-		  print "<p>Success!</p>";
+	      # third, add the changed files
+	      # we should probably lock things here (if not earlier)
+	      my $git_add_exit_code
+		= system ('git', 'add', '.');
+	      if ($git_add_exit_code == 0) {
+		# fourth, commit these changes to the gitolite admin repo
+		my $git_commit_exit_code
+		  = system ('git', 'commit', '--quiet', '-a', '-m', "Added public key '$pubkey' for user '$username'");
+		if ($git_commit_exit_code == 0) {
+		  # fifth, push the changes to the real gitolite admin repo
+		  my $git_push_exit_code
+		    = system ('git', 'push', '--quiet');
+		  if ($git_push_exit_code == 0) {
+		    print "<p>Success!</p>";
+		  } else {
+		    my $git_push_error_message = $git_push_exit_code >> 8;
+		    print "<p>Uh oh: something went wrong pushing the changes we just made to to the gitolite admin repo:</p><blockqute>", escapeHTML ($git_push_error_message), "</blockquote><p>Please complain loudly to the administrators.";
+		  }
 		} else {
-		  my $git_push_error_message = $git_push_exit_code >> 8;
-		  print "<p>Uh oh: something went wrong pushing the changes we just made to to the gitolite admin repo:</p><blockqute>", escapeHTML ($git_push_error_message), "</blockquote><p>Please complain loudly to the administrators.";
+		  my $git_commit_error_message = $git_commit_exit_code >> 8;
+		  print "<p>Uh oh: something went wrong commiting the changes to the gitolite admin repo:</p><blockqute>", escapeHTML ($git_commit_error_message), "</blockquote><p>Please complain loudly to the administrators.";
 		}
 	      } else {
-		my $git_commit_error_message = $git_commit_exit_code >> 8;
-		print "<p>Uh oh: something went wrong commiting the changes to the gitolite admin repo:</p><blockqute>", escapeHTML ($git_commit_error_message), "</blockquote><p>Please complain loudly to the administrators.";
+		my $git_add_error_message = $git_add_exit_code >> 8;
+		print "<p>Uh oh: something went wrong staging the modified files in the gitolite admin repo:</p><blockquote>", escapeHTML ($git_add_error_message), "</blockquote><p>Please complain loudly to the administrators.</p>";
 	      }
 	    } else {
 	      print "<p>Uh oh: something went wrong adding the key '$pubkey' for user '$username' to the gitolite keydir: unable to close to output filehandle.  The precise error is:</p><blockquote>", escapeHTML ($!), "</blockquote> <p>Please complain loudly to the administrators.</p>";
