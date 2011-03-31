@@ -562,7 +562,7 @@ copy of your repository.  To upload your changes to our server, issue the comman
 
 <blockquote>
 git add .<br/>
-git commit -m "<fill in some clever summary of what you did here>"<br/>
+git commit -m "(fill in some clever summary of what you did here)"<br/>
 git push
 </blockquote>
 
