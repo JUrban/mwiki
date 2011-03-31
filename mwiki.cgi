@@ -529,6 +529,52 @@ my $gitolite_key_dir = $gitolite_admin_dir . '/keydir';
 my $gitolite_conf_dir = $gitolite_admin_dir . '/conf';
 my $gitolite_user_conf_file = $gitolite_conf_dir . '/users.conf';
 
+sub print_successful_registration_message {
+  my $username = shift;
+  print <<SUCCESS;
+
+<p>
+Success!  You have registered with us.  We have made a new
+repository for you whose contents reflect the current state of the
+public wiki.  You can obtain a local copy of the repository by issuing
+the command on your machine:</p>
+
+<blockquote>
+git clone www-data\@$wikihost:$username
+</blockquote>
+
+<p>
+This will create a new directory called '$username' in whatever
+directory you were in when you issued the git clone command. If you
+would like to store the repository under a different name (e.g., 'my-mizar-wiki-repo'), issue the
+command</p>
+
+<blockquote>
+git clone www-data\@$wikihost:$username my-mizar-wiki-repo
+</blockquote>
+
+<p>
+If this command does not work for you, please contact us.</p>
+
+<p>
+Feel free to make whatever changes you would like to your local
+copy of your repository.  To upload your changes to our server, issue the commands:</p>
+
+<blockquote>
+git add .<br/>
+git commit -m "<fill in some clever summary of what you did here>"<br/>
+git push
+</blockquote>
+
+<p>
+If any of these commands fail, please get in touch with us.</p>
+
+<p align="center">
+Happy Mizaring!</p>
+
+SUCCESS
+}
+
 if($action eq "register") {
   if (defined ($username) && defined ($passwd) && defined ($pubkey)) {
     if ($username =~ /[a-z0-9A-Z-_]{1,25}/) {
@@ -565,7 +611,7 @@ TRUST
 		  my $git_push_exit_code
 		    = system ('git', 'push', '--quiet');
 		  if ($git_push_exit_code == 0) {
-		    print "<p>Success!</p>";
+		    print_successful_registration_message ($username);
 		  } else {
 		    my $git_push_error_message = $git_push_exit_code >> 8;
 		    print "<p>Uh oh: something went wrong pushing the changes we just made to to the gitolite admin repo:</p><blockqute>", escapeHTML ($git_push_error_message), "</blockquote><p>Please complain loudly to the administrators.";
