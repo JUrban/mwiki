@@ -297,3 +297,11 @@ clean:
 	sv down git-daemon
 	-mv -f /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
 	sv up git-daemon
+	# gitolite cleanup
+	rm -Rf /var/www/.gitolite
+	rm -Rf /var/www/gitolite
+	rm -Rf /var/www/repositories
+	rm -f /var/www/projects.list
+	rm -f /var/www/bin/gitolite*
+	rm -f /var/www/bin/gl-*
+	rm -f /var/www/bin/sshkeys-lint
