@@ -578,16 +578,6 @@ SUCCESS
 if($action eq "register") {
   if (defined ($username) && defined ($passwd) && defined ($pubkey)) {
     if ($username =~ /[a-z0-9A-Z-_]{1,25}/) {
-      print <<TRUST;
-<dl>
-<dt>Name</dt>
-<dd>$username</dd>
-<dt>Password</dt>
-<dd>$passwd</dd>
-<dt>Pubkey</dt>
-<dd>$pubkey</dd>
-</dl>
-TRUST
       # first, add the user to the list of all users
       if (open (USER_CONF_FILE, '>>', $gitolite_user_conf_file) != 0) {
 	print USER_CONF_FILE ('@users = ', "$username\n");
