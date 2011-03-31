@@ -543,10 +543,21 @@ if($action eq "register") {
 </dl>
 TRUST
       # first, add the user to the list of all users
-      if (open (USER_CONF_FILE, '>>', $gitolite_user_conf_file)) {
+      if (open (USER_CONF_FILE, '>>', $gitolite_user_conf_file) != 0) {
 	print USER_CONF_FILE ("$username\n");
 	if (close USER_CONF_FILE) {
-	  print "<p>Success!</p>";
+	  # second, copy the given public key to the keydir
+	  my $user_key_file = $gitolite_key_dir . '/' . "$username" . '.pub';
+	  if (open (USER_KEY_FILE, '>', $user_key_file) != 0) {
+	    print USER_KEY_FILE ("$pubkey\n");
+	    if (close (USER_KEY_FILE)) {
+	      print "<p>Success!</p>";
+	    } else {
+	      print "<p>Uh oh: something went wrong adding the key '$pubkey' for user '$username' to the gitolite keydir: unable to close to output filehandle.  The precise error is:</p><blockquote>", escapeHTML ($!), "</blockquote> <p>Please complain loudly to the administrators.</p>";
+	    }
+	  } else {
+	    print "<p>Uh oh: something went wrong while opening the an output filehandle at '$user_key_file':</p><blockquote>", escapeHTML ($!), "</blockquote> <p>Please complain loudly to the administrators.</p>";
+	  }
 	} else {
 	  print "<p>Uh oh: something went wrong adding '$username' to the gitolite user file: unable to close to output filehandle.  The precise error is:</p><blockquote>", escapeHTML ($!), "</blockquote> <p>Please complain loudly to the administrators.</p>";
 	}
