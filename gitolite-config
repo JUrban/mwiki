@@ -5,3 +5,6 @@ repo gitolite-admin
 
 repo testing
      RW+     =   @all
+
+repo mwiki
+     RW+     = @all
