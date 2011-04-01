@@ -108,13 +108,16 @@ gitolite:
 	cp /var/www/.ssh/id_rsa.pub /tmp/www-data.pub
 	sudo -i -u www-data $(GITOLITE_BIN_DIR)/gl-setup /tmp/www-data.pub
 	rm /tmp/www-data.pub
+	# import the mwiki into gitolite
+	sudo -u www-data git clone --bare $(PUBLIC_REPO) /var/www/repositories/mwiki.git
 	touch /var/www/.gitolite/conf/users.conf # initially empty list of users
 	chown -R www-data:www-data /var/cache/mwiki
 	mkdir -p $(GITOLITE_ADMIN_DIR)
 	chown -R www-data:www-data $(GITOLITE_ADMIN_DIR)
 	sudo -u www-data git clone www-data@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
-	echo 'include "users.conf"' >> $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
-	cd $(GITOLITE_ADMIN_DIR) && sudo -u www-data git commit -a -m 'Include users.conf in the config file.' && sudo -u www-data git push
+	cp gitolite-config $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
+	cd $(GITOLITE_ADMIN_DIR) && sudo -u www-data git commit -a -m 'Include users.conf in the config file and register the mwiki with gitolite.' && sudo -u www-data git push
+	# now we need to import the public wiki into gitolite
 
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
