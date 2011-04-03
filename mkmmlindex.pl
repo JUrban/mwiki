@@ -14,6 +14,8 @@ use Pod::Usage;
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
 my $lmwikicgi     = "http://mws.cs.ru.nl/cgi-bin/mwiki/mwiki.cgi";
 my $git_project = "mw1.git";
+my $htmlroot = "";
+my $dependencies = 0; ## if 1, omit the header and footer
 
 my ($help, $man);
 
@@ -22,6 +24,8 @@ Getopt::Long::Configure ("bundling");
 GetOptions('gitwebcgi|g=s'    => \$lgitwebcgi,
 	   'mwikicgi|m=s'    => \$lmwikicgi,
 	   'project|p=s'    => \$git_project,
+	   'dependencies|d=i'    => \$dependencies,
+	   'htmlroot|H=s'    => \$htmlroot,
 	   'help|h'          => \$help,
 	   'man'             => \$man)
     or pod2usage(2);
@@ -55,7 +59,7 @@ sub print_one_html
 {
     my ($name) = @_;
     my $name_uc = uc($name);
-    print "<dt><a href=\"$name.html\">$name_uc</a>,</dt><dd>$all{$name}->[1]. <i>$all{$name}->[0]</i></dd>\n"
+    print "<dt><a href=\"$htmlroot$name.html\">$name_uc</a>,</dt><dd>$all{$name}->[1]. <i>$all{$name}->[0]</i></dd>\n"
 }
 
 my $header=<<END;
@@ -126,11 +130,9 @@ Mizar Mathematical Library (current wiki state)
 <a href="#Y">Y</a>,
 <a href="#Z">Z</a>]</p>
 <hr/>
-<dl>
 END
 
 my $footer=<<END;
-</dl>
 </dd>
 </dl>
 </div>
@@ -140,7 +142,8 @@ my $footer=<<END;
 END
 
 
-print $header;
+print $header if($dependencies==0);
+print '<dl>';
 my @names = sort keys %all;
 if($#names >= 0)
 {
@@ -157,4 +160,5 @@ if($#names >= 0)
 	print_one_html($name);
     }
 }
-print $footer;
+print '</dl>';
+print $footer if($dependencies==0);
