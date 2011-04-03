@@ -567,7 +567,7 @@ git push
 </blockquote>
 
 <p>
-If any of these commands fail, please get in touch with us.</p>
+Your work will then be uploaded to the server.  Again, if any of these commands fail, please get in touch with us.</p>
 
 <p align="center">
 Happy Mizaring!</p>
