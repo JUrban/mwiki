@@ -592,12 +592,17 @@ USER_CONFIG
       close USER_CONF_FILE
 	or pr_die_unlock ("Something went wrong closing the output filehandle for the user configuration file!");
       # clone the public repo for the newly registered user
+      my $user_gitolite_bare_repo = "/var/www/repositories/$username.git";
       my $git_clone_exit_code =
-	system ('git', 'clone', '--bare', '/var/cache/mwiki/public/mwiki', "/var/www/repositories/$username.git");
+	system ('git', 'clone', '--bare', '/var/cache/mwiki/public/mwiki', $user_gitolite_bare_repo);
       if ($git_clone_exit_code != 0) {
 	my $git_clone_error_message = $git_clone_exit_code >> 8;
 	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the public mwiki repository for '$username':</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
       }
+      # tell gitweb about the new repo
+      my $user_gitweb_bare_repo = "/var/cache/git/$username.git";
+      link $user_gitolite_bare_repo, $user_gitweb_bare_repo
+        or pr_die_unlock ("Un oh: something went wrong linking '$user_gitweb_bare_repo' to '$user_gitweb_bare_repo':<blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.");
       # copy the given public key to the keydir
       my $user_key_file = $gitolite_key_dir . '/' . "$username" . '.pub';
       open (USER_KEY_FILE, '>', $user_key_file) 
