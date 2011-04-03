@@ -530,6 +530,7 @@ my $gitolite_admin_dir = '/var/cache/mwiki/admin/gitolite-admin';
 my $gitolite_key_dir = $gitolite_admin_dir . '/keydir';
 my $gitolite_conf_dir = $gitolite_admin_dir . '/conf';
 my $gitolite_user_conf_file = $gitolite_conf_dir . '/users.conf';
+my $gitolite_user_list_file = '/var/cache/mwiki/admin/gitolite-users';
 
 sub print_successful_registration_message {
   my $username = shift;
@@ -593,6 +594,17 @@ repo $username
 USER_CONFIG
       close USER_CONF_FILE
 	or pr_die_unlock ("Something went wrong closing the output filehandle for the user configuration file!");
+
+      # add the username to the list of all users (this introduces
+      # some redundancy in our data, but for the sake of convenience,
+      # it's easier to manage a flat list of usernames)
+      open (USERS, '>>', $gitolite_user_list_file)
+	or pr_die_unlock ("Uh oh: something went wrong opening the user list file at '$gitolite_user_list_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+      print USERS ("$username\n")
+	or pr_die_unlock ("Uh oh: something went wrong printing '$username' to the user list file:</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+      close USERS
+	or pr_die_unlock ("Uh oh: something went wrong closing the user list file at '$gitolite_user_list_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+
       # clone the public repo for the newly registered user
       my $user_gitolite_bare_repo = "/var/www/repositories/$username.git";
       my $git_clone_exit_code =
