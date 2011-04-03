@@ -540,17 +540,17 @@ public wiki.  You can obtain a local copy of the repository by issuing
 the command on your machine:</p>
 
 <blockquote>
-git clone www-data\@$wikihost:$username
+git clone www-data\@$wikihost:mwiki
 </blockquote>
 
 <p>
-This will create a new directory called '$username' in whatever
+This will create a new directory called 'mwiki' in whatever
 directory you were in when you issued the git clone command. If you
 would like to store the repository under a different name (e.g., 'my-mizar-wiki-repo'), issue the
 command</p>
 
 <blockquote>
-git clone www-data\@$wikihost:$username my-mizar-wiki-repo
+git clone www-data\@$wikihost:mwiki my-mizar-wiki-repo
 </blockquote>
 
 <p>
