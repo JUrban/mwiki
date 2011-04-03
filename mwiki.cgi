@@ -578,9 +578,10 @@ SUCCESS
 if($action eq "register") {
   if (defined ($username) && defined ($passwd) && defined ($pubkey)) {
     if ($username =~ /[a-z0-9A-Z-_]{1,25}/) {
+      lockwiki ();
       # first, add the user to the list of all users
       open (USER_CONF_FILE, '>>', $gitolite_user_conf_file)
-	or pr_die ("<p>Uh oh: something went wrong while opening the gitolite user configuration file to register '$username':</p><blockquote>" . escapeHTML ($!) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
+	or pr_die_unlock ("<p>Uh oh: something went wrong while opening the gitolite user configuration file to register '$username':</p><blockquote>" . escapeHTML ($!) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
       print USER_CONF_FILE <<USER_CONFIG;
 \@users = $username
 repo $username
@@ -589,44 +590,45 @@ repo $username
 
 USER_CONFIG
       close USER_CONF_FILE
-	or pr_die ("Something went wrong closing the output filehandle for the user configuration file!");
+	or pr_die_unlock ("Something went wrong closing the output filehandle for the user configuration file!");
       # clone the public repo for the newly registered user
       my $git_clone_exit_code =
 	system ('git', 'clone', '--bare', '/var/cache/mwiki/public/mwiki', "/var/www/repositories/$username.git");
       if ($git_clone_exit_code != 0) {
 	my $git_clone_error_message = $git_clone_exit_code >> 8;
-	pr_die ("<p>Uh oh: something went wrong while cloning the public mwiki repository for '$username':</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
+	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the public mwiki repository for '$username':</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
       }
       # copy the given public key to the keydir
       my $user_key_file = $gitolite_key_dir . '/' . "$username" . '.pub';
       open (USER_KEY_FILE, '>', $user_key_file) 
-	or pr_die ("<p>Uh oh: something went wrong while opening the an output filehandle at '$user_key_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
+	or pr_die_unlock ("<p>Uh oh: something went wrong while opening the an output filehandle at '$user_key_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
       print USER_KEY_FILE ("$pubkey\n");
       close (USER_KEY_FILE)
-	or pr_die ("<p>Uh oh: something went wrong when closing the output filehandle at '$user_key_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+	or pr_die_unlock ("<p>Uh oh: something went wrong when closing the output filehandle at '$user_key_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
       chdir $gitolite_admin_dir;
       # add the changed files (we should probably lock things here, if not earlier)
       my $git_add_exit_code = system ('git', 'add', '.');
       if ($git_add_exit_code != 0) {
 	my $git_add_error_message = $git_add_exit_code >> 8;
-	pr_die ("<p>Uh oh: something went wrong staging the modified files in the gitolite admin repo:</p><blockquote>" . escapeHTML ($git_add_error_message) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+	pr_die_unlock ("<p>Uh oh: something went wrong staging the modified files in the gitolite admin repo:</p><blockquote>" . escapeHTML ($git_add_error_message) . "</blockquote><p>Please complain loudly to the administrators.</p>");
       }
       # commit these changes to the gitolite admin repo
       my $git_commit_exit_code = system ('git', 'commit', '--quiet', '-a', '-m', "Added public key '$pubkey' for user '$username'");
       if ($git_commit_exit_code != 0) {
 	my $git_commit_error_message = $git_commit_exit_code >> 8;
-	pr_die ("<p>Uh oh: something went wrong commiting the changes to the gitolite admin repo:</p><blockqute>" . escapeHTML ($git_commit_error_message) . "</blockquote><p>Please complain loudly to the administrators.");
+	pr_die_unlock ("<p>Uh oh: something went wrong commiting the changes to the gitolite admin repo:</p><blockqute>" . escapeHTML ($git_commit_error_message) . "</blockquote><p>Please complain loudly to the administrators.");
       }
       # push the changes to the real gitolite admin repo
       my $git_push_exit_code = system ('git', 'push', '--quiet');
       if ($git_push_exit_code == 0) {
 	print_successful_registration_message ($username);
+	unlockwiki ();
       } else {
 	my $git_push_error_message = $git_push_exit_code >> 8;
-	pr_die ("<p>Uh oh: something went wrong pushing the changes we just made to to the gitolite admin repo:</p><blockqute>" . escapeHTML ($git_push_error_message) . "</blockquote><p>Please complain loudly to the administrators.");
+	pr_die_unlock ("<p>Uh oh: something went wrong pushing the changes we just made to to the gitolite admin repo:</p><blockqute>" . escapeHTML ($git_push_error_message) . "</blockquote><p>Please complain loudly to the administrators.");
       }
     } else {
-      print $bad_username;
+      pr_die_unlock ($bad_username);
     }
   } else {
     print $registration_form;
