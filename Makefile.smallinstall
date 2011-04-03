@@ -117,7 +117,6 @@ gitolite:
 	sudo -u www-data git clone www-data@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
 	cp gitolite-config $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
 	cd $(GITOLITE_ADMIN_DIR) && sudo -u www-data git commit -a -m 'Include users.conf in the config file and register the mwiki with gitolite.' && sudo -u www-data git push
-	# now we need to import the public wiki into gitolite
 
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
