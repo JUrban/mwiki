@@ -654,4 +654,28 @@ USER_CONFIG
   }
 }
 
+if ($action eq 'users') {
+  my @users = ();
+  lockwiki ();
+  open (USERS, '<', $gitolite_user_list_file)
+    or pr_die_unlock ("Uh oh: cannot open the user list at '$gitolite_user_list_file:</p><blockquote" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administators.</p>");
+  while (defined (my $user = <USERS>)) {
+    chomp $user;
+    push (@users, $user);
+  }
+  close USERS
+    or pr_die_unlock ("Uh oh: cannot close the user list at '$gitolite_user_list_file':</p><blockquote" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+  print "<p>Below is a list of all users that have registered with us.  Follow the
+link associated with a user to see that user's repository.</p>\n";
+  if (scalar @users == 0) {
+    print "<p><em>(No users have registered yet.)</em></p>"
+  } else {
+    print "<ul>";
+    foreach my $user (@users) {
+      print "<a href=\"$lgitwebcgi?p=$git_project;r=$user.git\">$user</a>";
+    }
+  }
+  unlockwiki ();
+}
+
   print $query->end_html;
