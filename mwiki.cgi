@@ -201,6 +201,7 @@ REND
          <li> <a href="$htmldir/">Index</a> </li>
          <li> <a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
          <li> <a href="?p=$git_project;a=register">Register</a> </li>
+         <li> <a href="?p=$git_project;a=users">Users</a> </li>
     </ul>
 </div>
 END
@@ -455,6 +456,7 @@ if($action eq "edit")
      <li><a href="$htmldir/">Index</a> </li>
      <li><a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
      <li><a href="?p=$git_project;a=register">Register</a> </li>
+     <li><a href="?p=$git_project;a=users">Users</a> </li>
   </ul>
 </div>
 <dl>
