@@ -70,7 +70,7 @@ system ("make --jobs $makejobs htmls WIKIHOST=$wikihost GITPROJECT=$repo_name.gi
 
 # Copy the sandbox: force compiled to be a copy of the known compiled MML.
 # We are hoping that this is fairly fast.
-`rsync -a --del $sandbox/ $compiled`;
+`rsync -a --del --exclude '.git' $sandbox/ $compiled`;
 # note the slash   ===> ^ <===  see the rsync man page to learn why
 
 exit 0;

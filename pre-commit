@@ -132,7 +132,7 @@ my $sandbox_mml = $sandbox . "/" . "mml";
 mizar::set_MIZFILES ($main_repo);
 
 sub clean_the_dirty_sandbox {
-  my $rsync_output = `rsync -a --del $compiled/ $sandbox 2>&1`;
+  my $rsync_output = `rsync -a --del --exclude '.git' $compiled/ $sandbox 2>&1`;
   my $rsync_exit_code = ($? >> 8);
   unless ($rsync_exit_code == 0) {
     pc_print ("rsync did not exit cleanly when cleaning the dirty sandbox: $!");
@@ -383,8 +383,8 @@ if ( defined ($ENV{MW_SECTION}) && defined ($ENV{MW_FILE})
 
 # Copy the sandbox: force compiled to be a copy of the known compiled MML.
 # We are hoping that this is fairly fast.
-    `rsync -a --del $sandbox/ $compiled`;
-# note the slash   ===> ^ <===  see the rsync man page to learn why
+    `rsync -a --del --exclude '.git' $sandbox/ $compiled`;
+# note the slash                         ==> ^ <===  see the rsync man page to learn why
 
     exit 0; # i.e., we made it -- phew!
    
