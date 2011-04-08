@@ -45,7 +45,8 @@ else {
 
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
-my $compiled = $cwd . "/" . "../compiled";
+# my $compiled = $cwd . "/" . "../compiled";
+my $compiled = $cwd;
 my $sandbox = $cwd . "/" . "../sandbox";
 my $sandbox_mml = $sandbox . "/" . "mml";
 
