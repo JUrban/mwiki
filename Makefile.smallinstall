@@ -90,7 +90,7 @@ MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
 
-public-repos: public-repo-init public-sandbox public-compiled public-repo-export
+public-repos: public-repo-init public-sandbox public-repo-export
 	chown -R $(PUBLIC_MWIKI_USER) $(PUBLIC_REPOS_BASE)
 	chgrp -R $(PUBLIC_MWIKI_USER) $(PUBLIC_REPOS_BASE)
 
@@ -151,8 +151,8 @@ scratch: scratch-html
 
 public-repo-init: public-mwiki-user scratch
 	mkdir -p $(PUBLIC_REPO)
-	cp -R $(SCRATCH_BASE)/* $(PUBLIC_REPO)
-	cp -R $(SCRATCH_BASE)/.perl $(PUBLIC_REPO)
+	cp -a $(SCRATCH_BASE)/* $(PUBLIC_REPO)
+	cp -a $(SCRATCH_BASE)/.perl $(PUBLIC_REPO)
 	chown $(PUBLIC_MWIKI_USER) $(PUBLIC_REPO)
 	chgrp $(PUBLIC_MWIKI_USER) $(PUBLIC_REPO)
 
@@ -192,14 +192,15 @@ public-mwiki-user:
 	install -m 755 mwiki-gitdaemon.run /etc/sv/git-daemon/run
 	sv up git-daemon
 
-public-compiled: scratch
-	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_COMPILED_REPO)
+#public-compiled: scratch
+#	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_COMPILED_REPO)
 #                                ===> ^ <===
 # trailing slash -- see the rsync man page to learn why it's there
 
 
 public-sandbox: scratch # our dirty sandbox
-	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_SANDBOX)
+	rsync -a --del $(PUBLIC_REPO)/ $(PUBLIC_SANDBOX)
+#	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_SANDBOX)
 #                                ===> ^ <===
 # trailing slash -- see the rsync man page to learn why it's there
 
