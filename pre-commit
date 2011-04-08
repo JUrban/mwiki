@@ -123,7 +123,8 @@ my $wikihost = get_mwiki_var("wikihost");
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
 my $main_repo = $cwd;
-my $compiled = $cwd . "/" . "../compiled";
+# my $compiled = $cwd . "/" . "../compiled";
+my $compiled = $cwd;
 my $sandbox = $cwd . "/" . "../sandbox";
 my $sandbox_mml = $sandbox . "/" . "mml";
 
