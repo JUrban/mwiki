@@ -1,0 +1,65 @@
+## Using btrfs for keeping many similar clones of the wiki
+
+
+### General info
+
+See [btrfs] for btrfs explanation and [started] for basic commands.
+
+[btrfs]: https://btrfs.wiki.kernel.org/index.php/SysadminGuide
+[started]: https://btrfs.wiki.kernel.org/index.php/Getting_started#Basic_Filesystem_Commands
+
+
+#### Basic Commands
+
+    mount -t btrfs /dev/sdb3 /mnt/btrfs
+    
+    btrfs filesystem show   # show allocation
+
+Create subvolume and a snapshot of root:
+
+    btrfs subvolume create /mnt/btrfs/new_subvol
+    btrfs subvolume snapshot /mnt/btrfs /mnt/btrfs/snapshot_of_root
+    btrfs subvolume snapshot root root_snapshot_2011_01_11
+
+
+Mount a subvolume and a snapshot:
+
+    mount -t btrfs -o subvol=new_subvol /dev/sdb3 /mnt/new_subvol
+    mount -t btrfs -o subvol=snapshot_of_root /dev/sdb3 /mnt/snap
+
+Rolling back a snapshot:
+    
+    umount /home
+    mount -o defaults,subvol=home_snapshot_A /dev/sda /home
+    btrfs subvolume delete /media/btrfs/home  
+
+
+
+#### Snapshots
+
+A snapshot is simply a subvolume that shares its data (and metadata)
+with some other subvolume, using btrfs's COW capabilities. Once a
+[writable] snapshot is made, there is no difference in status between
+the original subvolume, and the new snapshot subvolume. To roll back
+to a snapshot, unmount the modified original subvolume, and mount the
+snapshot in its place. At this point, the original subvolume may be
+deleted if wished. Since a snapshot is a subvolume, snapshots of
+snapshots are also possible.
+
+
+### Usage for mwiki
+
+#### Initial use for fast rollback replacing rsync
+
+- variable MW_BTRFS tells to use btrfs instead of rsync,
+  and (if nonempty) contains the path to the root btrfs filesystem
+- the public_repo lives in a subvolume `$REPO_NAME`
+- instead of rsync to a sandbox, a fresh snapshot is created each time:
+    my $snapshot = mkdtemp("$MW_BTRFS/$REPO_NAME/snapshot_XXXXXX");
+    btrfs subvolume snapshot $backend $MW_BTRFS/$REPO_NAME/snapshot
+    
+  a commit is done, and used for verification. If successful, it is
+  rsync-ed to the public_repo, and put into the list of deletable
+  snapshots (some cron script checks that list). The snapshot name
+  will have to be passed as a parameter to the pre/post commit
+
