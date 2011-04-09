@@ -55,11 +55,16 @@ snapshots are also possible.
   and (if nonempty) contains the path to the root btrfs filesystem
 - the public_repo lives in a subvolume `$REPO_NAME`
 - instead of rsync to a sandbox, a fresh snapshot is created each time:
-    my $snapshot = mkdtemp("$MW_BTRFS/$REPO_NAME/snapshot_XXXXXX");
-    btrfs subvolume snapshot $backend $MW_BTRFS/$REPO_NAME/snapshot
+
+        my $snapshot = mkdtemp("$MW_BTRFS/$REPO_NAME/snapshot_XXXXXX");
+        btrfs subvolume snapshot $backend $MW_BTRFS/$REPO_NAME/snapshot
     
   a commit is done, and used for verification. If successful, it is
   rsync-ed to the public_repo, and put into the list of deletable
   snapshots (some cron script checks that list). The snapshot name
   will have to be passed as a parameter to the pre/post commit
 
+#### Use for many users
+
+- again, variable MW_BTRFS tells to use btrfs
+-
