@@ -113,6 +113,8 @@ gitolite:
 	touch /var/www/.gitolite/conf/users.conf # initially empty list of users
 	chown -R www-data:www-data /var/cache/mwiki
 	mkdir -p $(GITOLITE_ADMIN_DIR)
+	# install the pre-receive hook into the admin dir
+	/usr/bin/install -m 755 pre-receive.in $(GITOLITE_ADMIN_DIR)/pre-receive
 	chown -R www-data:www-data $(GITOLITE_ADMIN_DIR)
 	sudo -u www-data git clone www-data@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
 	cp gitolite-config $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf

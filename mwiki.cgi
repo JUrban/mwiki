@@ -604,6 +604,8 @@ my $gitolite_conf_dir = $gitolite_admin_dir . '/conf';
 my $gitolite_user_conf_file = $gitolite_conf_dir . '/users.conf';
 my $gitolite_user_list_file = '/var/cache/mwiki/admin/gitolite-users';
 
+my $pre_receive_file = $gitolite_admin_dir . '/' . 'pre-receive';
+
 sub print_successful_registration_message {
   my $username = shift;
   print <<SUCCESS;
@@ -685,6 +687,9 @@ USER_CONFIG
 	my $git_clone_error_message = $git_clone_exit_code >> 8;
 	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the public mwiki repository for '$username':</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
       }
+      # install hooks: pre-receive
+      system ('cp', $pre_receive_file, $user_gitweb_bare_repo) == 0
+	or pr_die_unlock ("Couldn't copy the pre-receive hook at '$pre_receive_file' to the new bare repo at '$user_gitweb_bare_repo'");
       # tell gitweb about the new repo
       my $user_gitweb_bare_repo = "/var/cache/git/$username.git";
       link $user_gitolite_bare_repo, $user_gitweb_bare_repo
