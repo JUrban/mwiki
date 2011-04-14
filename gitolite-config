@@ -1,8 +1,7 @@
 include "users.conf"
 
 repo gitolite-admin
-     RW+     =   www-data
-     R 	     =	 gitweb daemon
+     RW+     =   @@GITOLITE_USER@@
 
 repo testing
      RW+     =   @all
