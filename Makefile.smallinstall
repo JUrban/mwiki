@@ -126,7 +126,7 @@ gitolite-setup:
 	cd $(GITOLITE_ADMIN_DIR) && sudo -u $(MWUSER) sh -c 'git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push'
 	# suexec config
 	chown -R $(MWUSER):$(MWUSER) /home/$(MWUSER)
-	perl -e 'open(A,$$ARGV[0]); while(<A>) { s/##MWIKI_USER##/$$ARGV[1]/g; print }' \
+	perl -e 'open(A,$$ARGV[0]); while(<A>) { s/##MWUSER##/$$ARGV[1]/g; print }' \
           suexec-config $(MWUSER) > /etc/apache2/suexec/$(MWUSER)
 
 repos: public-repos gitweb mwiki
