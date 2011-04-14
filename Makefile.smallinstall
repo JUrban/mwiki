@@ -288,11 +288,12 @@ apacheconf:
           $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME) \
           && chmod 644 $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME)
 
-mwiki: public-repos apacheconf
+mwiki: gitolite-setup public-repos apacheconf
 	mkdir -p $(CGILIB)/mwiki
-	  $(CGILIB)/mwiki/mwiki.cgi
+	cp mwiki.cgi  $(CGILIB)/mwiki/mwiki.cgi
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -f -s ../sites-available/$(REPO_NAME) $(REPO_NAME)
+	chown -R $(MWUSER):$(MWUSER) /home/$(MWUSER)
 	apache2ctl restart
 
 clean:
