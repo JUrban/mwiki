@@ -18,6 +18,7 @@ make -f Makefile.smallinstall $targets \
     MIZFILES=$mizfiles \
     XSL4MIZ=$xsl4miz \
     NUM_ARTICLES=$num_articles \
-    PUBLIC_MWIKI_USER=www-data \
+    PUBLIC_MWIKI_USER=mwuser \
     MAKEJOBS=24 \
     WIKIHOST=mizar.cs.ualberta.ca
+ 
