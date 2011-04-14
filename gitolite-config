@@ -1,7 +1,7 @@
 include "users.conf"
 
 repo gitolite-admin
-     RW+     =   @@MW_USER@@
+     RW+     =   @@MWUSER@@
 
 repo testing
      RW+     =   @all
