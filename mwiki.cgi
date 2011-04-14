@@ -684,12 +684,15 @@ USER_CONFIG
 	system ('git', 'clone', '--bare', $frontend_repo, $user_gitolite_bare_repo);
       if ($git_clone_exit_code != 0) {
 	my $git_clone_error_message = $git_clone_exit_code >> 8;
-	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the public mwiki repository for '$username':</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
+	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the public mwiki repository for '$username':$frontend_repo, $user_gitolite_bare_repo</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
       }
       # tell gitweb about the new repo
       my $user_gitweb_bare_repo = "/var/cache/git/$username.git";
-      link $user_gitolite_bare_repo, $user_gitweb_bare_repo
-        or pr_die_unlock ("Un oh: something went wrong linking '$user_gitweb_bare_repo' to '$user_gitweb_bare_repo':<blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.");
+      my $ln_exit_code = system('ln', '-s', $user_gitolite_bare_repo, $user_gitweb_bare_repo);
+      if ($ln_exit_code != 0) {
+	my $ln_error_message = $ln_exit_code >> 8;
+        pr_die_unlock ("Un oh: something went wrong linking '$user_gitolite_bare_repo' to '$user_gitweb_bare_repo':<blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.");
+      }
       # copy the given public key to the keydir
       my $user_key_file = $gitolite_key_dir . '/' . "$username" . '.pub';
       open (USER_KEY_FILE, '>', $user_key_file) 
