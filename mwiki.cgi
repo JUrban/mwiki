@@ -693,6 +693,7 @@ USER_CONFIG
 	or pr_die_unlock ("Uh oh: something went wrong closing the user list file at '$gitolite_user_list_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
 
       # clone the public repo for the newly registered user
+      # ###TODO: change this using the backend path
       my $user_gitolite_bare_repo = "/home/www/repositories/$username.git";
       my $git_clone_exit_code =
 	system ('git', 'clone', '--bare', $frontend_repo, $user_gitolite_bare_repo);

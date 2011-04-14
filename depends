@@ -1,5 +1,7 @@
 Server dependencies:
 
+packages:
+
 libfile-copy-recursive-perl
 liblist-moreutils-perl
 git-core
@@ -7,6 +9,22 @@ gitweb
 apache2
 runit
 git-daemon-run
+
+users:
+
+mwuser with ssh-keygen run
+
+apache2 allows user cgi-bin in  /etc/apache2/mods-available/userdir.conf
+
+<Directory /home/*/public_html/cgi-bin/>
+        AllowOverride None
+        Options ExecCGI SymLinksIfOwnerMatch
+        AddHandler cgi-script .cgi .pl
+        Order allow,deny
+        Allow from all
+</Directory>
+
+
 
 Client dependencies:
 

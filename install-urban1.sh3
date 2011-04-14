@@ -1,0 +1,24 @@
+#!/bin/sh
+
+repos_base=/home/mwuser/dwiki
+mizfiles=/home/urban/mizinst/7.11.07_4.160.1126
+xsl4miz=/home/urban/gr/xsl4mizar
+num_articles=2
+
+
+if test -z "$1"; then
+    targets='repos gitolite'
+else
+    targets=$1
+fi
+
+make -f Makefile.smallinstall $targets \
+    REPOS_BASE=$repos_base \
+    MIZFILES=$mizfiles \
+    XSL4MIZ=$xsl4miz \
+    NUM_ARTICLES=$num_articles \
+    PUBLIC_MWIKI_USER=mwuser \
+    MAKEJOBS=2 \
+    WIKIHOST=localhost \
+    REPO_NAME=goo1
+
