@@ -7,4 +7,4 @@ Alias /##REPO_NAME## "##PUBLIC_REPO##/html"
   allow from all
 </Directory>
 ScriptAlias /bin "##CGILIB##"
-
+SuexecUserGroup ##MWIKI_USER## ##MWIKI_USER##
