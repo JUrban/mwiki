@@ -41,14 +41,15 @@
 #
 # - HEAD: default /usr/bin/head.  See description of INSTALL variable.
 
+
+MWUSER_HOME=/home/$(MWUSER)
+SCRATCH_BASE=$(MWUSER_HOME)/scratch
+REPOS_BASE=$(MWUSER_HOME)/clones
 REPO_NAME=mwiki
 REPO_DIR_INDEX=00INDEX.html
-SCRATCH_BASE=$(REPOS_BASE)/scratch
-PUBLIC_REPOS_BASE=$(REPOS_BASE)/public
-PUBLIC_REPO=$(REPOS_BASE)/public/$(REPO_NAME)
-PUBLIC_SANDBOX=$(PUBLIC_REPOS_BASE)/sandbox
-PUBLIC_COMPILED_REPO=$(PUBLIC_REPOS_BASE)/compiled
-BARE_PUBLIC_REPO=$(PUBLIC_REPOS_BASE)/$(REPO_NAME).git
+PUBLIC_REPO=$(REPOS_BASE)/public
+PUBLIC_SANDBOX=$(PUBLIC_REPO)-sandbox
+BARE_PUBLIC_REPO=$(MWUSER_HOME)/repositories/public.git
 REPOBIN=$(PUBLIC_REPO)/bin
 MIZBIN=$(MIZFILES)/bin
 MAKEJOBS=1
@@ -73,12 +74,12 @@ MIRROR=
 
 APACHE_ROOT=
 HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
-PUBLIC_MWIKI_USER=mwiki
+MWUSER=mwiki
 
 # path to you cgi-bin directory, where mwiki goes
 #CGILIB=/usr/lib/cgi-bin
 
-CGILIB=/home/$(PUBLIC_MWIKI_USER)/public_html/cgi-bin
+CGILIB=$(MWUSER_HOME)/public_html/cgi-bin
 
 
 # name and email for the web commits; note that this goes only into backend
@@ -92,48 +93,47 @@ MIZBINARIES=accom envget exporter makeenv transfer verifier
 MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
 
 # gitolite
-GITOLITE_USER=$(PUBLIC_MWIKI_USER)
 GITOLITE_REPO=/home/urban/ec/gitolite
 #GITOLITE_REPO=git://github.com/sitaramc/gitolite.git
 GITOLITE_SOURCE_DIR=$(REPOS_BASE)/gitolite-source
-#GITOLITE_INSTALL_DIR=/home/www
-GITOLITE_INSTALL_DIR=/home/$(PUBLIC_MWIKI_USER)
-GITOLITE_BIN_DIR=$(GITOLITE_INSTALL_DIR)/bin
-GITOLITE_CONF_DIR=$(GITOLITE_INSTALL_DIR)/gitolite/conf
-GITOLITE_HOOKS_DIR=$(GITOLITE_INSTALL_DIR)/gitolite/hooks
-MWIKI_ADMIN_DIR=$(REPOS_BASE)/admin
-GITOLITE_ADMIN_DIR=$(MWIKI_ADMIN_DIR)/gitolite-admin
+GITOLITE_BIN_DIR=$(MWUSER_HOME)/bin
 
-gitolite:
-	chown -R $(GITOLITE_USER):$(GITOLITE_USER) $(REPOS_BASE)
-	sudo -u $(GITOLITE_USER) git clone $(GITOLITE_REPO) $(GITOLITE_SOURCE_DIR)
-	sudo -u $(GITOLITE_USER) mkdir -p $(GITOLITE_BIN_DIR)
-	sudo -u $(GITOLITE_USER) mkdir -p $(GITOLITE_CONF_DIR)
-	sudo -u $(GITOLITE_USER) mkdir -p $(GITOLITE_HOOKS_DIR)
-	cd $(GITOLITE_SOURCE_DIR) && sudo -u $(GITOLITE_USER) ./src/gl-system-install $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)
-	cp $(GITOLITE_INSTALL_DIR)/.ssh/id_rsa.pub /tmp/$(GITOLITE_USER).pub
-	sudo -u $(GITOLITE_USER) sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && export PATH=$$PATH:$$HOME/bin && gl-setup  -q /tmp/$(GITOLITE_USER).pub'
-	rm /tmp/$(GITOLITE_USER).pub
-	# import the mwiki into gitolite
-	sudo -u $(GITOLITE_USER) git clone --bare $(PUBLIC_REPO) $(GITOLITE_INSTALL_DIR)/repositories/$(REPO_NAME).git
-	touch $(GITOLITE_INSTALL_DIR)/.gitolite/conf/users.conf # initially empty list of users
-	chown -R $(GITOLITE_USER):$(GITOLITE_USER) $(REPOS_BASE)
+# ###TODO: these two might not be needed, they might be in .gitolite anyway 
+GITOLITE_CONF_DIR=$(MWUSER_HOME)/gitolite/conf
+GITOLITE_HOOKS_DIR=$(MWUSER_HOME)/gitolite/hooks
+
+
+GITOLITE_ADMIN_DIR=$(MWUSER_HOME)/gitolite-admin
+
+
+gitolite-setup:
+	# chown -R $(MWUSER):$(MWUSER) $(REPOS_BASE)
+	sudo -u $(MWUSER) git clone $(GITOLITE_REPO) $(GITOLITE_SOURCE_DIR)
+	sudo -u $(MWUSER) mkdir -p $(GITOLITE_BIN_DIR)
+	sudo -u $(MWUSER) mkdir -p $(GITOLITE_CONF_DIR)
+	sudo -u $(MWUSER) mkdir -p $(GITOLITE_HOOKS_DIR)
+	cd $(GITOLITE_SOURCE_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && export PATH=$$PATH:$$HOME/bin &&  ./src/gl-system-install $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)'
+	cp $(MWUSER_HOME)/.ssh/id_rsa.pub /tmp/$(MWUSER).pub
+	sudo -u $(MWUSER) sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && export PATH=$$PATH:$$HOME/bin && gl-setup  -q /tmp/$(MWUSER).pub'
+	rm /tmp/$(MWUSER).pub
+	touch $(MWUSER_HOME)/.gitolite/conf/users.conf # initially empty list of users
+	chown -R $(MWUSER):$(MWUSER) $(REPOS_BASE)
 	mkdir -p $(GITOLITE_ADMIN_DIR)
-	chown -R $(GITOLITE_USER):$(GITOLITE_USER) $(MWIKI_ADMIN_DIR)
-	chown -R $(GITOLITE_USER):$(GITOLITE_USER) $(GITOLITE_ADMIN_DIR)
-	sudo -u $(GITOLITE_USER) sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && export PATH=$$PATH:$$HOME/bin && git clone $(GITOLITE_USER)@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)'
-	sed -e "s|@@GITOLITE_USER@@|$(GITOLITE_USER)|g" < gitolite-config > $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
-	cd $(GITOLITE_ADMIN_DIR) && sudo -u $(GITOLITE_USER) sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push'
+	chown -R $(MWUSER):$(MWUSER) $(GITOLITE_ADMIN_DIR)
+	sudo -u $(MWUSER) git clone $(MWUSER)@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
+	sed -e "s|@@MWUSER@@|$(MWUSER)|g" < gitolite-config > $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
+	cd $(GITOLITE_ADMIN_DIR) && sudo -u $(MWUSER) sh -c 'git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push'
+
+
+
 
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
 
 public-repos: public-repo-init public-sandbox public-repo-export
-	chown -R $(PUBLIC_MWIKI_USER) $(PUBLIC_REPOS_BASE)
-	chgrp -R $(PUBLIC_MWIKI_USER) $(PUBLIC_REPOS_BASE)
+	chown -R $(MWUSER):$(MWUSER) $(MWUSER_HOME)
 
-
-scratch-directories:
+scratch-directories: gitolite-setup
 	mkdir -p $(SCRATCH_BASE)
 	cd $(SCRATCH_BASE) && mkdir mml dict prel bin xsl html .perl
 
@@ -145,7 +145,7 @@ scratch-mizfiles: scratch-directories
 	# prel
 	cp -p $(MIZFILES)/prel/h/hidden.* $(SCRATCH_BASE)/prel
 	cp -p $(MIZFILES)/prel/*/*.dre $(SCRATCH_BASE)/prel
-	chown -R $(PUBLIC_MWIKI_USER) $(SCRATCH_BASE)/prel
+	chown -R $(MWUSER) $(SCRATCH_BASE)/prel
 	# data
 	for rootfile in $(MIZROOTFILES); do \
 	  cp -p $(MIZFILES)/$$rootfile $(SCRATCH_BASE); \
@@ -191,17 +191,17 @@ public-repo-init: public-mwiki-user scratch
 	mkdir -p $(PUBLIC_REPO)
 	cp -a $(SCRATCH_BASE)/* $(PUBLIC_REPO)
 	cp -a $(SCRATCH_BASE)/.perl $(PUBLIC_REPO)
-	chown $(PUBLIC_MWIKI_USER) $(PUBLIC_REPO)
-	chgrp $(PUBLIC_MWIKI_USER) $(PUBLIC_REPO)
+	chown $(MWUSER) $(PUBLIC_REPO)
+	chgrp $(MWUSER) $(PUBLIC_REPO)
 
 	cd $(PUBLIC_REPO) && git init
 	$(INSTALL) \
 	  --mode 644 \
-	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
+	  --owner=$(MWUSER) --group=$(MWUSER) \
 	  mml-gitignore $(PUBLIC_REPO)/.gitignore
 	$(INSTALL) \
 	  --mode 644 \
-	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
+	  --owner=$(MWUSER) --group=$(MWUSER) \
 	  public-repo-description $(PUBLIC_REPO)/.git/description
 	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.' \
 	   && git config  user.name $(WEB_GIT_NAME) \
@@ -213,8 +213,8 @@ public-repo-init: public-mwiki-user scratch
 
 	$(INSTALL) \
 	  --mode 755 \
-	  --owner=$(PUBLIC_MWIKI_USER) \
-	  --group=$(PUBLIC_MWIKI_USER) \
+	  --owner=$(MWUSER) \
+	  --group=$(MWUSER) \
 	  pre-commit post-commit $(PUBLIC_REPO)/.git/hooks
 
 
@@ -223,38 +223,44 @@ public-mwiki-user:
 	# -adduser --shell=/usr/bin/git-shell \
 	#   --disabled-password \
 	#   --home=$(PUBLIC_REPOS_BASE) \
-	#   $(PUBLIC_MWIKI_USER) \
-	#     || echo "$(PUBLIC_MWIKI_USER) already exists"
+	#   $(MWUSER) \
+	#     || echo "$(MWUSER) already exists"
 	sv down git-daemon
 	mv /etc/sv/git-daemon/run /etc/sv/git-daemon/run.original
 	install -m 755 mwiki-gitdaemon.run /etc/sv/git-daemon/run
 	sv up git-daemon
 
-#public-compiled: scratch
-#	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_COMPILED_REPO)
-#                                ===> ^ <===
-# trailing slash -- see the rsync man page to learn why it's there
-
+## TODO: 
 
 public-sandbox: scratch # our dirty sandbox
+ifeq ($(MW_BTRFS),1)
+	btrfs subvolume snapshot  $(PUBLIC_REPO) $(PUBLIC_SANDBOX)
+else
 	rsync -a --del $(PUBLIC_REPO)/ $(PUBLIC_SANDBOX)
+endif
+
+
 #	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_SANDBOX)
 #                                ===> ^ <===
 # trailing slash -- see the rsync man page to learn why it's there
 
 
+# git clone --bare $(PUBLIC_REPO) $(MWUSER_HOME)/repositories/$(REPO_NAME).git
+# 	git clone --bare $(PUBLIC_REPO) $(BARE_PUBLIC_REPO)
+
+
 public-repo-export: public-repo-init
-	git clone --bare $(PUBLIC_REPO) $(BARE_PUBLIC_REPO)
+	sudo -u $(MWUSER) sh -c 'cd $(PUBLIC_REPO) && git push --all $(MWUSER)@$(WIKIHOST):public'
 	$(INSTALL) \
 	  --mode=644 \
-	  --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) \
+	  --owner=$(MWUSER) --group=$(MWUSER) \
 	  public-repo-description $(BARE_PUBLIC_REPO)/description
 	for hookfile in pre-receive post-update; do \
 	  sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g; s|@@MIRROR@@|$(MIRROR)|g;" < $$hookfile.in \
 	    > $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
 	  chmod 755 $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
-	  chown $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
-	  chgrp $(PUBLIC_MWIKI_USER) $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
+	  chown $(MWUSER) $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
+	  chgrp $(MWUSER) $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
 	done
 	touch $(BARE_PUBLIC_REPO)/git-daemon-export-ok
 	cd $(BARE_PUBLIC_REPO) && git config core.sharedRepository true \
@@ -268,9 +274,7 @@ public-repo-export: public-repo-init
 
 
 gitweb: public-repo-export 
-	if (test $(PUBLIC_REPOS_BASE) != $(GITWEB_ROOT)); then \
-	  ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/$(REPO_NAME).git; \
-	fi
+	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/$(REPO_NAME).git
 	$(INSTALL) -m 644 gitweb $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -f -s ../sites-available/gitweb gitweb
@@ -285,7 +289,7 @@ apacheconf:
 mwiki: public-repos apacheconf
 	mkdir -p $(CGILIB)/mwiki
 	$(INSTALL) -m 755 \
-           --owner=$(PUBLIC_MWIKI_USER) --group=$(PUBLIC_MWIKI_USER) mwiki.cgi \
+           --owner=$(MWUSER) --group=$(MWUSER) mwiki.cgi \
 	  $(CGILIB)/mwiki/mwiki.cgi
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -f -s ../sites-available/$(REPO_NAME) $(REPO_NAME)
@@ -295,8 +299,8 @@ clean:
 	rm -Rf $(REPOS_BASE)
 	rm -f $(GITWEB_ROOT)/$(REPO_NAME).git
 	# -killall git-daemon
-	# deluser $(PUBLIC_MWIKI_USER) \
-	#   || echo "user $(PUBLIC_MWIKI_USER) doesn't exist"
+	# deluser $(MWUSER) \
+	#   || echo "user $(MWUSER) doesn't exist"
 	rm -f $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
 	rm -f $(APACHE_ROOT)/etc/apache2/sites-enabled/$(REPO_NAME)
 	rm -f $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME)
@@ -308,10 +312,10 @@ clean:
 	-mv -f /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
 	sv up git-daemon
 	# gitolite cleanup
-	rm -Rf $(GITOLITE_INSTALL_DIR)/.gitolite
-	rm -Rf $(GITOLITE_INSTALL_DIR)/gitolite
-	rm -Rf $(GITOLITE_INSTALL_DIR)/repositories
-	rm -f $(GITOLITE_INSTALL_DIR)/projects.list
-	rm -f $(GITOLITE_INSTALL_DIR)/bin/gitolite*
-	rm -f $(GITOLITE_INSTALL_DIR)/bin/gl-*
-	rm -f $(GITOLITE_INSTALL_DIR)/bin/sshkeys-lint
+	rm -Rf $(MWUSER_HOME)/.gitolite
+	rm -Rf $(MWUSER_HOME)/gitolite
+	rm -Rf $(MWUSER_HOME)/repositories
+	rm -f $(MWUSER_HOME)/projects.list
+	rm -f $(MWUSER_HOME)/bin/gitolite*
+	rm -f $(MWUSER_HOME)/bin/gl-*
+	rm -f $(MWUSER_HOME)/bin/sshkeys-lint
