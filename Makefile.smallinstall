@@ -70,12 +70,16 @@ WIKIHOST=localhost
 # this is an optional mirror repo, to which the frontend will be mirrored
 MIRROR=
 
-# path to you cgi-bin directory, where mwiki goes
-CGILIB=/usr/lib/cgi-bin
 
 APACHE_ROOT=
 HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
 PUBLIC_MWIKI_USER=mwiki
+
+# path to you cgi-bin directory, where mwiki goes
+#CGILIB=/usr/lib/cgi-bin
+
+CGILIB=/home/$(PUBLIC_MWIKI_USER)/public_html/cgi-bin
+
 
 # name and email for the web commits; note that this goes only into backend
 WEB_GIT_NAME="Web Committer"
@@ -92,8 +96,8 @@ GITOLITE_USER=$(PUBLIC_MWIKI_USER)
 GITOLITE_REPO=/home/urban/ec/gitolite
 #GITOLITE_REPO=git://github.com/sitaramc/gitolite.git
 GITOLITE_SOURCE_DIR=$(REPOS_BASE)/gitolite-source
-GITOLITE_INSTALL_DIR=/home/www
-#GITOLITE_INSTALL_DIR=/home/$(PUBLIC_MWIKI_USER)
+#GITOLITE_INSTALL_DIR=/home/www
+GITOLITE_INSTALL_DIR=/home/$(PUBLIC_MWIKI_USER)
 GITOLITE_BIN_DIR=$(GITOLITE_INSTALL_DIR)/bin
 GITOLITE_CONF_DIR=$(GITOLITE_INSTALL_DIR)/gitolite/conf
 GITOLITE_HOOKS_DIR=$(GITOLITE_INSTALL_DIR)/gitolite/hooks
