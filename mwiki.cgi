@@ -604,7 +604,7 @@ my $gitolite_conf_dir = $gitolite_admin_dir . '/conf';
 my $gitolite_user_conf_file = $gitolite_conf_dir . '/users.conf';
 my $gitolite_user_list_file = '/var/cache/mwiki/admin/gitolite-users';
 
-my $pre_receive_file = $gitolite_admin_dir . '/' . 'pre-receive';
+my $pre_receive_file = '/var/cache/mwiki/admin' . '/' . 'pre-receive';
 
 sub print_successful_registration_message {
   my $username = shift;
@@ -688,12 +688,21 @@ USER_CONFIG
 	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the public mwiki repository for '$username':</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
       }
       # install hooks: pre-receive
-      system ('cp', $pre_receive_file, $user_gitweb_bare_repo) == 0
-	or pr_die_unlock ("Couldn't copy the pre-receive hook at '$pre_receive_file' to the new bare repo at '$user_gitweb_bare_repo'");
+      my $user_gitolite_bare_repo_hook_dir = "$user_gitolite_bare_repo/hooks";
+      my $user_gitolite_pre_receive_file = "$user_gitolite_bare_repo_hook_dir/pre-receive";
+      system ('cp', $pre_receive_file, $user_gitolite_pre_receive_file) == 0
+	or pr_die_unlock ("Couldn't copy the pre-receive hook at '$pre_receive_file' to the new bare repo at '$user_gitolite_bare_repo'");
+      # ensure executability
+      chmod '0755', $user_gitolite_pre_receive_file;
+
       # tell gitweb about the new repo
-      my $user_gitweb_bare_repo = "/var/cache/git/$username.git";
-      link $user_gitolite_bare_repo, $user_gitweb_bare_repo
-        or pr_die_unlock ("Un oh: something went wrong linking '$user_gitweb_bare_repo' to '$user_gitweb_bare_repo':<blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.");
+      # BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN
+      # doesn't work, if www-data can't make a link in /var/cache/git
+      # BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN
+      # my $user_gitweb_bare_repo = "/var/cache/git/$username.git";
+      # link $user_gitolite_bare_repo, $user_gitweb_bare_repo
+      #   or pr_die_unlock ("Un oh: something went wrong linking '$user_gitolite_bare_repo' to '$user_gitweb_bare_repo':<blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.");
+
       # copy the given public key to the keydir
       my $user_key_file = $gitolite_key_dir . '/' . "$username" . '.pub';
       open (USER_KEY_FILE, '>', $user_key_file) 
