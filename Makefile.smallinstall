@@ -89,38 +89,37 @@ MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
 
 # gitolite
 GITOLITE_USER=$(PUBLIC_MWIKI_USER)
-GITOLITE_REPO=git://github.com/sitaramc/gitolite.git
-GITOLITE_SOURCE_DIR=/var/cache/mwiki/gitolite-source
-GITOLITE_INSTALL_DIR=/var/www
+GITOLITE_REPO=/home/urban/ec/gitolite
+#GITOLITE_REPO=git://github.com/sitaramc/gitolite.git
+GITOLITE_SOURCE_DIR=$(REPOS_BASE)/gitolite-source
+GITOLITE_INSTALL_DIR=/home/www
+#GITOLITE_INSTALL_DIR=/home/$(PUBLIC_MWIKI_USER)
 GITOLITE_BIN_DIR=$(GITOLITE_INSTALL_DIR)/bin
 GITOLITE_CONF_DIR=$(GITOLITE_INSTALL_DIR)/gitolite/conf
 GITOLITE_HOOKS_DIR=$(GITOLITE_INSTALL_DIR)/gitolite/hooks
-MWIKI_ADMIN_DIR=/var/cache/mwiki/admin
+MWIKI_ADMIN_DIR=$(REPOS_BASE)/admin
 GITOLITE_ADMIN_DIR=$(MWIKI_ADMIN_DIR)/gitolite-admin
 
 gitolite:
-	chown -R www-data:www-data /var/cache/mwiki
-	sudo -u www-data git clone $(GITOLITE_REPO) $(GITOLITE_SOURCE_DIR)
-	sudo -u www-data mkdir -p $(GITOLITE_BIN_DIR)
-	sudo -u www-data mkdir -p $(GITOLITE_CONF_DIR)
-	sudo -u www-data mkdir -p $(GITOLITE_HOOKS_DIR)
-	cd $(GITOLITE_SOURCE_DIR) && sudo -u www-data ./src/gl-system-install $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)
-	cp /var/www/.ssh/id_rsa.pub /tmp/www-data.pub
-	sudo -i -u www-data $(GITOLITE_BIN_DIR)/gl-setup /tmp/www-data.pub
-	rm /tmp/www-data.pub
+	chown -R $(GITOLITE_USER):$(GITOLITE_USER) $(REPOS_BASE)
+	sudo -u $(GITOLITE_USER) git clone $(GITOLITE_REPO) $(GITOLITE_SOURCE_DIR)
+	sudo -u $(GITOLITE_USER) mkdir -p $(GITOLITE_BIN_DIR)
+	sudo -u $(GITOLITE_USER) mkdir -p $(GITOLITE_CONF_DIR)
+	sudo -u $(GITOLITE_USER) mkdir -p $(GITOLITE_HOOKS_DIR)
+	cd $(GITOLITE_SOURCE_DIR) && sudo -u $(GITOLITE_USER) ./src/gl-system-install $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)
+	cp $(GITOLITE_INSTALL_DIR)/.ssh/id_rsa.pub /tmp/$(GITOLITE_USER).pub
+	sudo -u $(GITOLITE_USER) sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && export PATH=$$PATH:$$HOME/bin && gl-setup  -q /tmp/$(GITOLITE_USER).pub'
+	rm /tmp/$(GITOLITE_USER).pub
 	# import the mwiki into gitolite
-	sudo -u www-data git clone --bare $(PUBLIC_REPO) /var/www/repositories/mwiki.git
-	touch /var/www/.gitolite/conf/users.conf # initially empty list of users
-	chown -R www-data:www-data /var/cache/mwiki
-	# install the pre-receive hook into the admin dir
-	mkdir -p $(MWIKI_ADMIN_DIR)
-	/usr/bin/install -m 755 pre-receive.in $(MWIKI_ADMIN_DIR)/pre-receive
+	sudo -u $(GITOLITE_USER) git clone --bare $(PUBLIC_REPO) $(GITOLITE_INSTALL_DIR)/repositories/$(REPO_NAME).git
+	touch $(GITOLITE_INSTALL_DIR)/.gitolite/conf/users.conf # initially empty list of users
+	chown -R $(GITOLITE_USER):$(GITOLITE_USER) $(REPOS_BASE)
 	mkdir -p $(GITOLITE_ADMIN_DIR)
-	chown -R www-data:www-data $(GITOLITE_ADMIN_DIR)
-	sudo -u www-data git clone www-data@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
+	chown -R $(GITOLITE_USER):$(GITOLITE_USER) $(MWIKI_ADMIN_DIR)
+	chown -R $(GITOLITE_USER):$(GITOLITE_USER) $(GITOLITE_ADMIN_DIR)
+	sudo -u $(GITOLITE_USER) sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && export PATH=$$PATH:$$HOME/bin git clone $(GITOLITE_USER)@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)'
 	cp gitolite-config $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
-	cd $(GITOLITE_ADMIN_DIR) && sudo -u www-data git commit -a -m 'Include users.conf in the config file and register the mwiki with gitolite.' && sudo -u www-data git push
-	chown -R www-data:www-data $(MWIKI_ADMIN_DIR) # hmm...
+	cd $(GITOLITE_ADMIN_DIR) && sudo -u $(GITOLITE_USER) sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push'
 
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
@@ -305,10 +304,10 @@ clean:
 	-mv -f /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
 	sv up git-daemon
 	# gitolite cleanup
-	rm -Rf /var/www/.gitolite
-	rm -Rf /var/www/gitolite
-	rm -Rf /var/www/repositories
-	rm -f /var/www/projects.list
-	rm -f /var/www/bin/gitolite*
-	rm -f /var/www/bin/gl-*
-	rm -f /var/www/bin/sshkeys-lint
+	rm -Rf $(GITOLITE_INSTALL_DIR)/.gitolite
+	rm -Rf $(GITOLITE_INSTALL_DIR)/gitolite
+	rm -Rf $(GITOLITE_INSTALL_DIR)/repositories
+	rm -f $(GITOLITE_INSTALL_DIR)/projects.list
+	rm -f $(GITOLITE_INSTALL_DIR)/bin/gitolite*
+	rm -f $(GITOLITE_INSTALL_DIR)/bin/gl-*
+	rm -f $(GITOLITE_INSTALL_DIR)/bin/sshkeys-lint

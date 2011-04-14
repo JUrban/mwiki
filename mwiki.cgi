@@ -114,7 +114,20 @@ else { pr_die("The repository name \"$git_project\" is not allowed"); }
 
 if ((defined $action) 
     && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/) || ($action =~ /^(history)$/) 
+<<<<<<< variant A
 	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/) || ($action =~ /^(dependencies)$/) || ($action =~ /^(register)$/)))
+>>>>>>> variant B
+	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/) 
+	|| ($action =~ /^(dependencies)$/) || ($action =~ /^(register)$/)))
+####### Ancestor
+<<<<<<< Temporary merge branch 1
+	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/) || ($action =~ /^(dependencies)$/)  ))
+=======
+ 	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)
+ 	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)
+ 	|| ($action =~ /^(register)$/)))
+>>>>>>> Temporary merge branch 2
+======= end
 {
     $action = $1;
 }
@@ -598,11 +611,11 @@ my $bad_username = <<BAD_USERNAME;
 Your username, '$username', is invalid; it must be between 1 and 25 alphanumeric characters (dash '-' and underscore '_' are allowed).  Please go back and try again.</p>
 BAD_USERNAME
 
-my $gitolite_admin_dir = '/var/cache/mwiki/admin/gitolite-admin';
+my $gitolite_admin_dir =  $backend_repo_path . '../../admin/gitolite-admin';
 my $gitolite_key_dir = $gitolite_admin_dir . '/keydir';
 my $gitolite_conf_dir = $gitolite_admin_dir . '/conf';
 my $gitolite_user_conf_file = $gitolite_conf_dir . '/users.conf';
-my $gitolite_user_list_file = '/var/cache/mwiki/admin/gitolite-users';
+my $gitolite_user_list_file = $backend_repo_path . '../../admin/gitolite-users';
 
 my $pre_receive_file = '/var/cache/mwiki/admin' . '/' . 'pre-receive';
 
@@ -658,7 +671,7 @@ if($action eq "register") {
       lockwiki ();
       # first, add the user to the list of all users
       open (USER_CONF_FILE, '>>', $gitolite_user_conf_file)
-	or pr_die_unlock ("<p>Uh oh: something went wrong while opening the gitolite user configuration file to register '$username':</p><blockquote>" . escapeHTML ($!) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
+	or pr_die_unlock ("<p>Uh oh: something went wrong while opening the gitolite user configuration file to register '$username':$gitolite_user_conf_file</p><blockquote>" . escapeHTML ($!) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
       print USER_CONF_FILE <<USER_CONFIG;
 \@users = $username
 repo $username
@@ -680,12 +693,12 @@ USER_CONFIG
 	or pr_die_unlock ("Uh oh: something went wrong closing the user list file at '$gitolite_user_list_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
 
       # clone the public repo for the newly registered user
-      my $user_gitolite_bare_repo = "/var/www/repositories/$username.git";
+      my $user_gitolite_bare_repo = "/home/www/repositories/$username.git";
       my $git_clone_exit_code =
-	system ('git', 'clone', '--bare', '/var/cache/mwiki/public/mwiki', $user_gitolite_bare_repo);
+	system ('git', 'clone', '--bare', $frontend_repo, $user_gitolite_bare_repo);
       if ($git_clone_exit_code != 0) {
 	my $git_clone_error_message = $git_clone_exit_code >> 8;
-	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the public mwiki repository for '$username':</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
+	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the public mwiki repository for '$username':$frontend_repo, $user_gitolite_bare_repo</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
       }
       # install hooks: pre-receive
       my $user_gitolite_bare_repo_hook_dir = "$user_gitolite_bare_repo/hooks";
@@ -696,13 +709,12 @@ USER_CONFIG
       chmod '0755', $user_gitolite_pre_receive_file;
 
       # tell gitweb about the new repo
-      # BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN
-      # doesn't work, if www-data can't make a link in /var/cache/git
-      # BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN
-      # my $user_gitweb_bare_repo = "/var/cache/git/$username.git";
-      # link $user_gitolite_bare_repo, $user_gitweb_bare_repo
-      #   or pr_die_unlock ("Un oh: something went wrong linking '$user_gitolite_bare_repo' to '$user_gitweb_bare_repo':<blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.");
-
+      my $user_gitweb_bare_repo = "/var/cache/git/$username.git";
+      my $ln_exit_code = system('ln', '-s', $user_gitolite_bare_repo, $user_gitweb_bare_repo);
+      if ($ln_exit_code != 0) {
+	my $ln_error_message = $ln_exit_code >> 8;
+        pr_die_unlock ("Un oh: something went wrong linking '$user_gitolite_bare_repo' to '$user_gitweb_bare_repo':<blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.");
+      }
       # copy the given public key to the keydir
       my $user_key_file = $gitolite_key_dir . '/' . "$username" . '.pub';
       open (USER_KEY_FILE, '>', $user_key_file) 

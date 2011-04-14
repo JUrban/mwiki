@@ -145,3 +145,22 @@ clear instructions on how to set it up.
 #### limitations
 - not yet hooks in the users repos
 - no passwords for doing web-based operations, changing the ssh key, etc.
+
+####  New gitolite-MathWiki implementation
+- gitolite runs as user mwuser - this means it has a ssh dir with keys
+- bare repos are in ~mwuser/repositories (see also indefero)
+- checked out repos are under ~mwuser/clones
+- registration form take username password and public key (we just use the key now)
+- list of registered users is stored in a separate file under ~mwuser/admin - users.conf
+- users.conf is included into gitolite.conf automatically
+- @all group in gitolite can read all repos, each user has his RW fast-forward permissions
+- when a user registers, a clone of the current official repo is
+  made in his (named after him) subdirectory in ~/repositories and
+  /clones called mwiki
+- gitweb knows about the user repos (by the gitolite mechanism), and
+  the wiki can list all users
+- the html points to the html directory of the user in ~/clones/alama/mwiki
+- the namespace: stable (or mml - the MML releases), devel - the
+  default one, then users - get a copy of devel
+- users could have branches or projects later; devel and stable are
+  just special repos/users with special access/commit policies (no errors allowed)
