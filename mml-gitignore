@@ -41,6 +41,7 @@
 *-prel
 *-dep
 deps
+deps0
 
 # the distro files
 .emacs

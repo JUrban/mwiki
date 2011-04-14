@@ -117,11 +117,14 @@ my $allow_skipped_proofs  = 1;
 $tmp1 =  get_mwiki_var("allowskippedproofs");
 $allow_skipped_proofs = $tmp1 if( defined $tmp1 );
 
+# WIKIHOST: our url
+my $wikihost = get_mwiki_var("wikihost");
 
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
 my $main_repo = $cwd;
-my $compiled = $cwd . "/" . "../compiled";
+# my $compiled = $cwd . "/" . "../compiled";
+my $compiled = $cwd;
 my $sandbox = $cwd . "/" . "../sandbox";
 my $sandbox_mml = $sandbox . "/" . "mml";
 
@@ -129,7 +132,7 @@ my $sandbox_mml = $sandbox . "/" . "mml";
 mizar::set_MIZFILES ($main_repo);
 
 sub clean_the_dirty_sandbox {
-  my $rsync_output = `rsync -a --del $compiled/ $sandbox 2>&1`;
+  my $rsync_output = `rsync -a --del --exclude '.git' $compiled/ $sandbox 2>&1`;
   my $rsync_exit_code = ($? >> 8);
   unless ($rsync_exit_code == 0) {
     pc_print ("rsync did not exit cleanly when cleaning the dirty sandbox: $!");
@@ -291,17 +294,6 @@ sub die_if_make_died {
 $ENV{"MIZFILES"} = $sandbox;
 
 chdir ($sandbox_mml);
-system ("make  --jobs $makejobs evls deps 2> make-deps-err | tee make-deps-output");
-# die_if_make_died ($? >> 8);
-maybe_die_if_make_errors_in_dir ($sandbox_mml, 'make-deps-err',
-				'Failure generating dependencies');
-
-# Now try to verify the new articles (i.e., generate the article XML).
-chdir ($sandbox);
-system ("make  --jobs $makejobs hdrs xmlvrfs 2> make-xml-err | tee make-xml-out");
-# die_if_make_died ($? >> 8);
-maybe_die_if_make_errors_in_dir ($sandbox_mml, "$sandbox/make-xml-err",
-				 'Failure verifying and generating XML');
 
 # Ensure that the new articles do not have any "@proof" bits.
 if($allow_skipped_proofs == 0)
@@ -317,6 +309,100 @@ if($allow_skipped_proofs == 0)
 	}
     }
 }
+
+
+## section-based verification
+if ( defined ($ENV{MW_SECTION}) && defined ($ENV{MW_FILE}) 
+     && ($ENV{MW_SECTION}=~m/^([a-z]+\d+)_(\d+)_(\d+)$/ ))
+{
+    my $section = $1;
+
+    if (!($ENV{MW_FILE}=~ m/^mml\/([a-z0-9_]+)[.]$article_ext$/ ))
+    {
+	pc_print "Something went wrong with section editing: $ENV{MW_SECTION}, $ENV{MW_FILE}.";
+	exit 1;	    
+    }
+    
+    my $mw_file = $1;
+    # add the file part
+    $section = $section . '_' . $mw_file;
+ 
+    ### TODO: this is a constraint on article naming, it must not
+    ### conflict with section names
+
+    # we want to have things ordered by the mml order here
+    # instead of cat deps do tail ommitting the first item (hidden) - no .fdeps for it now
+    my $dollar = '$';
+    my @section_deps =
+	`tail -n +2 deps | sed -e 's/$dollar/.fdeps/' | xargs egrep -l ' $section( |$dollar)' | sed -e 's/.fdeps$dollar//'`;
+
+    my @articles_to_verify = ();
+    my @articles_to_export = ();
+    my @articles_to_html = ();
+
+
+    # foreach my $todo ($mw_file, @section_deps) 
+    # { 
+    # 	system("touch mml/$todo.miz"); 
+    # 	push(@articles_to_verify, 'mml/' . $todo . '.xmlvrf');
+    # 	push(@articles_to_export, 'mml/' . $todo . '-prel');
+    # 	push(@articles_to_html, 'mml/' . $todo . '.html');
+
+    # }
+
+    foreach my $todo ($mw_file, @section_deps) 
+    {
+	chomp($todo);
+	system("touch $todo.miz"); 
+	push(@articles_to_verify, $todo . '.xmlvrf');
+	push(@articles_to_export, $todo . '-prel');
+	push(@articles_to_html, $todo . '.html');
+    }
+
+    chdir ($sandbox);    
+
+    system ("make  --jobs $makejobs " . join(' ', @articles_to_verify) . 
+	    " 2> make-xml-err | tee make-xml-out");
+    maybe_die_if_make_errors_in_dir ($sandbox_mml, "$sandbox/make-xml-err",
+				     'Failure verifying and generating XML');
+
+## Export the computed prel data
+    system ("make --jobs $makejobs " . join(' ', @articles_to_export) 
+	    . " > make-prel-out 2> make-prel-err | tee make-prel-out");
+
+    maybe_die_if_make_errors_in_dir ($sandbox_mml, "$sandbox/make-prel-err",
+				     'Failure exporting prel information');
+
+    pc_print ("Your changes are admissible\n");
+
+    system ("make --jobs $makejobs " . join(' ', @articles_to_html) 
+	    . " WIKIHOST=$wikihost GITPROJECT=$repo_name.git 2> make-htmls-err | tee make-htmls-out");
+
+# touch things now so they are clean for normal make
+    system ("make touch-dependencies");
+
+# Copy the sandbox: force compiled to be a copy of the known compiled MML.
+# We are hoping that this is fairly fast.
+    `rsync -a --del --exclude '.git' $sandbox/ $compiled`;
+# note the slash                         ==> ^ <===  see the rsync man page to learn why
+
+    exit 0; # i.e., we made it -- phew!
+   
+}
+
+
+
+system ("make  --jobs $makejobs evls deps 2> make-deps-err | tee make-deps-output");
+# die_if_make_died ($? >> 8);
+maybe_die_if_make_errors_in_dir ($sandbox_mml, 'make-deps-err',
+				'Failure generating dependencies');
+
+# Now try to verify the new articles (i.e., generate the article XML).
+chdir ($sandbox);
+system ("make  --jobs $makejobs hdrs xmlvrfs 2> make-xml-err | tee make-xml-out");
+# die_if_make_died ($? >> 8);
+maybe_die_if_make_errors_in_dir ($sandbox_mml, "$sandbox/make-xml-err",
+				 'Failure verifying and generating XML');
 
 # Export the computed prel data
 chdir ($sandbox); # just to be clear

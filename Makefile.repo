@@ -116,10 +116,18 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 
 # this doesn't work: mmllar is not topologically sorted here
 # fine dependency magic - just touch it all in MMLLAR order
+# do we need to touch .evl and .dep? - yes, they depend on the changed .miz
+# and would be re-done next time
+
+# The chain of extensions as produced by make. The order matters here!
+MAKEEXTS=.evl .dep .hdr .xmlvrf .fdeps -prel -absrefs.xml .html
+
 touch-dependencies:
-	@for i in $(MMLLAR); do \
-	 touch mml/$$i.hdr; touch mml/$$i.xmlvrf; touch mml/$$i-prel; \
-	 touch mml/$$i-absrefs.xml; touch mml/$$i.html; \
+	@for i in $(shell cat mml/deps); do \
+	  for j in $(MAKEEXTS); do touch mml/$$i$$j; done; \
 	done
 
+# only include the deps if we do not do sections
+ifndef MW_SECTION
 -include $(DEP-MAKEFILES)
+endif

@@ -38,12 +38,28 @@
 details:
 
 - a theorem T in article A gets edited - T.fdeps get updated
-- we grep for T in other .fdeps, and touch the found .miz files
-- we run make, not including the .dep files
+- we grep for T in other .fdeps, and touch the found .miz files (in the deps order) 
+- we run make, not including the .dep files. We make the targets in th
+  deps order for compatibility with the normal make. This should result
+  in only compiling the .hdr .xmlvrf .fdeps -prel -absrefs.xml .html
+  (only xmlvrf needs to be re-done now, the prel and html should stay
+  the same)
 - if we fail, we rsync/rollback, otherwise we have to touch all
-  dependencies
+  dependencies - done as the "touch-dependencies" target
 - for touching all dependencies, we need to store the topological
-  order each time the .dep files change
+  order each time the .dep files change - this is now done in the deps
+  file (turned to file from a target) - pretty fast - 0.2s for whole MML
   
 
-- when whole article A gets edited, we also update A.fdeps
+- when whole article A gets edited, we also update A.fdeps - done, as
+  a dependency of -prel and depending on .xmlvrf (because .refx is
+  needed) - TODO for Coq
+
+
+#### Coq
+
+- run coqc and ../paper/code/bin/coq_dump_depends -coqtop ./bin/CoRN-interface -in $< -out "$${OUT}" 
+- CoRN-interface is a wrapper (adding -R and blahbla) around coq-interface which is coqtop compiled with pcoq and lionel's extensions
+- which is in coq 8.3 make
+- TODO: http://coq.inria.fr/bench/coqbench.cgi?version=v8.3
+- .cleanfinedeps: "CoRN.algebra.Basics.Acc_inv" ("CoRN.algebra.Basics.Acc") (item deps)

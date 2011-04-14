@@ -47,9 +47,27 @@ my $pubkey        = $query->param('pubkey');
 # this is required to untaint backticks
 # $ENV{"PATH"} = "";
 
+my $titleaction="Unknown wiki action";
+
+if (defined $action) 
+{
+if (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/)
+          || ($action =~ /^(history)$/) || ($action =~ /^(dependencies)$/))
+{
+    $titleaction = ucfirst ("$1 of $input_file");
+}
+elsif ($action =~ /^(blob_plain)$/)
+{
+    $titleaction = "Source of $input_file";
+}
+elsif  ($action =~ /^(gitweb)$/)
+{
+    $titleaction = "Project history";
+}
+}
 
 print $query->header();
-print $query->start_html(-title=>"Processing $input_file",
+print $query->start_html(-title=>"$titleaction",
 			 -dtd=>'-//W3C//DTD HTML 3.2//EN',
 			-head  => style(
 {-type => 'text/css'},
@@ -96,9 +114,7 @@ else { pr_die("The repository name \"$git_project\" is not allowed"); }
 
 if ((defined $action) 
     && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/) || ($action =~ /^(history)$/) 
- 	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)
- 	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)
- 	|| ($action =~ /^(register)$/)))
+	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/) || ($action =~ /^(dependencies)$/) || ($action =~ /^(register)$/))
 {
     $action = $1;
 }
@@ -165,6 +181,8 @@ if(!(defined $htmldir) || (length($htmldir) == 0))
     pr_die "No html directory for the project $git_project";
 }
 
+my $sectparam = (defined $section)? ";s=$section" : "";
+
 ## only print the file links if the file is ok - the length of $aname is 0 if only gitweb
 ## WARNING: This sub is using global vars $aname,$input_file,$git_project; don't move it!
 ##          It is a sub only because without it the scoping breaks.
@@ -181,6 +199,7 @@ sub printheader
          <li> <a href="?p=$git_project;a=edit;f=$input_file">Edit</a> </li>
          <li> <a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
          <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
+         <li> <a href="?p=$git_project;a=dependencies;f=$input_file$sectparam">Dependencies</a> </li>
 VEND
 	}
 	else  # no htmlization - present as raw
@@ -345,7 +364,7 @@ if($action eq "commit")
 #    $ENV{GIT_DIR} = $backend_repo_path . "/" . ".git"; # just to be safe
     chdir $backend_repo_path;              # before executing this hook!
     my $git_commit_output 
-	= system ("MW_SECTION=$section && $git commit -m '$message' 2>&1");
+	= system ("export MW_SECTION=$section && export MW_FILE=$input_file && $git commit -m '$message' 2>&1");
     my $git_commit_exit_code = ($? >> 8);
     unless ($git_commit_exit_code == 0) 
     {
@@ -388,6 +407,58 @@ if($action eq "history")
     printheader();
     print_iframe("$lgitwebcgi?p=$git_project;a=history;f=$input_file");
 }
+
+## the action for dependencies
+if($action eq "dependencies")
+{
+    printheader();
+
+    ($input_file =~ /^mml\/([a-z0-9_]+)[.]$article_ext$/) or
+	pr_die("No dependencies for: $input_file $section");
+
+    my $mwfile = $1;
+    my $do_section=0;
+
+
+    if ((defined $section) && ($section=~m/t(\d+)_(\d+)_(\d+)/))
+    {
+	$titleaction = $titleaction . ' Th' . uc($1);
+
+	# add the file part
+	$section = 't' . $1 . '_' . $mwfile;
+	$do_section = 1;
+
+    }
+
+    print '<div class=index><div class=indexheading>';
+    print '<h1>', $titleaction, '</h1></div><hr/><p>';
+
+    chdir $backend_repo_path . 'mml';          
+
+    my $dollar = '$';
+    my @section_deps = ();
+
+    if ($do_section == 1)
+    {
+	@section_deps =
+	    `tail -n +2 deps | sed -e 's/$dollar/.fdeps/' | xargs egrep -l ' $section( |$dollar)' | sed -e 's/.fdeps$dollar/.hdr/'`;
+    }
+    else
+    {
+	@section_deps = `grep ' $mwfile$dollar' deps0 | sed -e 's/ .*/.hdr/'`;
+    }
+
+    chomp @section_deps;
+
+    my $depsstring = join(' ', @section_deps); 
+
+    print `$backend_repo_path/.perl/mkmmlindex.pl -d1 -H $htmldir/ $depsstring`;
+
+    print '</dd></dl></div><hr/>';
+
+}
+
+
 
 my $voc_template="K\n";
 
@@ -453,6 +524,7 @@ if($action eq "edit")
      <li><a href="javascript:javascript:history.go(-1)">Cancel</a></li>
      <li><a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
      <li><a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
+     <li><a href="?p=$git_project;a=dependencies;f=$input_file$sectparam">Dependencies</a> </li>
      <li><a href="$htmldir/">Index</a> </li>
      <li><a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
      <li><a href="?p=$git_project;a=register">Register</a> </li>

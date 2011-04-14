@@ -121,7 +121,7 @@ gitolite:
 repos: public-repos gitweb mwiki
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
 
-public-repos: public-repo-init public-sandbox public-compiled public-repo-export
+public-repos: public-repo-init public-sandbox public-repo-export
 	chown -R $(PUBLIC_MWIKI_USER) $(PUBLIC_REPOS_BASE)
 	chgrp -R $(PUBLIC_MWIKI_USER) $(PUBLIC_REPOS_BASE)
 
@@ -182,8 +182,8 @@ scratch: scratch-html
 
 public-repo-init: public-mwiki-user scratch
 	mkdir -p $(PUBLIC_REPO)
-	cp -R $(SCRATCH_BASE)/* $(PUBLIC_REPO)
-	cp -R $(SCRATCH_BASE)/.perl $(PUBLIC_REPO)
+	cp -a $(SCRATCH_BASE)/* $(PUBLIC_REPO)
+	cp -a $(SCRATCH_BASE)/.perl $(PUBLIC_REPO)
 	chown $(PUBLIC_MWIKI_USER) $(PUBLIC_REPO)
 	chgrp $(PUBLIC_MWIKI_USER) $(PUBLIC_REPO)
 
@@ -223,14 +223,15 @@ public-mwiki-user:
 	install -m 755 mwiki-gitdaemon.run /etc/sv/git-daemon/run
 	sv up git-daemon
 
-public-compiled: scratch
-	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_COMPILED_REPO)
+#public-compiled: scratch
+#	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_COMPILED_REPO)
 #                                ===> ^ <===
 # trailing slash -- see the rsync man page to learn why it's there
 
 
 public-sandbox: scratch # our dirty sandbox
-	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_SANDBOX)
+	rsync -a --del $(PUBLIC_REPO)/ $(PUBLIC_SANDBOX)
+#	rsync -a --del $(SCRATCH_BASE)/ $(PUBLIC_SANDBOX)
 #                                ===> ^ <===
 # trailing slash -- see the rsync man page to learn why it's there
 
@@ -269,8 +270,8 @@ gitweb: public-repo-export
 	apache2ctl restart
 
 apacheconf:
-	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##REPO_NAME##/$$ARGV[1]/g; s/##PUBLIC_COMPILED_REPO##/$$ARGV[2]/g; s/##REPO_DIR_INDEX##/$$ARGV[3]/g; print }' \
-          apacheconf-mizar.in $(REPO_NAME) $(PUBLIC_COMPILED_REPO) $(REPO_DIR_INDEX) > \
+	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##REPO_NAME##/$$ARGV[1]/g; s/##PUBLIC_REPO##/$$ARGV[2]/g; s/##REPO_DIR_INDEX##/$$ARGV[3]/g; print }' \
+          apacheconf-mizar.in $(REPO_NAME) $(PUBLIC_REPO) $(REPO_DIR_INDEX) > \
           $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME) \
           && chmod 644 $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME)
 

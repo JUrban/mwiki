@@ -20,6 +20,15 @@ sub pc_print {
   print (pc_pad ($str . "\n"));
 }
 
+# do not do anything if we do sections - already done in pre-commit
+# TODO: implement as a check_section function?
+
+if ( defined ($ENV{MW_SECTION}) && defined ($ENV{MW_FILE}) 
+     && ($ENV{MW_SECTION}=~m/^([a-z]+\d+)_(\d+)_(\d+)$/ ))
+{
+    exit 0;
+}
+
 # Move changes from the sandbox, where we just successfully
 # verified/compiled a bunch of changes to the MML.
 
@@ -36,7 +45,8 @@ else {
 
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
-my $compiled = $cwd . "/" . "../compiled";
+# my $compiled = $cwd . "/" . "../compiled";
+my $compiled = $cwd;
 my $sandbox = $cwd . "/" . "../sandbox";
 my $sandbox_mml = $sandbox . "/" . "mml";
 
@@ -60,7 +70,7 @@ system ("make --jobs $makejobs htmls WIKIHOST=$wikihost GITPROJECT=$repo_name.gi
 
 # Copy the sandbox: force compiled to be a copy of the known compiled MML.
 # We are hoping that this is fairly fast.
-`rsync -a --del $sandbox/ $compiled`;
+`rsync -a --del --exclude '.git' $sandbox/ $compiled`;
 # note the slash   ===> ^ <===  see the rsync man page to learn why
 
 exit 0;
