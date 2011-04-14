@@ -114,6 +114,7 @@ gitolite:
 	touch $(GITOLITE_INSTALL_DIR)/.gitolite/conf/users.conf # initially empty list of users
 	chown -R www-data:www-data $(REPOS_BASE)
 	mkdir -p $(GITOLITE_ADMIN_DIR)
+	chown -R www-data:www-data $(MWIKI_ADMIN_DIR)
 	chown -R www-data:www-data $(GITOLITE_ADMIN_DIR)
 	sudo -u www-data sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && git clone www-data@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)'
 	cp gitolite-config $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
