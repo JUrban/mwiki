@@ -7,6 +7,6 @@ repo testing
      RW+     =   @all
      R	     =	 gitweb daemon
 
-repo mwiki
+repo public
      RW+     =	@all
      R	     = 	gitweb daemon
