@@ -1,6 +1,6 @@
 #!/bin/sh
 
-repos_base=/home/mwuser/dwiki
+repos_base=/home/mwuser/clones
 mizfiles=/home/urban/mizinst/7.11.07_4.160.1126
 xsl4miz=/home/urban/gr/xsl4mizar
 num_articles=2
