@@ -8,7 +8,7 @@ num_articles=2
 
 
 if test -z "$1"; then
-    targets='repos gitolite'
+    targets='repos gitolite-setup'
 else
     targets=$1
 fi
