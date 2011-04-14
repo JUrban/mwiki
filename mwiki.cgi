@@ -114,20 +114,8 @@ else { pr_die("The repository name \"$git_project\" is not allowed"); }
 
 if ((defined $action) 
     && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/) || ($action =~ /^(history)$/) 
-<<<<<<< variant A
-	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/) || ($action =~ /^(dependencies)$/) || ($action =~ /^(register)$/)))
->>>>>>> variant B
 	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/) 
 	|| ($action =~ /^(dependencies)$/) || ($action =~ /^(register)$/)))
-####### Ancestor
-<<<<<<< Temporary merge branch 1
-	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/) || ($action =~ /^(dependencies)$/)  ))
-=======
- 	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)
- 	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)
- 	|| ($action =~ /^(register)$/)))
->>>>>>> Temporary merge branch 2
-======= end
 {
     $action = $1;
 }
