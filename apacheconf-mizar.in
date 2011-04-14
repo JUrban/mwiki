@@ -6,3 +6,5 @@ Alias /##REPO_NAME## "##PUBLIC_REPO##/html"
   Order allow,deny
   allow from all
 </Directory>
+ScriptAlias /bin "##CGILIB##"
+

@@ -277,8 +277,8 @@ gitweb: public-repo-export
 	apache2ctl restart
 
 apacheconf:
-	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##REPO_NAME##/$$ARGV[1]/g; s/##PUBLIC_REPO##/$$ARGV[2]/g; s/##REPO_DIR_INDEX##/$$ARGV[3]/g; print }' \
-          apacheconf-mizar.in $(REPO_NAME) $(PUBLIC_REPO) $(REPO_DIR_INDEX) > \
+	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##REPO_NAME##/$$ARGV[1]/g; s/##PUBLIC_REPO##/$$ARGV[2]/g; s/##REPO_DIR_INDEX##/$$ARGV[3]/g; s/##CGILIB##/$$ARGV[4]/g; print }' \
+          apacheconf-mizar.in $(REPO_NAME) $(PUBLIC_REPO) $(REPO_DIR_INDEX) $(CGILIB) > \
           $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME) \
           && chmod 644 $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME)
 
@@ -315,3 +315,5 @@ clean:
 	rm -f $(GITOLITE_INSTALL_DIR)/bin/gitolite*
 	rm -f $(GITOLITE_INSTALL_DIR)/bin/gl-*
 	rm -f $(GITOLITE_INSTALL_DIR)/bin/sshkeys-lint
+	# mwuser stuff
+	rm -Rf /home/mwuser/*
