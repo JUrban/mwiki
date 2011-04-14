@@ -112,9 +112,9 @@ gitolite-setup:
 	sudo -u $(MWUSER) mkdir -p $(GITOLITE_BIN_DIR)
 	sudo -u $(MWUSER) mkdir -p $(GITOLITE_CONF_DIR)
 	sudo -u $(MWUSER) mkdir -p $(GITOLITE_HOOKS_DIR)
-	cd $(GITOLITE_SOURCE_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && export PATH=$$PATH:$$HOME/bin &&  ./src/gl-system-install $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)'
+	cd $(GITOLITE_SOURCE_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin &&  ./src/gl-system-install $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)'
 	cp $(MWUSER_HOME)/.ssh/id_rsa.pub /tmp/$(MWUSER).pub
-	sudo -u $(MWUSER) sh -c 'export HOME=$(GITOLITE_INSTALL_DIR) && export PATH=$$PATH:$$HOME/bin && gl-setup  -q /tmp/$(MWUSER).pub'
+	sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin && gl-setup  -q /tmp/$(MWUSER).pub'
 	rm /tmp/$(MWUSER).pub
 	touch $(MWUSER_HOME)/.gitolite/conf/users.conf # initially empty list of users
 	chown -R $(MWUSER):$(MWUSER) $(REPOS_BASE)
