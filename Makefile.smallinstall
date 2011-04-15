@@ -286,6 +286,8 @@ public-repo-export: public-repo-init
 
 
 gitweb: public-repo-export 
+	mkdir -p $(GITWEB_ROOT)/$(REPO_NAME)
+	chown -R $(MWUSER):$(MWUSER) $(GITWEB_ROOT)/$(REPO_NAME)
 	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/$(REPO_NAME).git
 	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/$(REPO_NAME)/public.git
 	$(INSTALL) --mode 755 --owner=$(MWUSER) --group=$(MWUSER) \
