@@ -13,6 +13,7 @@ export SHELL=/bin/bash
 ECHO = /bin/echo
 WIKIHOST=mws.cs.ru.nl
 GITPROJECT=mw1.git
+MWIKICGI=http://$(WIKIHOST)/bin/mwiki.cgi
 
 # .PHONY is a bad bad thing, it remakes the target all over; don't use this
 #.PHONY: deps
@@ -91,7 +92,7 @@ absrefs: $(patsubst %, %-absrefs.xml, $(MMLLAR))
 	  xsl/addabsrefs.xsl mml/$*.xmlvrf
 
 htmls: $(patsubst %, %.html, $(MMLLAR))
-	.perl/mkmmlindex.pl -ghttp://$(WIKIHOST):1234/ -mhttp://$(WIKIHOST)/bin/mwiki/mwiki.cgi -p$(GITPROJECT) mml/*.hdr > html/00INDEX.html
+	.perl/mkmmlindex.pl -ghttp://$(WIKIHOST):1234/ -m$(MWIKICGI) -p$(GITPROJECT) mml/*.hdr > html/00INDEX.html
 
 %.html: %-absrefs.xml %.hdr
 	@$(ECHO) $(html-tag) $*
@@ -109,6 +110,7 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 	  --param wiki_links 1 \
 	  --param wiki_sections 1 \
 	  --param lwikihost \'$(WIKIHOST)\' \
+          --param lmwikicgi \'$(MWIKICGI)\' \
 	  --param lgitproject \'$(GITPROJECT)\' \
 	  --output html/$*.html \
 	  xsl/miz.xsl mml/$*-absrefs.xml
