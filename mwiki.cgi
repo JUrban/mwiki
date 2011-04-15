@@ -164,7 +164,7 @@ if (-d $frontend_repo)
 }
 else
 {
-    pr_die "The repository \"$git_project\" does not exist";
+    pr_die "The repository \"$git_project\" does not exist: $frontend_repo";
 }
 
 if(!(defined $backend_repo_path) || (length($backend_repo_path) == 0))
