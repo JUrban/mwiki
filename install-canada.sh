@@ -1,6 +1,6 @@
 #!/bin/sh
 
-repos_base=/var/cache/mwiki
+repos_base=/home/mwuser/clones
 #mizfiles=/home/mptp/mizwrk/7.11.05_4.133.1080
 mizfiles=/home/alama/mizinst/7.11.06_4.150.1103
 xsl4miz=/home/alama/xsl4mizar
