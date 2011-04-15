@@ -290,7 +290,7 @@ apacheconf:
 
 mwiki: public-repos apacheconf
 	mkdir -p $(CGILIB)
-	chown -R $(MWUSER):$(MWUSER) $(MWUSER_HOME)/public_html
+	chown -R $(MWUSER):$(MWUSER) $(MWUSER_HOME)
 	$(INSTALL) -m 755 \
            --owner=$(MWUSER) --group=$(MWUSER) mwiki.cgi \
 	  $(CGILIB)/mwiki.cgi
