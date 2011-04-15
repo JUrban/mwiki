@@ -15,18 +15,21 @@ use HTTP::Request::Common;
 ## NOTE: The htmldir is now a git config
 ##       variable of the backend and frontend.
 
-# directory where frontends are stored
-my $frontend_dir  = "/var/cache/git/";
-
 # path to the git cgi
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
 
 # the git binary - need absolute path - we run in taint mode
 my $git           = "/usr/bin/git";
 
-# ###TODO: make this changable by sed-ing
+# ###TODO: make these changable by sed-ing
 # the MWUSER - everything is now in his gitolite, this should be in sync with Makefile.smallinstall
-my $MWUSER 	  = "mwuser";
+my $MWUSER 	  = "@@MWUSER@@";
+
+# the REPO_NAME - sync with Makefile.smallinstall, all gitweb repos dwell bellow this dir
+my $REPO_NAME	  = "@@REPO_NAME@@";
+
+# directory where frontends are stored
+my $frontend_dir  = "/var/cache/git/$REPO_NAME/";
 
 my $MWUSER_HOME	  = "/home/$MWUSER";
 my $REPOS_BASE    = "$MWUSER_HOME/clones";
@@ -256,7 +259,7 @@ END1
 if($action eq "gitweb")
 {
     printheader();
-    print_iframe("$lgitwebcgi?p=$git_project");
+    print_iframe("$lgitwebcgi?p=$REPO_NAME/$git_project");
     print $query->end_html;
     exit;
 }
