@@ -285,6 +285,8 @@ public-repo-export: public-repo-init
 
 gitweb: public-repo-export 
 	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/$(REPO_NAME).git
+	$(INSTALL) --mode 755 --owner=$(MWUSER) --group=$(MWUSER) \
+	  /usr/lib/cgi-bin/gitweb.cgi  $(CGILIB)/gitweb.cgi
 	$(INSTALL) -m 644 gitweb $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -f -s ../sites-available/gitweb gitweb

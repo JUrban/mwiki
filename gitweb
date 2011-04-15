@@ -18,6 +18,7 @@ Listen 1234
     Alias /git-favicon.png /usr/share/gitweb/git-favicon.png
     Alias /git-logo.png /usr/share/gitweb/git-logo.png
     # Alias /git /var/cache/git
-    ScriptAlias / /usr/lib/cgi-bin/gitweb.cgi
+    ScriptAlias / /var/www/bin/gitweb.cgi
+    # ScriptAlias / /usr/lib/cgi-bin/gitweb.cgi
     # RedirectMatch permanent "^/~(.*)$" "http://example.org/~$1"
 </VirtualHost>
