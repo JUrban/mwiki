@@ -123,7 +123,7 @@ gitolite-setup:
 	chown -R $(MWUSER):$(MWUSER) $(GITOLITE_ADMIN_DIR)
 	sudo -u $(MWUSER) git clone $(MWUSER)@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
 	sed -e "s|@@MWUSER@@|$(MWUSER)|g" < gitolite-config > $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
-	cd $(GITOLITE_ADMIN_DIR) && sudo -u $(MWUSER) sh -c 'git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push'
+	cd $(GITOLITE_ADMIN_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin && git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push'
 	# suexec config
 	chown -R $(MWUSER):$(MWUSER) /home/$(MWUSER)
 	perl -e 'open(A,$$ARGV[0]); while(<A>) { s/##MWUSER##/$$ARGV[1]/g; print }' \
@@ -290,6 +290,8 @@ apacheconf:
 
 mwiki: public-repos apacheconf
 	mkdir -p $(CGILIB)/mwiki
+	$(INSTALL) -m 755 \
+           --owner=$(MWUSER) --group=$(MWUSER) mwiki.cgi \
 	  $(CGILIB)/mwiki/mwiki.cgi
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -f -s ../sites-available/$(REPO_NAME) $(REPO_NAME)
