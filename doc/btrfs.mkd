@@ -67,6 +67,10 @@ snapshots are also possible.
 #### Use for many users
 
 - again, variable MW_BTRFS tells to use btrfs
+- nonbare repos live under mwuser/clones, this is the btrfs volume, each of them is a subvolume
+- bare repos live under mwuser/repositories (standard gitolite
+  location), they are space-shared using the standard git ref-sharing
+  mechanisms
 
 ### Experiments
 
