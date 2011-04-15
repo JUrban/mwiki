@@ -47,6 +47,7 @@ SCRATCH_BASE=$(MWUSER_HOME)/scratch
 REPOS_BASE=$(MWUSER_HOME)/clones
 BARE_REPOS=$(MWUSER_HOME)/repositories
 REPO_NAME=mwiki
+PUBLIC_REPO_NAME=$(REPO_NAME)/public
 REPO_DIR_INDEX=00INDEX.html
 PUBLIC_REPO=$(REPOS_BASE)/public
 PUBLIC_SANDBOX=$(PUBLIC_REPO)-sandbox
@@ -220,7 +221,7 @@ public-repo-init: public-mwiki-user scratch
            && git config mwiki.wikihost $(WIKIHOST) \
            && git config mwiki.makejobs $(MAKEJOBS) \
            && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
-           && git config mwiki.htmldir http://$(WIKIHOST)/$(REPO_NAME)
+           && git config mwiki.htmldir http://$(WIKIHOST)/$(PUBLIC_REPO_NAME)
 
 	$(INSTALL) \
 	  --mode 755 \
@@ -280,12 +281,13 @@ public-repo-export: public-repo-init
            && git config mwiki.wikihost $(WIKIHOST) \
            && git config mwiki.makejobs $(MAKEJOBS) \
            && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
-           && git config mwiki.htmldir http://$(WIKIHOST)/$(REPO_NAME) 
+           && git config mwiki.htmldir http://$(WIKIHOST)/$(PUBLIC_REPO_NAME) 
 	cd $(PUBLIC_REPO) && git remote add frontend $(BARE_PUBLIC_REPO_SSH)
 
 
 gitweb: public-repo-export 
 	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/$(REPO_NAME).git
+	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/$(REPO_NAME)/public.git
 	$(INSTALL) --mode 755 --owner=$(MWUSER) --group=$(MWUSER) \
 	  /usr/lib/cgi-bin/gitweb.cgi  $(CGILIB)/gitweb.cgi
 	$(INSTALL) -m 644 gitweb $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
@@ -294,8 +296,8 @@ gitweb: public-repo-export
 	apache2ctl restart
 
 apacheconf:
-	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##REPO_NAME##/$$ARGV[1]/g; s/##PUBLIC_REPO##/$$ARGV[2]/g; s/##REPO_DIR_INDEX##/$$ARGV[3]/g; s/##CGILIB##/$$ARGV[4]/g; s/##MWUSER##/$$ARGV[5]/g; print }' \
-          apacheconf-mizar.in $(REPO_NAME) $(PUBLIC_REPO) $(REPO_DIR_INDEX) $(CGILIB) $(MWUSER)> \
+	perl -e 'open(A,$$ARGV[0]); while(<A>) {s/##REPO_NAME##/$$ARGV[1]/g; s/##REPOS_BASE##/$$ARGV[2]/g; s/##REPO_DIR_INDEX##/$$ARGV[3]/g; s/##CGILIB##/$$ARGV[4]/g; s/##MWUSER##/$$ARGV[5]/g; print }' \
+          apacheconf-mizar.in $(REPO_NAME) $(REPOS_BASE) $(REPO_DIR_INDEX) $(CGILIB) $(MWUSER)> \
           $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME) \
           && chmod 644 $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME)
 
@@ -313,6 +315,7 @@ mwiki: public-repos apacheconf
 clean:
 	rm -Rf $(REPOS_BASE)
 	rm -f $(GITWEB_ROOT)/$(REPO_NAME).git
+	rm -Rf $(GITWEB_ROOT)/$(REPO_NAME)
 	# -killall git-daemon
 	# deluser $(MWUSER) \
 	#   || echo "user $(MWUSER) doesn't exist"
