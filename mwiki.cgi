@@ -24,6 +24,17 @@ my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
 # the git binary - need absolute path - we run in taint mode
 my $git           = "/usr/bin/git";
 
+# ###TODO: make this changable by sed-ing
+# the MWUSER - everything is now in his gitolite, this should be in sync with Makefile.smallinstall
+my $MWUSER 	  = "mwuser";
+
+my $MWUSER_HOME	  = "/home/$MWUSER";
+my $REPOS_BASE    = "$MWUSER_HOME/clones";
+my $BARE_REPOS    = "$MWUSER_HOME/repositories";
+my $PUBLIC_REPO   = "$REPOS_BASE/public";
+my $BARE_PUBLIC_REPO = "$BARE_REPOS/public.git";
+
+
 my $query	  = new CGI;
 
 # the file comes with relative path: mml/card_1.miz
