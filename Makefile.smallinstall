@@ -77,9 +77,9 @@ HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
 MWUSER=mwiki
 
 # path to you cgi-bin directory, where mwiki goes
-#CGILIB=/usr/lib/cgi-bin
+CGILIB=/var/www/bin
 
-CGILIB=$(MWUSER_HOME)/public_html/cgi-bin
+#CGILIB=$(MWUSER_HOME)/public_html/cgi-bin
 
 
 # name and email for the web commits; note that this goes only into backend
@@ -296,6 +296,7 @@ mwiki: public-repos apacheconf
 	  $(CGILIB)/mwiki.cgi
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -f -s ../sites-available/$(REPO_NAME) $(REPO_NAME)
+	#chown -R $(MWUSER):$(MWUSER) /home/$(MWUSER)
 	apache2ctl restart
 
 clean:

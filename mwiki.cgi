@@ -658,8 +658,18 @@ if($action eq "register") {
     if ($username =~ /[a-z0-9A-Z-_]{1,25}/) {
       lockwiki ();
       # first, add the user to the list of all users
+      # sanity
+      unless (-e $gitolite_user_conf_file) {
+	pr_die_unlock ("<p>Uh oh: the gitolite user configuration file doesn't exist at the expected location '$gitolite_user_conf_file'.  Please complain loudly to the administrators.</p>");
+      }
+      unless (-r $gitolite_user_conf_file) {
+	pr_die_unlock ("<p>Uh oh: the gitolite user configuration file at '$gitolite_user_conf_file' is unreadable.  Please complain loudly to the administrators.</p>");
+      }
+      unless (-x $gitolite_user_conf_file) {
+	pr_die_unlock ("<p>Uh oh: the gitolite user configuration file at '$gitolite_user_conf_file' is unwritable.  Please complain loudly to the administrators.</p>");
+      }
       open (USER_CONF_FILE, '>>', $gitolite_user_conf_file)
-	or pr_die_unlock ("<p>Uh oh: something went wrong while opening the gitolite user configuration file to register '$username':$gitolite_user_conf_file</p><blockquote>" . escapeHTML ($!) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
+	or pr_die_unlock ("<p>Uh oh: something went wrong while opening the gitolite user configuration file '$gitolite_user_conf_file' to register '$username':</p><blockquote>" . escapeHTML ($!) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
       print USER_CONF_FILE <<USER_CONFIG;
 \@users = $username
 repo $username
@@ -682,7 +692,7 @@ USER_CONFIG
 
       # clone the public repo for the newly registered user
       # ###TODO: change this using the backend path
-      my $user_gitolite_bare_repo = "/home/www/repositories/$username.git";
+      my $user_gitolite_bare_repo = "/home/mwuser/repositories/$username.git";
       my $git_clone_exit_code =
 	system ('git', 'clone', '--bare', $frontend_repo, $user_gitolite_bare_repo);
       if ($git_clone_exit_code != 0) {
