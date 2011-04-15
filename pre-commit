@@ -123,8 +123,6 @@ my $wikihost = get_mwiki_var("wikihost");
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
 my $main_repo = $cwd;
-# my $compiled = $cwd . "/" . "../compiled";
-my $compiled = $cwd;
 my $sandbox = $cwd . "/" . "../sandbox";
 my $sandbox_mml = $sandbox . "/" . "mml";
 
@@ -132,7 +130,7 @@ my $sandbox_mml = $sandbox . "/" . "mml";
 mizar::set_MIZFILES ($main_repo);
 
 sub clean_the_dirty_sandbox {
-  my $rsync_output = `rsync -a --del --exclude '.git' $compiled/ $sandbox 2>&1`;
+  my $rsync_output = `rsync -a --del --exclude '.git' $main_repo/ $sandbox 2>&1`;
   my $rsync_exit_code = ($? >> 8);
   unless ($rsync_exit_code == 0) {
     pc_print ("rsync did not exit cleanly when cleaning the dirty sandbox: $!");
@@ -381,9 +379,9 @@ if ( defined ($ENV{MW_SECTION}) && defined ($ENV{MW_FILE})
 # touch things now so they are clean for normal make
     system ("make touch-dependencies");
 
-# Copy the sandbox: force compiled to be a copy of the known compiled MML.
+# Copy the sandbox: force main_repo to be a copy of the sandbox MML.
 # We are hoping that this is fairly fast.
-    `rsync -a --del --exclude '.git' $sandbox/ $compiled`;
+    `rsync -a --del --exclude '.git' $sandbox/ $main_repo`;
 # note the slash                         ==> ^ <===  see the rsync man page to learn why
 
     exit 0; # i.e., we made it -- phew!
