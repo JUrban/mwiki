@@ -65,6 +65,9 @@ HEAD=/usr/bin/head
 INSTALL=/usr/bin/install
 INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
 
+# set to 1 for leaving some debugging files
+MW_DEBUG=0
+
 # this should be passed as arg - e.g. mws.cs.ru.nl
 WIKIHOST=localhost
 
@@ -130,7 +133,9 @@ gitolite-setup:
           suexec-config $(MWUSER) > /etc/apache2/suexec/$(MWUSER)
 
 repos: public-repos gitweb mwiki
+ifneq ($(MW_DEBUG),1)
 	rm -Rf $(SCRATCH_BASE) # no need for this anymore
+endif
 
 public-repos: public-repo-init public-sandbox public-repo-export
 	chown -R $(MWUSER):$(MWUSER) $(MWUSER_HOME)
