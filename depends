@@ -25,6 +25,8 @@ apache2 allows user cgi-bin in  /etc/apache2/mods-available/userdir.conf
 </Directory>
 
 apache2-suexec-custom
+a2enmod suexec
+
 
 Client dependencies:
 
