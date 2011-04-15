@@ -45,9 +45,8 @@ else {
 
 my @repo_path_dirs = File::Spec->splitdir ($cwd);
 my $repo_name = $repo_path_dirs[$#repo_path_dirs];
-# my $compiled = $cwd . "/" . "../compiled";
-my $compiled = $cwd;
-my $sandbox = $cwd . "/" . "../sandbox";
+my $main_repo = $cwd;
+my $sandbox = $cwd . "-sandbox";
 my $sandbox_mml = $sandbox . "/" . "mml";
 
 my $wikihost=`git config mwiki.wikihost`;
@@ -68,9 +67,9 @@ system ("make --jobs $makejobs htmls WIKIHOST=$wikihost GITPROJECT=$repo_name.gi
 #`../.perl/mkmmlindex.pl -ghttp://$wikihost:1234/ -p$repo_name.git *.hdr > ../html/index.html`;
 #chdir ($cwd);
 
-# Copy the sandbox: force compiled to be a copy of the known compiled MML.
+# Copy the sandbox: force main_repo to be a copy of the known sandbox MML.
 # We are hoping that this is fairly fast.
-`rsync -a --del --exclude '.git' $sandbox/ $compiled`;
+`rsync -a --del --exclude '.git' $sandbox/ $main_repo`;
 # note the slash   ===> ^ <===  see the rsync man page to learn why
 
 exit 0;
