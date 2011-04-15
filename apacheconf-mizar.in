@@ -1,5 +1,6 @@
-Alias /##REPO_NAME## "##PUBLIC_REPO##/html"
-<Directory /##REPO_NAME##>
+AliasMatch ^/##REPO_NAME##/([^\/]*)([\/].*)? "##REPOS_BASE##/$1/html$2"
+
+<Directory /##REPO_NAME##/*>
   Options Indexes FollowSymLinks MultiViews
   DirectoryIndex ##REPO_DIR_INDEX##
   AllowOverride None
