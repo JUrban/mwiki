@@ -12,7 +12,7 @@ use Pod::Usage;
 
 ## TODO: this two should be options
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
-my $lmwikicgi     = "http://mws.cs.ru.nl/cgi-bin/mwiki/mwiki.cgi";
+my $lmwikicgi     = "http://mws.cs.ru.nl/cgi-bin/mwiki.cgi";
 my $git_project = "mw1.git";
 my $htmlroot = "";
 my $dependencies = 0; ## if 1, omit the header and footer

@@ -289,10 +289,10 @@ apacheconf:
           && chmod 644 $(APACHE_ROOT)/etc/apache2/sites-available/$(REPO_NAME)
 
 mwiki: public-repos apacheconf
-	mkdir -p $(CGILIB)/mwiki
+	mkdir -p $(CGILIB)
 	$(INSTALL) -m 755 \
            --owner=$(MWUSER) --group=$(MWUSER) mwiki.cgi \
-	  $(CGILIB)/mwiki/mwiki.cgi
+	  $(CGILIB)/mwiki.cgi
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
 	  && ln -f -s ../sites-available/$(REPO_NAME) $(REPO_NAME)
 	apache2ctl restart
