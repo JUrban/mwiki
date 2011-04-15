@@ -66,7 +66,7 @@ INSTALL=/usr/bin/install
 INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
 
 # set to 1 for leaving some debugging files
-MW_DEBUG=0
+MW_DEBUG=1
 
 # this should be passed as arg - e.g. mws.cs.ru.nl
 WIKIHOST=localhost
@@ -83,6 +83,9 @@ MWUSER=mwiki
 CGILIB=/var/www/bin
 
 #CGILIB=$(MWUSER_HOME)/public_html/cgi-bin
+
+# this is the gitolite-aware frontend for the PUBLIC_REPO
+BARE_PUBLIC_REPO_SSH=$(MWUSER)@$(WIKIHOST):public
 
 
 # name and email for the web commits; note that this goes only into backend
@@ -257,7 +260,7 @@ endif
 
 
 public-repo-export: public-repo-init
-	sudo -u $(MWUSER) sh -c 'cd $(PUBLIC_REPO) && git push --all $(MWUSER)@$(WIKIHOST):public'
+	sudo -u $(MWUSER) sh -c 'cd $(PUBLIC_REPO) && git push --all $(BARE_PUBLIC_REPO_SSH)'
 	$(INSTALL) \
 	  --mode=644 \
 	  --owner=$(MWUSER) --group=$(MWUSER) \
@@ -277,7 +280,7 @@ public-repo-export: public-repo-init
            && git config mwiki.makejobs $(MAKEJOBS) \
            && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(REPO_NAME) 
-	cd $(PUBLIC_REPO) && git remote add frontend $(BARE_PUBLIC_REPO)
+	cd $(PUBLIC_REPO) && git remote add frontend $(BARE_PUBLIC_REPO_SSH)
 
 
 gitweb: public-repo-export 
