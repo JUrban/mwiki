@@ -210,6 +210,8 @@ scratch-html: scratch-deps
 
 scratch: scratch-html
 
+# TODO: refactor follwoing using the functions from mwiki.cgi
+
 public-repo-init: public-mwiki-user scratch
 	mkdir -p $(PUBLIC_REPO)
 	cp -a $(SCRATCH_BASE)/* $(PUBLIC_REPO)
