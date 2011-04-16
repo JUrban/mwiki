@@ -732,7 +732,7 @@ if($action eq "register")
       unless (-r $gitolite_user_conf_file) {
 	pr_die_unlock ("<p>Uh oh: the gitolite user configuration file at '$gitolite_user_conf_file' is unreadable.  Please complain loudly to the administrators.</p>");
       }
-      unless (-x $gitolite_user_conf_file) {
+      unless (-w $gitolite_user_conf_file) {
 	pr_die_unlock ("<p>Uh oh: the gitolite user configuration file at '$gitolite_user_conf_file' is unwritable.  Please complain loudly to the administrators.</p>");
       }
       open (USER_CONF_FILE, '>>', $gitolite_user_conf_file)
