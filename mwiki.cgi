@@ -34,6 +34,7 @@ my $frontend_dir  = "/var/cache/git/$REPO_NAME/";
 my $MWUSER_HOME	  = "/home/$MWUSER";
 my $REPOS_BASE    = "$MWUSER_HOME/clones";
 my $BARE_REPOS    = "$MWUSER_HOME/repositories";
+my $MWADMIN_DIR   = "$MWUSER_HOME/mwadmin";
 my $PUBLIC_REPO   = "$REPOS_BASE/public";
 my $BARE_PUBLIC_REPO = "$BARE_REPOS/public.git";
 
@@ -613,13 +614,13 @@ my $bad_username = <<BAD_USERNAME;
 Your username, '$username', is invalid; it must be between 1 and 25 alphanumeric characters (dash '-' and underscore '_' are allowed).  Please go back and try again.</p>
 BAD_USERNAME
 
-my $gitolite_admin_dir =  $backend_repo_path . '../../admin/gitolite-admin';
+my $gitolite_admin_dir =  $MWUSER_HOME . '/gitolite-admin';
 my $gitolite_key_dir = $gitolite_admin_dir . '/keydir';
 my $gitolite_conf_dir = $gitolite_admin_dir . '/conf';
 my $gitolite_user_conf_file = $gitolite_conf_dir . '/users.conf';
-my $gitolite_user_list_file = $backend_repo_path . '../../admin/gitolite-users';
+my $gitolite_user_list_file = $MWADMIN_DIR . '/gitolite-users';
 
-my $pre_receive_file = '/var/cache/mwiki/admin' . '/' . 'pre-receive';
+my $pre_receive_file = $MWADMIN_DIR  . '/pre-receive.in';
 
 sub print_successful_registration_message {
   my $username = shift;
@@ -673,9 +674,6 @@ if($action eq "register") {
       lockwiki ();
       # first, add the user to the list of all users
       # sanity
-      unless (-e $gitolite_user_conf_file) {
-	pr_die_unlock ("<p>Uh oh: the gitolite user configuration file doesn't exist at the expected location '$gitolite_user_conf_file'.  Please complain loudly to the administrators.</p>");
-      }
       unless (-r $gitolite_user_conf_file) {
 	pr_die_unlock ("<p>Uh oh: the gitolite user configuration file at '$gitolite_user_conf_file' is unreadable.  Please complain loudly to the administrators.</p>");
       }
@@ -694,40 +692,6 @@ USER_CONFIG
       close USER_CONF_FILE
 	or pr_die_unlock ("Something went wrong closing the output filehandle for the user configuration file!");
 
-      # add the username to the list of all users (this introduces
-      # some redundancy in our data, but for the sake of convenience,
-      # it's easier to manage a flat list of usernames)
-      open (USERS, '>>', $gitolite_user_list_file)
-	or pr_die_unlock ("Uh oh: something went wrong opening the user list file at '$gitolite_user_list_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
-      print USERS ("$username\n")
-	or pr_die_unlock ("Uh oh: something went wrong printing '$username' to the user list file:</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
-      close USERS
-	or pr_die_unlock ("Uh oh: something went wrong closing the user list file at '$gitolite_user_list_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
-
-      # clone the public repo for the newly registered user
-      # ###TODO: change this using the backend path
-      my $user_gitolite_bare_repo = "/home/mwuser/repositories/$username.git";
-      my $git_clone_exit_code =
-	system ('git', 'clone', '--bare', $frontend_repo, $user_gitolite_bare_repo);
-      if ($git_clone_exit_code != 0) {
-	my $git_clone_error_message = $git_clone_exit_code >> 8;
-	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the public mwiki repository for '$username':$frontend_repo, $user_gitolite_bare_repo</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
-      }
-      # install hooks: pre-receive
-      my $user_gitolite_bare_repo_hook_dir = "$user_gitolite_bare_repo/hooks";
-      my $user_gitolite_pre_receive_file = "$user_gitolite_bare_repo_hook_dir/pre-receive";
-      system ('cp', $pre_receive_file, $user_gitolite_pre_receive_file) == 0
-	or pr_die_unlock ("Couldn't copy the pre-receive hook at '$pre_receive_file' to the new bare repo at '$user_gitolite_bare_repo'");
-      # ensure executability
-      chmod '0755', $user_gitolite_pre_receive_file;
-
-      # tell gitweb about the new repo
-      my $user_gitweb_bare_repo = "/var/cache/git/$username.git";
-      my $ln_exit_code = system('ln', '-s', $user_gitolite_bare_repo, $user_gitweb_bare_repo);
-      if ($ln_exit_code != 0) {
-	my $ln_error_message = $ln_exit_code >> 8;
-        pr_die_unlock ("Un oh: something went wrong linking '$user_gitolite_bare_repo' to '$user_gitweb_bare_repo':<blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.");
-      }
       # copy the given public key to the keydir
       my $user_key_file = $gitolite_key_dir . '/' . "$username" . '.pub';
       open (USER_KEY_FILE, '>', $user_key_file) 
@@ -750,13 +714,52 @@ USER_CONFIG
       }
       # push the changes to the real gitolite admin repo
       my $git_push_exit_code = system ('git', 'push', '--quiet');
-      if ($git_push_exit_code == 0) {
-	print_successful_registration_message ($username);
-	unlockwiki ();
-      } else {
+      if ($git_push_exit_code != 0) {
 	my $git_push_error_message = $git_push_exit_code >> 8;
 	pr_die_unlock ("<p>Uh oh: something went wrong pushing the changes we just made to to the gitolite admin repo:</p><blockqute>" . escapeHTML ($git_push_error_message) . "</blockquote><p>Please complain loudly to the administrators.");
       }
+
+      ### TODO: the btrfs/rsync stuff goes here
+      # clone the public repo for the newly registered user
+      # ###TODO: change this using the backend path
+      my $user_gitolite_bare_repo = "$BARE_REPOS/$username.git";
+      my $git_clone_exit_code =
+	system ('git', 'clone', '--bare', $frontend_repo, $user_gitolite_bare_repo);
+      if ($git_clone_exit_code != 0) {
+	my $git_clone_error_message = $git_clone_exit_code >> 8;
+	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the repository for '$username':$frontend_repo, $user_gitolite_bare_repo</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
+      }
+      # install hooks: pre-receive
+      my $user_gitolite_bare_repo_hook_dir = "$user_gitolite_bare_repo/hooks";
+      my $user_gitolite_pre_receive_file = "$user_gitolite_bare_repo_hook_dir/pre-receive";
+      system ('cp', $pre_receive_file, $user_gitolite_pre_receive_file) == 0
+	or pr_die_unlock ("Couldn't copy the pre-receive hook at '$pre_receive_file' to the new bare repo at '$user_gitolite_bare_repo'");
+      # ensure executability
+      chmod '0755', $user_gitolite_pre_receive_file;
+
+      # tell gitweb about the new repo
+      my $user_gitweb_bare_repo = $frontend_dir . "$username.git";
+      my $ln_exit_code = system('ln', '-s', $user_gitolite_bare_repo, $user_gitweb_bare_repo);
+      if ($ln_exit_code != 0) {
+	my $ln_error_message = $ln_exit_code >> 8;
+        pr_die_unlock ("Un oh: something went wrong linking '$user_gitolite_bare_repo' to '$user_gitweb_bare_repo':<blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.");
+      }
+
+
+      # add the username to the list of all users (this introduces
+      # some redundancy in our data, but for the sake of convenience,
+      # it's easier to manage a flat list of usernames)
+      open (USERS, '>>', $gitolite_user_list_file)
+	or pr_die_unlock ("Uh oh: something went wrong opening the user list file at '$gitolite_user_list_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+      print USERS ("$username\n")
+	or pr_die_unlock ("Uh oh: something went wrong printing '$username' to the user list file:</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+      close USERS
+	or pr_die_unlock ("Uh oh: something went wrong closing the user list file at '$gitolite_user_list_file':</p><blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.</p>");
+
+
+      print_successful_registration_message ($username);
+      unlockwiki ();
+      
     } else {
       pr_die_unlock ($bad_username);
     }
