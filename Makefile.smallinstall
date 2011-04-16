@@ -71,6 +71,9 @@ INITIAL_SEGMENT=$(shell $(HEAD) -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar)
 # set to 1 for leaving some debugging files
 MW_DEBUG=1
 
+# set to 1 for using btrfs cloning
+MW_BTRFS=0
+
 # this should be passed as arg - e.g. mws.cs.ru.nl
 WIKIHOST=localhost
 
@@ -314,7 +317,7 @@ apacheconf:
 mwiki: public-repos apacheconf
 	mkdir -p $(CGILIB)
 	chown -R $(MWUSER):$(MWUSER) $(MWUSER_HOME)
-	sed -e "s|@@MWUSER@@|$(MWUSER)|g; s|@@REPO_NAME@@|$(REPO_NAME)|g;" < mwiki.cgi > $(CGILIB)/mwiki.cgi
+	sed -e "s|@@MWUSER@@|$(MWUSER)|g; s|@@MW_BTRFS@@|$(MW_BTRFS)|g; s|@@REPO_NAME@@|$(REPO_NAME)|g;" < mwiki.cgi > $(CGILIB)/mwiki.cgi
 	chown -R $(MWUSER):$(MWUSER) $(CGILIB)/mwiki.cgi
 	chmod 755 $(CGILIB)/mwiki.cgi
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
