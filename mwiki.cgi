@@ -28,6 +28,10 @@ my $MWUSER 	  = "@@MWUSER@@";
 # the REPO_NAME - sync with Makefile.smallinstall, all gitweb repos dwell bellow this dir
 my $REPO_NAME	  = "@@REPO_NAME@@";
 
+# do we use the btrfs cloning?- sync with smallinstall
+my $MW_BTRFS	  = "@@MW_BTRFS@@";
+
+
 # directory where frontends are stored
 my $frontend_dir  = "/var/cache/git/$REPO_NAME/";
 
