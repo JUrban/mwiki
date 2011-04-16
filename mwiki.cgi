@@ -140,7 +140,7 @@ sub clone_full_dirs
 	$clone_output = `rsync -a --del $origin/ $clone 2>&1`;
     }
 
-    my $clone_exit_code = ($? >> 8);
+    $clone_exit_code = ($? >> 8);
     unless ($clone_exit_code == 0) {
     pr_print ("cloning was unsuccessful from $origin to $clone : $!");
     pr_print ("It's output was:");
@@ -445,7 +445,8 @@ if($action eq "commit")
 	pr_die_unlock "";
     }
 
-# now push to frontend, disabling pre-receive
+    # ###TODO: remove the reliance on the giweb repo symlinks
+    # now push to frontend, disabling pre-receive
     pr_print ("Pushing the commit to frontend");
     my $mv_out = system("/bin/mv -f $gitweb_repo_path/hooks/pre-receive $gitweb_repo_path/hooks/pre-receive.old 2>&1");
     my $git_push_output 
@@ -767,10 +768,10 @@ USER_CONFIG
 	pr_die_unlock ("<p>Uh oh: something went wrong commiting the changes to the gitolite admin repo:</p><blockqute>" . escapeHTML ($git_commit_error_message) . "</blockquote><p>Please complain loudly to the administrators.");
       }
       # push the changes to the real gitolite admin repo
-      my $git_push_exit_code = system ('git', 'push', '--quiet');
-      if ($git_push_exit_code != 0) {
-	my $git_push_error_message = $git_push_exit_code >> 8;
-	pr_die_unlock ("<p>Uh oh: something went wrong pushing the changes we just made to to the gitolite admin repo:</p><blockqute>" . escapeHTML ($git_push_error_message) . "</blockquote><p>Please complain loudly to the administrators.");
+      my $git_push_adm_exit_code = system ('git', 'push', '--quiet');
+      if ($git_push_adm_exit_code != 0) {
+	my $git_push_adm_error_message = $git_push_adm_exit_code >> 8;
+	pr_die_unlock ("<p>Uh oh: something went wrong pushing the changes we just made to to the gitolite admin repo:</p><blockqute>" . escapeHTML ($git_push_adm_error_message) . "</blockquote><p>Please complain loudly to the administrators.");
       }
 
       ### TODO: the btrfs/rsync stuff goes here
@@ -796,7 +797,7 @@ USER_CONFIG
 
       # then push to the bare repo for the newly registered user
 
-      my $bare_user_repo_ssh = $MWUSER\@$wikihost:$username;
+      my $bare_user_repo_ssh = "$MWUSER\@$wikihost:$username";
 
       my $git_push_exit_code =
 	  system ('git', 'push', '--all', $bare_user_repo_ssh);
@@ -814,12 +815,12 @@ USER_CONFIG
 
       # install hooks: pre-receive, post-update
 
-      foreach $hookfile ("pre-receive", "post-update")
+      foreach my $hookfile ("pre-receive", "post-update")
       {
 	  open(H,"$MWADMIN_DIR/$hookfile.in") or pr_die_unlock ("Hook not readable: $MWADMIN_DIR/$hookfile.in");
 	  open(H1,">$user_gitolite_bare_repo/hooks/$hookfile") 
 	      or pr_die_unlock ("Hook not writable: $user_gitolite_bare_repo/hooks/$hookfile");
-	  while(<H>) { s|@@BACKEND@@|$user_backend_repo|g; s|@@MIRROR@@||g; print H1 $_; }
+	  while(<H>) { s|\@\@BACKEND\@\@|$user_backend_repo|g; s|\@\@MIRROR\@\@||g; print H1 $_; }
 	  close(H); close(H1);
 	  chmod '0755', "$user_gitolite_bare_repo/hooks/$hookfile";
       }
@@ -834,7 +835,7 @@ USER_CONFIG
 
       # install hooks in the backend
 
-      foreach $hookfile ("pre-commit", "post-commit")
+      foreach my $hookfile ("pre-commit", "post-commit")
       {
 	  system("/bin/cp $hookfile $user_backend_repo/.git/hooks");
 	  chmod '0755', "$user_backend_repo/.git/hooks/$hookfile";
