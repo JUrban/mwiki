@@ -832,6 +832,13 @@ USER_CONFIG
         pr_die_unlock ("Un oh: something went wrong linking '$user_gitolite_bare_repo' to '$user_gitweb_bare_repo':<blockquote>" . escapeHTML ($!) . "</blockquote><p>Please complain loudly to the administrators.");
       }
 
+      # install hooks in the backend
+
+      foreach $hookfile ("pre-commit", "post-commit")
+      {
+	  system("/bin/cp $hookfile $user_backend_repo/.git/hooks");
+	  chmod '0755', "$user_backend_repo/.git/hooks/$hookfile";
+      }
 
       # add the username to the list of all users (this introduces
       # some redundancy in our data, but for the sake of convenience,
