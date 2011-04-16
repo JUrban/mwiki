@@ -31,9 +31,13 @@ my $REPO_NAME	  = "@@REPO_NAME@@";
 # do we use the btrfs cloning?- sync with smallinstall
 my $MW_BTRFS	  = "@@MW_BTRFS@@";
 
+# gitweb
+
+my $GITWEB_ROOT   = "@@GITWEB_ROOT@@";
+
 
 # directory where frontends are stored
-my $frontend_dir  = "/var/cache/git/$REPO_NAME/";
+my $GITWEB_REPOS  = "$GITWEB_ROOT/$REPO_NAME/";
 
 my $MWUSER_HOME	  = "/home/$MWUSER";
 my $REPOS_BASE    = "$MWUSER_HOME/clones";
@@ -122,18 +126,18 @@ sub pr_die_unlock
     exit;
 }
 
-sub clone_full_repos 
+sub clone_full_dirs 
 {
     my ($origin,$clone) = @_;
     my ($clone_output, $clone_exit_code);
 
     if ($MW_BTRFS == 1)
     {
-	$clone_output = `btrfs subvolume snapshot  $PUBLIC_REPO $user_gitolite_repo 2>&1`;
+	$clone_output = `btrfs subvolume snapshot  $origin $clone 2>&1`;
     }
     else
     {
-	$clone_output = `rsync -a --del $PUBLIC_REPO/ $user_gitolite_repo 2>&1`;
+	$clone_output = `rsync -a --del $origin/ $clone 2>&1`;
     }
 
     my $clone_exit_code = ($? >> 8);
@@ -144,6 +148,23 @@ sub clone_full_repos
     pr_print ("We cannot continue.");
     exit 1;
   }
+}
+
+# assumes the right directory
+sub set_git_var
+{
+    my ($key, $value) = @_;
+    system("git config  $key $value");
+}
+
+# assumes the right directory
+sub set_mw_git_vars
+{
+    my $vars = shift;
+    foreach my $key (keys %$vars)
+    {
+	set_git_var($key, $vars->{$key});
+    }
 }
 
 
@@ -187,7 +208,7 @@ elsif ($action =~ /^(gitweb)$/) { $aname=""; }
 else { pr_die("The file name \"$input_file\" is not allowed"); }
 
 
-my $frontend_repo = $frontend_dir . $git_project;
+my $gitweb_repo_path = $GITWEB_REPOS . $git_project;
 my $backend_repo_path = "";
 
 # the directory with the htmlized wiki files (needed for index and other links)
@@ -196,9 +217,11 @@ my $htmldir       = "";
 # the wikihost, and the true cgi path
 my $wikihost= "";
 
-if (-d $frontend_repo)
+
+# ###TODO: reading these vars from the config is now probably unnecessary
+if (-d $gitweb_repo_path)
 {
-    chdir $frontend_repo;
+    chdir $gitweb_repo_path;
     $backend_repo_path = `$git config mwiki.backend`;
     chomp($backend_repo_path);
     $htmldir = `$git config mwiki.htmldir`;
@@ -209,7 +232,7 @@ if (-d $frontend_repo)
 }
 else
 {
-    pr_die "The repository \"$git_project\" does not exist: $frontend_repo";
+    pr_die "The repository \"$git_project\" does not exist: $gitweb_repo_path";
 }
 
 if(!(defined $backend_repo_path) || (length($backend_repo_path) == 0))
@@ -424,18 +447,18 @@ if($action eq "commit")
 
 # now push to frontend, disabling pre-receive
     pr_print ("Pushing the commit to frontend");
-    my $mv_out = system("/bin/mv -f $frontend_repo/hooks/pre-receive $frontend_repo/hooks/pre-receive.old 2>&1");
+    my $mv_out = system("/bin/mv -f $gitweb_repo_path/hooks/pre-receive $gitweb_repo_path/hooks/pre-receive.old 2>&1");
     my $git_push_output 
 	= system("$git push frontend HEAD 2>&1");
     my $git_push_exit_code = ($? >> 8);
     unless ($git_push_exit_code == 0) 
     {
 	pr_print ("Error pushing to the frontend repository: $git_push_output :: $mv_out");
-	system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
+	system("/bin/cp $gitweb_repo_path/hooks/pre-receive.old $gitweb_repo_path/hooks/pre-receive");
 	pr_die_unlock ("The exit code was $git_push_exit_code");
 
     }
-    system("/bin/cp $frontend_repo/hooks/pre-receive.old $frontend_repo/hooks/pre-receive");
+    system("/bin/cp $gitweb_repo_path/hooks/pre-receive.old $gitweb_repo_path/hooks/pre-receive");
     pr_print ("All OK!");
     unlockwiki();
 }
@@ -698,7 +721,8 @@ Happy Mizaring!</p>
 SUCCESS
 }
 
-if($action eq "register") {
+if($action eq "register") 
+{
   if (defined ($username) && defined ($passwd) && defined ($pubkey)) {
     if ($username =~ /[a-z0-9A-Z-_]{1,25}/) {
       lockwiki ();
@@ -751,31 +775,57 @@ USER_CONFIG
 
       ### TODO: the btrfs/rsync stuff goes here
 
-      # first clone the compiled public repo
+      # first do filesystem clone of the backend public repo 
 
-      my $user_gitolite_repo = "$REPOS_BASE/$username";
+      my $user_backend_repo = "$REPOS_BASE/$username";
 
-      clone_full_repos($PUBLIC_REPO, $user_gitolite_repo);
+      clone_full_dirs($PUBLIC_REPO, $user_backend_repo);
 
-      # then clone the bare public repo for the newly registered user
-      # ###TODO: change this using the backend path
-      my $user_gitolite_bare_repo = "$BARE_REPOS/$username.git";
-      my $git_clone_exit_code =
-	system ('git', 'clone', '--bare', $frontend_repo, $user_gitolite_bare_repo);
-      if ($git_clone_exit_code != 0) {
-	my $git_clone_error_message = $git_clone_exit_code >> 8;
-	pr_die_unlock ("<p>Uh oh: something went wrong while cloning the repository for '$username':$frontend_repo, $user_gitolite_bare_repo</p><blockquote>" .  escapeHTML ($git_clone_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
+      # fix .git/config
+      
+      # TODO: set other vars here like makejobs, etc
+
+      my %mw_git_vars = 
+	  ("user.name" => $username,
+	   "user.email" => "$username\@none.none",
+	   "mwiki.wikihost" => $wikihost,
+	   "mwiki.htmldir" => "http://$wikihost/$REPO_NAME/$username");
+
+      chdir  $user_backend_repo;
+      set_git_vars(\%mw_git_vars);
+
+      # then push to the bare repo for the newly registered user
+
+      my $bare_user_repo_ssh = $MWUSER\@$wikihost:$username;
+
+      my $git_push_exit_code =
+	  system ('git', 'push', '--all', $bare_user_repo_ssh);
+      if ($git_push_exit_code != 0) {
+	my $git_push_error_message = $git_push_exit_code >> 8;
+	pr_die_unlock ("<p>Uh oh: something went wrong while pushing the repository for '$username':$bare_user_repo_ssh</p><blockquote>" .  escapeHTML ($git_push_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
       }
-      # install hooks: pre-receive
-      my $user_gitolite_bare_repo_hook_dir = "$user_gitolite_bare_repo/hooks";
-      my $user_gitolite_pre_receive_file = "$user_gitolite_bare_repo_hook_dir/pre-receive";
-      system ('cp', $pre_receive_file, $user_gitolite_pre_receive_file) == 0
-	or pr_die_unlock ("Couldn't copy the pre-receive hook at '$pre_receive_file' to the new bare repo at '$user_gitolite_bare_repo'");
-      # ensure executability
-      chmod '0755', $user_gitolite_pre_receive_file;
+
+      system("git remote add frontend $bare_user_repo_ssh");
+
+      # this now exists
+      my $user_gitolite_bare_repo = "$BARE_REPOS/$username.git";
+
+      system("touch $user_gitolite_bare_repo/git-daemon-export-ok");
+
+      # install hooks: pre-receive, post-update
+
+      foreach $hookfile ("pre-receive", "post-update")
+      {
+	  open(H,"$MWADMIN_DIR/$hookfile.in") or pr_die_unlock ("Hook not readable: $MWADMIN_DIR/$hookfile.in");
+	  open(H1,">$user_gitolite_bare_repo/hooks/$hookfile") 
+	      or pr_die_unlock ("Hook not writable: $user_gitolite_bare_repo/hooks/$hookfile");
+	  while(<H>) { s|@@BACKEND@@|$user_backend_repo|g; s|@@MIRROR@@||g; print H1 $_; }
+	  close(H); close(H1);
+	  chmod '0755', "$user_gitolite_bare_repo/hooks/$hookfile";
+      }
 
       # tell gitweb about the new repo
-      my $user_gitweb_bare_repo = $frontend_dir . "$username.git";
+      my $user_gitweb_bare_repo = $GITWEB_REPOS . "$username.git";
       my $ln_exit_code = system('ln', '-s', $user_gitolite_bare_repo, $user_gitweb_bare_repo);
       if ($ln_exit_code != 0) {
 	my $ln_error_message = $ln_exit_code >> 8;
