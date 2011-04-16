@@ -46,6 +46,7 @@ MWUSER_HOME=/home/$(MWUSER)
 SCRATCH_BASE=$(MWUSER_HOME)/scratch
 REPOS_BASE=$(MWUSER_HOME)/clones
 BARE_REPOS=$(MWUSER_HOME)/repositories
+MWADMIN_DIR=$(MWUSER_HOME)/mwadmin
 REPO_NAME=mwiki
 PUBLIC_REPO_NAME=$(REPO_NAME)/public
 REPO_DIR_INDEX=00INDEX.html
@@ -125,17 +126,24 @@ gitolite-setup:
 	cp $(MWUSER_HOME)/.ssh/id_rsa.pub /tmp/$(MWUSER).pub
 	sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin && gl-setup  -q /tmp/$(MWUSER).pub'
 	rm /tmp/$(MWUSER).pub
-	touch $(MWUSER_HOME)/.gitolite/conf/users.conf # initially empty list of users
 	chown -R $(MWUSER):$(MWUSER) $(REPOS_BASE)
 	mkdir -p $(GITOLITE_ADMIN_DIR)
 	chown -R $(MWUSER):$(MWUSER) $(GITOLITE_ADMIN_DIR)
 	sudo -u $(MWUSER) git clone $(MWUSER)@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
+	sudo -u $(MWUSER) touch $(GITOLITE_ADMIN_DIR)/conf/users.conf # initially empty list of users
 	sed -e "s|@@MWUSER@@|$(MWUSER)|g" < gitolite-config > $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
-	cd $(GITOLITE_ADMIN_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin && git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push'
+	cd $(GITOLITE_ADMIN_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin && git add  conf/users.conf && git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push'
 	# suexec config
 	chown -R $(MWUSER):$(MWUSER) /home/$(MWUSER)
 	perl -e 'open(A,$$ARGV[0]); while(<A>) { s/##MWUSER##/$$ARGV[1]/g; print }' \
           suexec-config $(MWUSER) > /etc/apache2/suexec/$(MWUSER)
+	# the mwadmin directory
+	mkdir -p $(MWADMIN_DIR)
+	touch $(MWADMIN_DIR)/gitolite-users
+	for hookfile in pre-commit post-commit pre-receive.in post-update.in; do \
+	  cp $$hookfile $(MWADMIN_DIR); \
+	done
+	chown -R $(MWUSER):$(MWUSER) $(MWADMIN_DIR)
 
 repos: public-repos gitweb mwiki
 ifneq ($(MW_DEBUG),1)
