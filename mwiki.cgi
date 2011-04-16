@@ -122,6 +122,32 @@ sub pr_die_unlock
     exit;
 }
 
+sub clone_full_repos 
+{
+    my ($origin,$clone) = @_;
+    my ($clone_output, $clone_exit_code);
+
+    if ($MW_BTRFS == 1)
+    {
+	$clone_output = `btrfs subvolume snapshot  $PUBLIC_REPO $user_gitolite_repo 2>&1`;
+    }
+    else
+    {
+	$clone_output = `rsync -a --del $PUBLIC_REPO/ $user_gitolite_repo 2>&1`;
+    }
+
+    my $clone_exit_code = ($? >> 8);
+    unless ($clone_exit_code == 0) {
+    pr_print ("cloning was unsuccessful from $origin to $clone : $!");
+    pr_print ("It's output was:");
+    pr_print ("$clone_output\n");
+    pr_print ("We cannot continue.");
+    exit 1;
+  }
+}
+
+
+
 my $aname = "";
 
 # untaint the cgi params:
@@ -724,7 +750,14 @@ USER_CONFIG
       }
 
       ### TODO: the btrfs/rsync stuff goes here
-      # clone the public repo for the newly registered user
+
+      # first clone the compiled public repo
+
+      my $user_gitolite_repo = "$REPOS_BASE/$username";
+
+      clone_full_repos($PUBLIC_REPO, $user_gitolite_repo);
+
+      # then clone the bare public repo for the newly registered user
       # ###TODO: change this using the backend path
       my $user_gitolite_bare_repo = "$BARE_REPOS/$username.git";
       my $git_clone_exit_code =
