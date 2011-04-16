@@ -158,7 +158,7 @@ sub set_git_var
 }
 
 # assumes the right directory
-sub set_mw_git_vars
+sub set_git_vars
 {
     my $vars = shift;
     foreach my $key (keys %$vars)
