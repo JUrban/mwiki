@@ -805,6 +805,7 @@ USER_CONFIG
 
       # then push to the bare repo for the newly registered user
 
+      my $bare_user_repo_ssh = "$MWUSER\@$wikihost:$username";
 
       my $git_push_exit_code =
 	  system ('git', 'push', '--all', $bare_user_repo_ssh);
