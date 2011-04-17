@@ -792,14 +792,14 @@ USER_CONFIG
       
       # TODO: set other vars here like makejobs, etc
 
-      my %mw_git_vars = 
+      my %mw_git_backend_vars = 
 	  ("user.name" => $username,
 	   "user.email" => "$username\@none.none",
 	   "mwiki.wikihost" => $wikihost,
 	   "mwiki.htmldir" => "http://$wikihost/$REPO_NAME/$username");
 
       chdir  $user_backend_repo;
-      set_git_vars(\%mw_git_vars);
+      set_git_vars(\%mw_git_backend_vars);
 
       # then push to the bare repo for the newly registered user
 
@@ -816,6 +816,17 @@ USER_CONFIG
 
       # this now exists
       my $user_gitolite_bare_repo = "$BARE_REPOS/$username.git";
+
+      my %mw_git_bare_vars = 
+      ("core.sharedRepository" => "true",
+       "daemon.receivepack" => "true",
+       "mwiki.backend" => "$user_backend_repo/",
+       "mwiki.wikihost" => $wikihost,
+       "mwiki.htmldir" => "http://$wikihost/$REPO_NAME/$username");
+
+      chdir  $user_gitolite_bare_repo;
+      set_git_vars(\%mw_git_bare_vars);
+
 
       system("touch $user_gitolite_bare_repo/git-daemon-export-ok");
 
