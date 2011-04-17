@@ -741,7 +741,7 @@ if($action eq "register")
 \@users = $username
 repo $username
    R   = \@all
-   RW+ = $username
+   RW+ = $username $MWUSER
 
 USER_CONFIG
       close USER_CONF_FILE
