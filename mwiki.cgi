@@ -841,7 +841,7 @@ USER_CONFIG
 	      or pr_die_unlock ("Hook not writable: $user_gitolite_bare_repo/hooks/$hookfile");
 	  while(<H>) { s|\@\@BACKEND\@\@|$user_backend_repo|g; s|\@\@MIRROR\@\@||g; print H1 $_; }
 	  close(H); close(H1);
-	  chmod '0755', "$user_gitolite_bare_repo/hooks/$hookfile";
+	  chmod 0755, "$user_gitolite_bare_repo/hooks/$hookfile";
       }
 
       # tell gitweb about the new repo
@@ -858,7 +858,7 @@ USER_CONFIG
       {
 	  copy("$MWADMIN_DIR/$hookfile", "$user_backend_repo/.git/hooks")
 	      or pr_die_unlock ("Cannot copy $hookfile to $user_backend_repo/.git/hooks");
-	  chmod '0755', "$user_backend_repo/.git/hooks/$hookfile";
+	  chmod 0755, "$user_backend_repo/.git/hooks/$hookfile";
       }
 
       # add the username to the list of all users (this introduces
