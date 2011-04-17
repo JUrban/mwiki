@@ -805,7 +805,6 @@ USER_CONFIG
 
       # then push to the bare repo for the newly registered user
 
-      my $bare_user_repo_ssh = "$MWUSER\@$wikihost:$username";
 
       my $git_push_exit_code =
 	  system ('git', 'push', '--all', $bare_user_repo_ssh);
@@ -814,10 +813,14 @@ USER_CONFIG
 	pr_die_unlock ("<p>Uh oh: something went wrong while pushing the repository for '$username':$bare_user_repo_ssh</p><blockquote>" .  escapeHTML ($git_push_error_message) . "</blockquote> <p>Please complain loudly to the administrators.</p>");
       }
 
-      system("git remote add frontend $bare_user_repo_ssh");
-
       # this now exists
       my $user_gitolite_bare_repo = "$BARE_REPOS/$username.git";
+
+      # remove the copied frontend config, set the new
+      system("git remote rm frontend");
+      system("git remote add frontend $bare_user_repo_ssh");
+
+
 
       my %mw_git_bare_vars = 
       ("core.sharedRepository" => "true",
