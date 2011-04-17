@@ -5,6 +5,8 @@ use CGI;
 use CGI::Pretty ":standard";
 use IO::Socket;
 use HTTP::Request::Common;
+use File::Copy;
+
 
 ## TODO: we should think about how to allow customization
 ##       of the following variables.
@@ -854,7 +856,8 @@ USER_CONFIG
 
       foreach my $hookfile ("pre-commit", "post-commit")
       {
-	  system("/bin/cp $hookfile $user_backend_repo/.git/hooks");
+	  copy("$MWADMIN_DIR/$hookfile", "$user_backend_repo/.git/hooks")
+	      or pr_die_unlock ("Cannot copy $hookfile to $user_backend_repo/.git/hooks");
 	  chmod '0755', "$user_backend_repo/.git/hooks/$hookfile";
       }
 
