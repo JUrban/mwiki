@@ -87,6 +87,11 @@ elsif  ($action =~ /^(gitweb)$/)
 {
     $titleaction = "Project history";
 }
+elsif  ($action =~ /^(users)$/)
+{
+    $titleaction = "Project users";
+}
+
 }
 
 print $query->header();
@@ -179,7 +184,8 @@ if(defined($git_project) && ($git_project =~ /^([a-zA-Z0-9_\-\.]+)$/))
 else { pr_die("The repository name \"$git_project\" is not allowed"); }
 
 if ((defined $action) 
-    && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/) || ($action =~ /^(history)$/)
+    && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/) 
+	|| ($action =~ /^(history)$/) || ($action =~ /^(users)$/)
 	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)
 	|| ($action =~ /^(dependencies)$/) || ($action =~ /^(register)$/)))
 {
@@ -862,6 +868,8 @@ USER_CONFIG
     print $registration_form;
   }
 }
+
+### TODO: This should be a session file
 
 if ($action eq 'users') {
   my @users = ();
