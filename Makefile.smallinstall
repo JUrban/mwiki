@@ -320,6 +320,9 @@ mwiki: public-repos apacheconf
 	mkdir -p $(CGILIB)
 	chown -R $(MWUSER):$(MWUSER) $(MWUSER_HOME)
 	sed -e "s|@@MWUSER@@|$(MWUSER)|g; s|@@MW_BTRFS@@|$(MW_BTRFS)|g; s|@@REPO_NAME@@|$(REPO_NAME)|g; s|@@GITWEB_ROOT@@|$(GITWEB_ROOT)|g;" < mwiki.cgi > $(CGILIB)/mwiki.cgi
+	cp mw_common.pm $(CGILIB)/mw_common.pm
+	chown -R $(MWUSER):$(MWUSER) $(CGILIB)/mw_common.pm 
+	chmod 644 $(CGILIB)/mw_common.pm
 	chown -R $(MWUSER):$(MWUSER) $(CGILIB)/mwiki.cgi
 	chmod 755 $(CGILIB)/mwiki.cgi
 	cd $(APACHE_ROOT)/etc/apache2/sites-enabled \
