@@ -11,6 +11,7 @@ use Cwd;
 use lib '.perl';
 
 use mizar;
+use mw_common;
 
 # this is required to untaint backticks - 
 # not sure if we will go all the way to untainting
