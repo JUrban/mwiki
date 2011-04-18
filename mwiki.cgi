@@ -7,6 +7,9 @@ use IO::Socket;
 use HTTP::Request::Common;
 use File::Copy;
 
+use lib '.';
+
+use mw_common;
 
 ## TODO: we should think about how to allow customization
 ##       of the following variables.
@@ -133,21 +136,12 @@ sub pr_die_unlock
     exit;
 }
 
-sub clone_full_dirs 
+sub clone_full_dirs_report
 {
     my ($origin,$clone) = @_;
-    my ($clone_output, $clone_exit_code);
+    my ($result,$clone_output)  = mw_common::clone_full_dirs($MW_BTRFS,$origin,$clone);
 
-    if ($MW_BTRFS == 1)
-    {
-	$clone_output = `btrfs subvolume snapshot  $origin $clone 2>&1`;
-    }
-    else
-    {
-	$clone_output = `rsync -a --del $origin/ $clone 2>&1`;
-    }
-
-    $clone_exit_code = ($? >> 8);
+    my $clone_exit_code = ($result >> 8);
     unless ($clone_exit_code == 0) {
     pr_print ("cloning was unsuccessful from $origin to $clone : $!");
     pr_print ("It's output was:");
@@ -156,24 +150,6 @@ sub clone_full_dirs
     exit 1;
   }
 }
-
-# assumes the right directory
-sub set_git_var
-{
-    my ($key, $value) = @_;
-    system("git config  $key $value");
-}
-
-# assumes the right directory
-sub set_git_vars
-{
-    my $vars = shift;
-    foreach my $key (keys %$vars)
-    {
-	set_git_var($key, $vars->{$key});
-    }
-}
-
 
 
 my $aname = "";
@@ -788,7 +764,7 @@ USER_CONFIG
 
       my $user_backend_repo = "$REPOS_BASE/$username";
 
-      clone_full_dirs($PUBLIC_REPO, $user_backend_repo);
+      clone_full_dirs_report($PUBLIC_REPO, $user_backend_repo);
 
       # fix .git/config
       
@@ -801,7 +777,7 @@ USER_CONFIG
 	   "mwiki.htmldir" => "http://$wikihost/$REPO_NAME/$username");
 
       chdir  $user_backend_repo;
-      set_git_vars(\%mw_git_backend_vars);
+      mw_common::set_git_vars(\%mw_git_backend_vars);
 
       # then push to the bare repo for the newly registered user
 
@@ -831,7 +807,7 @@ USER_CONFIG
        "mwiki.htmldir" => "http://$wikihost/$REPO_NAME/$username");
 
       chdir  $user_gitolite_bare_repo;
-      set_git_vars(\%mw_git_bare_vars);
+      mw_common::set_git_vars(\%mw_git_bare_vars);
 
 
       system("touch $user_gitolite_bare_repo/git-daemon-export-ok");
