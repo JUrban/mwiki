@@ -9,7 +9,7 @@ use File::Copy;
 
 use lib '.';
 
-use mw_common;
+use mw_common qw(MWUSER REPO_NAME MW_BTRFS GITWEB_ROOT);
 
 ## TODO: we should think about how to allow customization
 ##       of the following variables.
@@ -28,17 +28,17 @@ my $git           = "/usr/bin/git";
 
 # ###TODO: make these changable by sed-ing
 # the MWUSER - everything is now in his gitolite, this should be in sync with Makefile.smallinstall
-my $MWUSER 	  = "@@MWUSER@@";
+my $MWUSER 	  = MWUSER;
 
 # the REPO_NAME - sync with Makefile.smallinstall, all gitweb repos dwell bellow this dir
-my $REPO_NAME	  = "@@REPO_NAME@@";
+my $REPO_NAME	  = REPO_NAME;
 
 # do we use the btrfs cloning?- sync with smallinstall
-my $MW_BTRFS	  = "@@MW_BTRFS@@";
+my $MW_BTRFS	  = MW_BTRFS;
 
 # gitweb
 
-my $GITWEB_ROOT   = "@@GITWEB_ROOT@@";
+my $GITWEB_ROOT   = GITWEB_ROOT;
 
 
 # directory where frontends are stored
