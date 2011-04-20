@@ -42,10 +42,10 @@ sub set_git_vars
 
 sub clone_full_dirs
 {
-    my ($MW_BTRFS,$origin,$clone) = @_;
+    my ($origin,$clone) = @_;
     my ($clone_output, $clone_exit_code);
 
-    if ($MW_BTRFS == 1)
+    if (MW_BTRFS == 1)
     {
 	$clone_output = `btrfs subvolume snapshot  $origin $clone 2>&1`;
     }

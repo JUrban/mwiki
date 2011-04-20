@@ -131,17 +131,26 @@ my $sandbox_mml = $sandbox . "/" . "mml";
 mizar::set_MIZFILES ($main_repo);
 
 
-# ###TODO: btrfs goes here
-sub clean_the_dirty_sandbox {
-  my $rsync_output = `rsync -a --del --exclude '.git' $main_repo/ $sandbox 2>&1`;
-  my $rsync_exit_code = ($? >> 8);
-  unless ($rsync_exit_code == 0) {
-    pc_print ("rsync did not exit cleanly when cleaning the dirty sandbox: $!");
-    pc_print ("It's output was:");
-    pc_print ("$rsync_output\n");
-    pc_print ("We cannot continue.");
+
+sub clone_full_dirs_report
+{
+    my ($origin,$clone) = @_;
+    my ($result,$clone_output)  = mw_common::clone_full_dirs($MW_BTRFS,$origin,$clone);
+
+    my $clone_exit_code = ($result >> 8);
+    unless ($clone_exit_code == 0) {
+	pc_print ("rsync did not exit cleanly when cleaning the dirty sandbox: $!");
+	pc_print ("It's output was:");
+	pc_print ("$rsync_output\n");
+	pc_print ("We cannot continue.");
     exit 1;
   }
+}
+
+# ###NOTE: this also copies .git, which is typically in unsafe state; the original was:
+#   my $rsync_output = `rsync -a --del --exclude '.git' $main_repo/ $sandbox 2>&1`;
+sub clean_the_dirty_sandbox {
+  clone_full_dirs_report($main_repo, $sandbox);
 }
 
 sub separate_mml_from_non_mml {
@@ -384,6 +393,7 @@ if ( defined ($ENV{MW_SECTION}) && defined ($ENV{MW_FILE})
 
 # Copy the sandbox: force main_repo to be a copy of the sandbox MML.
 # We are hoping that this is fairly fast.
+# We do not call the standard cloning here, because .git would go wrong.
     `rsync -a --del --exclude '.git' $sandbox/ $main_repo`;
 # note the slash                         ==> ^ <===  see the rsync man page to learn why
 

@@ -139,7 +139,7 @@ sub pr_die_unlock
 sub clone_full_dirs_report
 {
     my ($origin,$clone) = @_;
-    my ($result,$clone_output)  = mw_common::clone_full_dirs($MW_BTRFS,$origin,$clone);
+    my ($result,$clone_output)  = mw_common::clone_full_dirs($origin,$clone);
 
     my $clone_exit_code = ($result >> 8);
     unless ($clone_exit_code == 0) {
