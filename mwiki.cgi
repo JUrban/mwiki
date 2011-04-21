@@ -841,6 +841,11 @@ USER_CONFIG
 	  chmod 0755, "$user_backend_repo/.git/hooks/$hookfile";
       }
 
+      # create the sandbox
+
+      clone_full_dirs_report($user_backend_repo, $user_backend_repo . '-sandbox');
+
+
       # add the username to the list of all users (this introduces
       # some redundancy in our data, but for the sake of convenience,
       # it's easier to manage a flat list of usernames)
