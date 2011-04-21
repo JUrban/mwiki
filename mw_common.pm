@@ -47,6 +47,8 @@ sub clone_full_dirs
 
     if (MW_BTRFS == 1)
     {
+      # Need to delete first, otherwise new clone inside the old clone.
+        `subv_del $clone` if ( -d $clone);
 	$clone_output = `btrfs subvolume snapshot  $origin $clone 2>&1`;
     }
     else
