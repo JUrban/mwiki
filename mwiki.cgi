@@ -99,6 +99,9 @@ elsif  ($action =~ /^(users)$/)
 
 }
 
+# for some reason this is empty when called via a wrapper
+$ENV{'PATH'}='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:' . "$MWUSER_HOME/bin";
+
 print $query->header();
 print $query->start_html(-title=>"$titleaction",
 			 -dtd=>'-//W3C//DTD HTML 3.2//EN',
