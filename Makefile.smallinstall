@@ -146,6 +146,8 @@ gitolite-setup:
 	for hookfile in pre-commit post-commit pre-receive.in post-update.in; do \
 	  cp $$hookfile $(MWADMIN_DIR); \
 	done
+	cp subv_del.c $(GITOLITE_BIN_DIR)
+	cd $(GITOLITE_BIN_DIR) && gcc subv_del.c -o subv_del && chown root:root subv_del && chmod 4755 subv_del
 	chown -R $(MWUSER):$(MWUSER) $(MWADMIN_DIR)
 
 repos: public-repos gitweb mwiki
@@ -213,7 +215,11 @@ scratch: scratch-html
 # TODO: refactor follwoing using the functions from mwiki.cgi
 
 public-repo-init: public-mwiki-user scratch
+ifeq ($(MW_BTRFS),1)
+	btrfs subvolume create  $(PUBLIC_REPO)
+else
 	mkdir -p $(PUBLIC_REPO)
+endif
 	cp -a $(SCRATCH_BASE)/* $(PUBLIC_REPO)
 	cp -a $(SCRATCH_BASE)/.perl $(PUBLIC_REPO)
 	chown $(MWUSER) $(PUBLIC_REPO)
@@ -255,7 +261,8 @@ public-mwiki-user:
 	install -m 755 mwiki-gitdaemon.run /etc/sv/git-daemon/run
 	sv up git-daemon
 
-## TODO: 
+## We set up the sandbox here, because we want to be fast with first
+## recompilation. With rsync, this can take a time.
 
 public-sandbox: scratch # our dirty sandbox
 ifeq ($(MW_BTRFS),1)
