@@ -311,6 +311,8 @@ gitweb: public-repo-export
 	chown -R $(MWUSER):$(MWUSER) $(GITWEB_ROOT)/$(REPO_NAME)
 	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/$(REPO_NAME).git
 	ln -s $(BARE_PUBLIC_REPO) $(GITWEB_ROOT)/$(REPO_NAME)/public.git
+	mkdir -p $(CGILIB)
+	chown -R $(MWUSER):$(MWUSER) $(CGILIB)
 	$(INSTALL) --mode 755 --owner=$(MWUSER) --group=$(MWUSER) \
 	  /usr/lib/cgi-bin/gitweb.cgi  $(CGILIB)/gitweb.cgi
 	$(INSTALL) -m 644 gitweb $(APACHE_ROOT)/etc/apache2/sites-available/gitweb
