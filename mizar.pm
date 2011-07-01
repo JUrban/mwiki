@@ -1,6 +1,6 @@
  package mizar;
 
- ## ubuntu packages required:
+ ## ubuntu packages required: - no longer!
  ## REQ: libfile-copy-recursive-perl
  ## REQ: liblist-moreutils-perl
 
@@ -9,7 +9,7 @@
  use Carp;
  use File::Temp qw/ tempfile tempdir /;
  use File::Copy;
- use File::Copy::Recursive qw/ dircopy /;
+# use File::Copy::Recursive qw/ dircopy /;
  use File::Basename;
  use Cwd;
 # use List::MoreUtils qw (any);
