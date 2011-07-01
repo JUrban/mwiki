@@ -12,7 +12,7 @@
  use File::Copy::Recursive qw/ dircopy /;
  use File::Basename;
  use Cwd;
- use List::MoreUtils qw (any);
+# use List::MoreUtils qw (any);
 
  my $mizfiles;
  my $mml_dir;
@@ -337,11 +337,12 @@
    return ($temp);
  }
 
- sub belongs_to_mml {
-   my $article_id = shift ();
-   my @mml = get_MML_LAR ();
-   return (any { $_ eq $article_id } @mml);
- }
+# not needed
+ # sub belongs_to_mml {
+ #   my $article_id = shift ();
+ #   my @mml = get_MML_LAR ();
+ #   return (any { $_ eq $article_id } @mml);
+ # }
 
  # Running mizar programs in customizable ways
 
