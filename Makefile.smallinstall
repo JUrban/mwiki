@@ -129,6 +129,7 @@ gitolite-setup:
 	chown -R $(MWUSER):$(MWUSER) $(REPOS_BASE)
 	sudo -u $(MWUSER) git clone $(MWUSER)@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
 	sudo -u $(MWUSER) touch $(GITOLITE_ADMIN_DIR)/conf/users.conf # initially empty list of users
+	# testing and public repos
 	sed -e "s|@@MWUSER@@|$(MWUSER)|g" < gitolite-config > $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
 	cd $(GITOLITE_ADMIN_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin && git add  conf/users.conf && git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push'
 	# suexec config - TODO: this is probably unnnecessary now - test
@@ -217,7 +218,7 @@ endif
 	chown -R $(MWUSER):$(MWUSER) $(PUBLIC_REPO)
 
 	cd $(PUBLIC_REPO) && git init
-	$(INSTALL) --mode 644 --owner=$(MWUSER) --group=$(MWUSER) mml-gitignore $(PUBLIC_REPO)/.gitignore
+	$(INSTALL) --mode 644 --owner=$(MWUSER) --group=$(MWUSER) mwikibase/.mml-gitignore $(PUBLIC_REPO)/.gitignore
 	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.' \
 	   && git config  user.name $(WEB_GIT_NAME) \
 	   && git config  user.email $(WEB_GIT_EMAIL) \
@@ -251,17 +252,15 @@ endif
 
 
 public-repo-export: public-repo-init
+	# the public repos was created during gitolite-setup
 	sudo -u $(MWUSER) sh -c 'cd $(PUBLIC_REPO) && git push --all $(BARE_PUBLIC_REPO_SSH)'
-	$(INSTALL) \
-	  --mode=644 \
-	  --owner=$(MWUSER) --group=$(MWUSER) \
-	  public-repo-description $(BARE_PUBLIC_REPO)/description
+	$(INSTALL) --mode=644 --owner=$(MWUSER) --group=$(MWUSER) \
+	  mwikibase/.dotgitfrontend/description $(BARE_PUBLIC_REPO)/description
 	for hookfile in pre-receive post-update; do \
-	  sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g; s|@@MIRROR@@|$(MIRROR)|g;" < $$hookfile.in \
+	  sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g; s|@@MIRROR@@|$(MIRROR)|g;" < mwikibase/.dotgitfrontend/$$hookfile.in \
 	    > $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
 	  chmod 755 $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
-	  chown $(MWUSER) $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
-	  chgrp $(MWUSER) $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
+	  chown $(MWUSER):$(MWUSER) $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
 	done
 	touch $(BARE_PUBLIC_REPO)/git-daemon-export-ok
 	cd $(BARE_PUBLIC_REPO) && git config core.sharedRepository true \
