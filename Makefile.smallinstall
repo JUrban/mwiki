@@ -118,6 +118,7 @@ GITOLITE_HOOKS_DIR=$(MWUSER_HOME)/gitolite/hooks
 
 GITOLITE_ADMIN_DIR=$(MWUSER_HOME)/gitolite-admin
 
+# ##NEEDS: $(MWUSER_HOME)/.ssh/id_rsa.pub  is in place
 
 gitolite-setup:
 	# chown -R $(MWUSER):$(MWUSER) $(REPOS_BASE)
@@ -371,6 +372,6 @@ clean:
 	rm -f $(MWUSER_HOME)/bin/gitolite*
 	rm -f $(MWUSER_HOME)/bin/gl-*
 	rm -f $(MWUSER_HOME)/bin/sshkeys-lint
-	# mwuser stuff
-	rm -Rf /home/mwuser/*
+	# mwuser stuff - untested, and perhaps unwanted
+	rm -Rf /home/$(MWUSER)/*
 
