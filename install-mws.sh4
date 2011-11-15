@@ -1,0 +1,23 @@
+#!/bin/sh
+
+mwuser=mwuser
+mizfiles=/home/mptp/mizinst/7.11.07_4.160.1126
+xsl4miz=/home/urban/gr/xsl4mizar
+num_articles=2
+
+
+if test -z "$1"; then
+    targets='gitolite-setup repos'
+else
+    targets=$1
+fi
+
+make -f Makefile.smallinstall $targets \
+    MIZFILES=$mizfiles \
+    XSL4MIZ=$xsl4miz \
+    NUM_ARTICLES=$num_articles \
+    MWUSER=mwuser \
+    MAKEJOBS=8 \
+    MW_BTRFS=1 \
+    WIKIHOST=mws.cs.ru.nl \
+    REPO_NAME=goo1
