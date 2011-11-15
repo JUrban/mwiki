@@ -32,7 +32,7 @@
 #   that the entire current MML is used; set it to a low-value for
 #   debugging purposes.
 #
-# - MWIKI_USER: default "mwiki".  The name of the unix user to add that
+# - MWUSER: default "mwiki".  The name of the unix user to add that
 #   will preside over the whole mess.
 #
 # - INSTALL: default /usr/bin/install.  If this is GNU install, then
