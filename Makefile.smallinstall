@@ -119,23 +119,23 @@ GITOLITE_HOOKS_DIR=$(MWUSER_HOME)/gitolite/hooks
 GITOLITE_ADMIN_DIR=$(MWUSER_HOME)/gitolite-admin
 
 # ##NEEDS: $(MWUSER_HOME)/.ssh/id_rsa.pub  is in place
+# ##NEEDS: $(GITOLITE_REPO) exists and is clonable
 
 gitolite-setup:
 	# chown -R $(MWUSER):$(MWUSER) $(REPOS_BASE)
+	# setup gitolite in the  $(MWUSER) home
 	sudo -u $(MWUSER) git clone $(GITOLITE_REPO) $(GITOLITE_SOURCE_DIR)
-	sudo -u $(MWUSER) mkdir -p $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)
+	sudo -u $(MWUSER) mkdir -p $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)  $(GITOLITE_ADMIN_DIR)
 	cd $(GITOLITE_SOURCE_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin &&  ./src/gl-system-install $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)'
 	cp $(MWUSER_HOME)/.ssh/id_rsa.pub /tmp/$(MWUSER).pub
 	sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin && gl-setup  -q /tmp/$(MWUSER).pub'
 	rm /tmp/$(MWUSER).pub
 	chown -R $(MWUSER):$(MWUSER) $(REPOS_BASE)
-	mkdir -p $(GITOLITE_ADMIN_DIR)
-	chown -R $(MWUSER):$(MWUSER) $(GITOLITE_ADMIN_DIR)
 	sudo -u $(MWUSER) git clone $(MWUSER)@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
 	sudo -u $(MWUSER) touch $(GITOLITE_ADMIN_DIR)/conf/users.conf # initially empty list of users
 	sed -e "s|@@MWUSER@@|$(MWUSER)|g" < gitolite-config > $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
 	cd $(GITOLITE_ADMIN_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin && git add  conf/users.conf && git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push'
-	# suexec config
+	# suexec config - TODO: this is probably unnnecessary now - test
 	chown -R $(MWUSER):$(MWUSER) /home/$(MWUSER)
 	perl -e 'open(A,$$ARGV[0]); while(<A>) { s/##MWUSER##/$$ARGV[1]/g; print }' \
           suexec-config $(MWUSER) > /etc/apache2/suexec/$(MWUSER)
@@ -169,7 +169,6 @@ scratch-mizfiles: scratch-directories
 	# prel
 	cp -p $(MIZFILES)/prel/h/hidden.* $(SCRATCH_BASE)/prel
 	cp -p $(MIZFILES)/prel/*/*.dre $(SCRATCH_BASE)/prel
-	chown -R $(MWUSER) $(SCRATCH_BASE)/prel
 	# data
 	for rootfile in $(MIZROOTFILES); do \
 	  cp -p $(MIZFILES)/$$rootfile $(SCRATCH_BASE); \
@@ -183,24 +182,8 @@ scratch-mizfiles: scratch-directories
 	for sheet in $(SHEETS); do \
 	  $(INSTALL) --mode 644 $(XSL4MIZ)/$$sheet.xsl $(SCRATCH_BASE)/xsl; \
 	done
-	# css
-	for sheet in $(CSS); do \
-	  $(INSTALL) --mode 644 $$sheet.css $(SCRATCH_BASE)/html; \
-	done
-	# javascript
-	for jsfile in $(JAVASCRIPT); do \
-	  $(INSTALL) --mode 644 $$jsfile.js $(SCRATCH_BASE)/html; \
-	done
-	# perl
-	for perlfile in $(PERLMODULES); do \
-	  $(INSTALL) --mode 644 $$perlfile.pm $(SCRATCH_BASE)/.perl; \
-	done
-	for perlfile in $(PERLSCRIPTS); do \
-	  $(INSTALL) --mode 755 $$perlfile.pl $(SCRATCH_BASE)/.perl; \
-	done
-	# makefiles
-	$(INSTALL) --mode 644 Makefile.repo $(SCRATCH_BASE)/Makefile
-	$(INSTALL) --mode 644 Makefile-depsrepo $(SCRATCH_BASE)/mml/Makefile
+	cp -t -a $(SCRATCH_BASE) mwikibase/html mwikibase/.perl mwikibase/Makefile mwikibase/mml
+	chown -R $(MWUSER):$(MWUSER) $(SCRATCH_BASE)
 
 scratch-deps: scratch-mizfiles
 	touch $(SCRATCH_BASE)/mml/hidden-prel # everything depends on hidden-prel
@@ -357,7 +340,7 @@ clean:
 	sv down git-daemon
 	-mv -f /etc/sv/git-daemon/run.original /etc/sv/git-daemon/run
 	sv up git-daemon
-	# gitolite cleanup
+	# gitolite cleanup - TODO: GITOLITE_INSTALL_DIR is undefined!
 	rm -Rf $(GITOLITE_INSTALL_DIR)/.gitolite
 	rm -Rf $(GITOLITE_INSTALL_DIR)/gitolite
 	rm -Rf $(GITOLITE_INSTALL_DIR)/repositories
