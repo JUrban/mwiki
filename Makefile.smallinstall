@@ -122,9 +122,7 @@ GITOLITE_ADMIN_DIR=$(MWUSER_HOME)/gitolite-admin
 gitolite-setup:
 	# chown -R $(MWUSER):$(MWUSER) $(REPOS_BASE)
 	sudo -u $(MWUSER) git clone $(GITOLITE_REPO) $(GITOLITE_SOURCE_DIR)
-	sudo -u $(MWUSER) mkdir -p $(GITOLITE_BIN_DIR)
-	sudo -u $(MWUSER) mkdir -p $(GITOLITE_CONF_DIR)
-	sudo -u $(MWUSER) mkdir -p $(GITOLITE_HOOKS_DIR)
+	sudo -u $(MWUSER) mkdir -p $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)
 	cd $(GITOLITE_SOURCE_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin &&  ./src/gl-system-install $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)'
 	cp $(MWUSER_HOME)/.ssh/id_rsa.pub /tmp/$(MWUSER).pub
 	sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin && gl-setup  -q /tmp/$(MWUSER).pub'
