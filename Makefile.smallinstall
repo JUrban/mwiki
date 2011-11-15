@@ -169,6 +169,7 @@ scratch-mizfiles: scratch-directories
 	for rootfile in $(MIZROOTFILES); do \
 	  cp -p $(MIZFILES)/$$rootfile $(SCRATCH_BASE); \
 	done
+	# ##TODO: do we need mml.lar??
 	head -n $(NUM_ARTICLES) $(MIZFILES)/mml.lar > $(SCRATCH_BASE)/mml.lar
 	# bin
 	for binary in $(MIZBINARIES); do \
@@ -178,7 +179,7 @@ scratch-mizfiles: scratch-directories
 	for sheet in $(SHEETS); do \
 	  $(INSTALL) --mode 644 $(XSL4MIZ)/$$sheet.xsl $(SCRATCH_BASE)/xsl; \
 	done
-	cp -t -a $(SCRATCH_BASE) mwikibase/html mwikibase/.perl mwikibase/Makefile mwikibase/mml
+	cp -t -a $(SCRATCH_BASE) mwikibase/* mwikibase/.perl
 	chown -R $(MWUSER):$(MWUSER) $(SCRATCH_BASE)
 
 scratch-deps: scratch-mizfiles
@@ -190,7 +191,7 @@ scratch-html: scratch-deps
 
 scratch: scratch-html
 
-# TODO: refactor follwoing using the functions from mwiki.cgi
+# ##TODO: refactor follwoing using the functions from mwiki.cgi
 
 public-repo-init: public-mwiki-user scratch
 ifeq ($(MW_BTRFS),1)
@@ -199,10 +200,8 @@ ifeq ($(MW_BTRFS),1)
 else
 	mkdir -p $(PUBLIC_REPO)
 endif
-	cp -a $(SCRATCH_BASE)/* $(PUBLIC_REPO)
-	cp -a $(SCRATCH_BASE)/.perl $(PUBLIC_REPO)
-	chown $(MWUSER) $(PUBLIC_REPO)
-	chgrp $(MWUSER) $(PUBLIC_REPO)
+	cp -a -t $(PUBLIC_REPO) $(SCRATCH_BASE)/* $(SCRATCH_BASE)/.perl
+	chown -R $(MWUSER):$(MWUSER) $(PUBLIC_REPO)
 
 	cd $(PUBLIC_REPO) && git init
 	$(INSTALL) \
