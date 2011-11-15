@@ -204,14 +204,7 @@ endif
 	chown -R $(MWUSER):$(MWUSER) $(PUBLIC_REPO)
 
 	cd $(PUBLIC_REPO) && git init
-	$(INSTALL) \
-	  --mode 644 \
-	  --owner=$(MWUSER) --group=$(MWUSER) \
-	  mml-gitignore $(PUBLIC_REPO)/.gitignore
-	$(INSTALL) \
-	  --mode 644 \
-	  --owner=$(MWUSER) --group=$(MWUSER) \
-	  public-repo-description $(PUBLIC_REPO)/.git/description
+	$(INSTALL) --mode 644 --owner=$(MWUSER) --group=$(MWUSER) mml-gitignore $(PUBLIC_REPO)/.gitignore
 	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.' \
 	   && git config  user.name $(WEB_GIT_NAME) \
 	   && git config  user.email $(WEB_GIT_EMAIL) \
@@ -219,13 +212,9 @@ endif
            && git config mwiki.makejobs $(MAKEJOBS) \
            && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(PUBLIC_REPO_NAME)
-
-	$(INSTALL) \
-	  --mode 755 \
-	  --owner=$(MWUSER) \
-	  --group=$(MWUSER) \
-	  pre-commit post-commit $(PUBLIC_REPO)/.git/hooks
-
+	# hooks and description - only after we do the first commit
+	cp -a -t $(PUBLIC_REPO)/.git mwikibase/.dotgit/*
+	chown -R $(MWUSER):$(MWUSER) $(PUBLIC_REPO)/.git
 
 
 public-mwiki-user:
