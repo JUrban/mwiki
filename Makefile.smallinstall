@@ -191,6 +191,19 @@ scratch-html: scratch-deps
 
 scratch: scratch-html
 
+
+public-mwiki-user:
+	# -adduser --shell=/usr/bin/git-shell \
+	#   --disabled-password \
+	#   --home=$(PUBLIC_REPOS_BASE) \
+	#   $(MWUSER) \
+	#     || echo "$(MWUSER) already exists"
+	sv down git-daemon
+	mv /etc/sv/git-daemon/run /etc/sv/git-daemon/run.original
+	install -m 755 mwiki-gitdaemon.run /etc/sv/git-daemon/run
+	sv up git-daemon
+
+
 # ##TODO: refactor follwoing using the functions from mwiki.cgi
 
 public-repo-init: public-mwiki-user scratch
@@ -216,17 +229,6 @@ endif
 	cp -a -t $(PUBLIC_REPO)/.git mwikibase/.dotgit/*
 	chown -R $(MWUSER):$(MWUSER) $(PUBLIC_REPO)/.git
 
-
-public-mwiki-user:
-	# -adduser --shell=/usr/bin/git-shell \
-	#   --disabled-password \
-	#   --home=$(PUBLIC_REPOS_BASE) \
-	#   $(MWUSER) \
-	#     || echo "$(MWUSER) already exists"
-	sv down git-daemon
-	mv /etc/sv/git-daemon/run /etc/sv/git-daemon/run.original
-	install -m 755 mwiki-gitdaemon.run /etc/sv/git-daemon/run
-	sv up git-daemon
 
 ## We set up the sandbox here, because we want to be fast with first
 ## recompilation. With rsync, this can take a time.
