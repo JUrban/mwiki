@@ -226,7 +226,7 @@ endif
            && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(PUBLIC_REPO_NAME)
 	# hooks and description - only after we do the first commit
-	cp -a -t $(PUBLIC_REPO)/.git mwikibase/.dotgit/*
+	cp -a -t $(PUBLIC_REPO)/.git mwikibase/.dotgitbackend/*
 	chown -R $(MWUSER):$(MWUSER) $(PUBLIC_REPO)/.git
 
 
