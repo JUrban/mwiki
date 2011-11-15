@@ -16,4 +16,4 @@ AliasMatch ^/##REPO_NAME##/([^\/]*)([\/].*)? "##REPOS_BASE##/$1/html$2"
         Allow from all
 </Directory>
 
-SuexecUserGroup ##MWUSER## ##MWUSER##
+# SuexecUserGroup ##MWUSER## ##MWUSER##
