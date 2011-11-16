@@ -265,7 +265,7 @@ public-repo-export: public-repo-init
 	$(INSTALL) --mode=644 --owner=$(MWUSER) --group=$(MWUSER) \
 	  mwikibase/.dotgitfrontend/description $(BARE_PUBLIC_REPO)/description
 	for hookfile in pre-receive post-update; do \
-	  sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g; s|@@MIRROR@@|$(MIRROR)|g;" < mwikibase/.dotgitfrontend/$$hookfile.in \
+	  sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g; s|@@MIRROR@@|$(MIRROR)|g;" < mwikibase/.dotgitfrontend/hooks/$$hookfile.in \
 	    > $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
 	  chmod 755 $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
 	  chown $(MWUSER):$(MWUSER) $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
