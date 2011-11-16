@@ -135,6 +135,9 @@ gitolite-setup:
 	cd $(GITOLITE_SOURCE_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin &&  ./src/gl-system-install $(GITOLITE_BIN_DIR) $(GITOLITE_CONF_DIR) $(GITOLITE_HOOKS_DIR)'
 	cp $(MWUSER_HOME)/.ssh/id_rsa.pub /tmp/$(MWUSER).pub
 	sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin && gl-setup  -q /tmp/$(MWUSER).pub'
+	# change the default umask to 0022 so that the repos are gitweb-visible
+	grep -q '$$REPO_UMASK = 0077;' $(MWUSER_HOME)/.gitolite.rc && \
+	  sed -ie 's/$$REPO_UMASK = 0077;/$$REPO_UMASK = 0022;' $(MWUSER_HOME)/.gitolite.rc
 	rm /tmp/$(MWUSER).pub
 	chown -R $(MWUSER):$(MWUSER) $(REPOS_BASE)
 	sudo -u $(MWUSER) git clone $(MWUSER)@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
