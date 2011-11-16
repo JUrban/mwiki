@@ -48,6 +48,11 @@
 # git config --global user.name "tstmw"
 # mkdir $(BTRFS)/tstmw && chown tstmw:tstmw $(BTRFS)/tstmw && ln -s /mnt/btr1/tstmw clones
 
+# wrapper:
+# mv mwiki.cgi mwiki.old
+# gcc -o mwiki.cgi wrapper1.c
+# chmod 6755 mwiki.cgi
+
 
 MWUSER_HOME=/home/$(MWUSER)
 SCRATCH_BASE=$(MWUSER_HOME)/scratch
