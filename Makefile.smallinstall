@@ -92,7 +92,7 @@ MWUSER_NAME=$(MWUSER)
 MWUSER_EMAIL=$(MWUSER)@none.noe
 
 # path to you cgi-bin directory, where mwiki goes
-CGILIB=/var/www/bin
+CGILIB=/var/www/bin/$(REPO_NAME)
 
 #CGILIB=$(MWUSER_HOME)/public_html/cgi-bin
 

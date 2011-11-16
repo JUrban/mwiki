@@ -8,7 +8,7 @@ AliasMatch ^/##REPO_NAME##/([^\/]*)([\/].*)? "##REPOS_BASE##/$1/html$2"
   allow from all
 </Directory>
 
-<Directory /var/www/bin/>
+<Directory ##CGILIB##/>
         AllowOverride None
         Options ExecCGI SymLinksIfOwnerMatch
         AddHandler cgi-script .cgi .pl
