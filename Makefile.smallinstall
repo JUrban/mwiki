@@ -224,6 +224,7 @@ else
 endif
 	cp -a -t $(PUBLIC_REPO) $(SCRATCH_BASE)/* $(SCRATCH_BASE)/.perl
 	chown -R $(MWUSER):$(MWUSER) $(PUBLIC_REPO)
+	chmod 755 $(PUBLIC_REPO)
 
 	cd $(PUBLIC_REPO) && git init
 	$(INSTALL) --mode 644 --owner=$(MWUSER) --group=$(MWUSER) mwbase/.mml-gitignore $(PUBLIC_REPO)/.gitignore
