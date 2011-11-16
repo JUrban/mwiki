@@ -84,6 +84,7 @@ my @dict_changed = ();
 # Get a value for a mwiki variable either from environment (uppercase)
 # or from git config (lower case).
 # The input is expected as lower case.
+# ##TODO: move to mw_common if possible
 sub get_mwiki_var
 {
     my ($varname) = @_;
