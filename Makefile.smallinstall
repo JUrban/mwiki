@@ -149,7 +149,7 @@ gitolite-setup:
 	# the mwadmin directory
 	mkdir -p $(MWADMIN_DIR)
 	touch $(MWADMIN_DIR)/gitolite-users
-	cp -a -t $(MWADMIN_DIR) mwikibase/.dotgit*/hooks/*;
+	cp -a -t $(MWADMIN_DIR) mwbase/.dotgit*/hooks/*;
 	cp subv_del.c $(GITOLITE_BIN_DIR)
 	chown -R $(MWUSER):$(MWUSER) $(MWADMIN_DIR)
 
@@ -188,7 +188,7 @@ scratch-mizfiles: scratch-directories
 	for sheet in $(SHEETS); do \
 	  $(INSTALL) --mode 644 $(XSL4MIZ)/$$sheet.xsl $(SCRATCH_BASE)/xsl; \
 	done
-	cp -a -t $(SCRATCH_BASE) mwikibase/* mwikibase/.perl
+	cp -a -t $(SCRATCH_BASE) mwbase/* mwbase/.perl
 	chown -R $(MWUSER):$(MWUSER) $(SCRATCH_BASE)
 
 scratch-deps: scratch-mizfiles
@@ -226,7 +226,7 @@ endif
 	chown -R $(MWUSER):$(MWUSER) $(PUBLIC_REPO)
 
 	cd $(PUBLIC_REPO) && git init
-	$(INSTALL) --mode 644 --owner=$(MWUSER) --group=$(MWUSER) mwikibase/.mml-gitignore $(PUBLIC_REPO)/.gitignore
+	$(INSTALL) --mode 644 --owner=$(MWUSER) --group=$(MWUSER) mwbase/.mml-gitignore $(PUBLIC_REPO)/.gitignore
 	cd $(PUBLIC_REPO) && git add . && git commit -m 'Initial commit.' \
 	   && git config  user.name $(WEB_GIT_NAME) \
 	   && git config  user.email $(WEB_GIT_EMAIL) \
@@ -235,7 +235,7 @@ endif
            && git config mwiki.allowskippedproofs $(ALLOWSKIPPEDPROOFS) \
            && git config mwiki.htmldir http://$(WIKIHOST)/$(PUBLIC_REPO_NAME)
 	# hooks and description - only after we do the first commit
-	cp -a -t $(PUBLIC_REPO)/.git mwikibase/.dotgitbackend/*
+	cp -a -t $(PUBLIC_REPO)/.git mwbase/.dotgitbackend/*
 	chown -R $(MWUSER):$(MWUSER) $(PUBLIC_REPO)/.git
 
 
@@ -263,9 +263,9 @@ public-repo-export: public-repo-init
 	# the public repos was created during gitolite-setup
 	sudo -u $(MWUSER) sh -c 'cd $(PUBLIC_REPO) && git push --all $(BARE_PUBLIC_REPO_SSH)'
 	$(INSTALL) --mode=644 --owner=$(MWUSER) --group=$(MWUSER) \
-	  mwikibase/.dotgitfrontend/description $(BARE_PUBLIC_REPO)/description
+	  mwbase/.dotgitfrontend/description $(BARE_PUBLIC_REPO)/description
 	for hookfile in pre-receive post-update; do \
-	  sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g; s|@@MIRROR@@|$(MIRROR)|g;" < mwikibase/.dotgitfrontend/hooks/$$hookfile.in \
+	  sed -e "s|@@BACKEND@@|$(PUBLIC_REPO)|g; s|@@MIRROR@@|$(MIRROR)|g;" < mwbase/.dotgitfrontend/hooks/$$hookfile.in \
 	    > $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
 	  chmod 755 $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
 	  chown $(MWUSER):$(MWUSER) $(BARE_PUBLIC_REPO)/hooks/$$hookfile; \
@@ -304,7 +304,7 @@ apacheconf:
 mwiki: public-repos apacheconf
 	mkdir -p $(CGILIB)
 	chown -R $(MWUSER):$(MWUSER) $(MWUSER_HOME)
-	sed -e "s|@@MWUSER@@|$(MWUSER)|g; s|@@MW_BTRFS@@|$(MW_BTRFS)|g; s|@@REPO_NAME@@|$(REPO_NAME)|g; s|@@GITWEB_ROOT@@|$(GITWEB_ROOT)|g;" < mwikibase/.perl/mw_common.pm > $(CGILIB)/mw_common.pm
+	sed -e "s|@@MWUSER@@|$(MWUSER)|g; s|@@MW_BTRFS@@|$(MW_BTRFS)|g; s|@@REPO_NAME@@|$(REPO_NAME)|g; s|@@GITWEB_ROOT@@|$(GITWEB_ROOT)|g;" < mwbase/.perl/mw_common.pm > $(CGILIB)/mw_common.pm
 	cp mwiki.cgi $(CGILIB)/mwiki.cgi
 	chown -R $(MWUSER):$(MWUSER) $(CGILIB)/mw_common.pm 
 	chmod 644 $(CGILIB)/mw_common.pm
