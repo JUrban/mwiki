@@ -34,6 +34,20 @@ Rolling back a snapshot:
     btrfs subvolume delete /media/btrfs/home  
 
 
+Deleting:
+
+This is a problem, early versions only allowed the root to delete subvolumes. Later version announced following [linux-mag]:
+
+[linux-mag]: http://www.linux-mag.com/id/7945/
+
+A somewhat minor feature that was added to btrfs in the recently
+released 2.6.37 kernel is the ability to delete sub-volumes by
+unprivileged users. However, the user can only delete the sub-volume
+if they have "write" and "execute" permission on the sub-volume root
+inode. Otherwise they don't have permission to delete it. The option
+"-o user_subvol_rm_allowed" can be used during the mounting of btrfs
+to enable this option.
+
 
 #### Snapshots
 
