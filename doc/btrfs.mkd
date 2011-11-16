@@ -15,6 +15,8 @@ See [btrfs] for btrfs explanation and [started] for basic commands.
     
     btrfs filesystem show   # show allocation
 
+    /dev/mapper/mws2-btr1       /mnt/btr1       btrfs           noatime,nodiratime,user_subvol_rm_allowed      0       0
+
 Create subvolume and a snapshot of root:
 
     btrfs subvolume create /mnt/btrfs/new_subvol
