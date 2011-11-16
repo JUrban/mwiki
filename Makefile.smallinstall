@@ -308,6 +308,8 @@ mwiki: public-repos apacheconf
 	#chown -R $(MWUSER):$(MWUSER) /home/$(MWUSER)
 	apache2ctl restart
 
+# ##TODO: This probably cannot be trusted now
+
 clean:
 	rm -Rf $(REPOS_BASE)
 	rm -f $(GITWEB_ROOT)/$(REPO_NAME).git
