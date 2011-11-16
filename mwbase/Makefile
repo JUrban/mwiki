@@ -13,7 +13,7 @@ export SHELL=/bin/bash
 ECHO = /bin/echo
 WIKIHOST=mws.cs.ru.nl
 GITPROJECT=mw1.git
-MWIKICGI=http://$(WIKIHOST)/bin/mwiki.cgi
+MWIKICGI=http://$(WIKIHOST)/bin/@@REPO_NAME@@/mwiki.cgi
 
 # .PHONY is a bad bad thing, it remakes the target all over; don't use this
 #.PHONY: deps
