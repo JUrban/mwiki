@@ -41,7 +41,10 @@
 #
 # - HEAD: default /usr/bin/head.  See description of INSTALL variable.
 
-# adding a new user: adduser tstmw; ssh tstmw@localhost; ssh-keygen
+# adding a new user: adduser tstmw; ssh tstmw@localhost; ssh-keygen -q; 
+# git config --global user.email "tstmw@none.none"
+# git config --global user.name "tstmw"
+
 
 
 MWUSER_HOME=/home/$(MWUSER)
@@ -82,6 +85,9 @@ MIRROR=
 APACHE_ROOT=
 HTTPD_CONF_DIR=$(APACHE_ROOT)/etc/apache2/sites-enabled
 MWUSER=mwiki
+
+MWUSER_NAME=$(MWUSER)
+MWUSER_EMAIL=$(MWUSER)@none.noe
 
 # path to you cgi-bin directory, where mwiki goes
 CGILIB=/var/www/bin
@@ -141,9 +147,7 @@ gitolite-setup:
 	# the mwadmin directory
 	mkdir -p $(MWADMIN_DIR)
 	touch $(MWADMIN_DIR)/gitolite-users
-	for hookfile in pre-commit post-commit pre-receive.in post-update.in; do \
-	  cp $$hookfile $(MWADMIN_DIR); \
-	done
+	cp -a -t $(MWADMIN_DIR) mwikibase/.dotgit*/hooks/*;
 	cp subv_del.c $(GITOLITE_BIN_DIR)
 	chown -R $(MWUSER):$(MWUSER) $(MWADMIN_DIR)
 
