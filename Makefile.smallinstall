@@ -41,10 +41,12 @@
 #
 # - HEAD: default /usr/bin/head.  See description of INSTALL variable.
 
+# BTRFS - not used yet, but keeping the btrfs partition
+
 # adding a new user: adduser tstmw; ssh tstmw@localhost; ssh-keygen -q; 
 # git config --global user.email "tstmw@none.none"
 # git config --global user.name "tstmw"
-
+# mkdir $(BTRFS)/tstmw && chown tstmw:tstmw $(BTRFS)/tstmw && ln -s /mnt/btr1/tstmw clones
 
 
 MWUSER_HOME=/home/$(MWUSER)
@@ -186,7 +188,7 @@ scratch-mizfiles: scratch-directories
 	for sheet in $(SHEETS); do \
 	  $(INSTALL) --mode 644 $(XSL4MIZ)/$$sheet.xsl $(SCRATCH_BASE)/xsl; \
 	done
-	cp -t -a $(SCRATCH_BASE) mwikibase/* mwikibase/.perl
+	cp -a -t $(SCRATCH_BASE) mwikibase/* mwikibase/.perl
 	chown -R $(MWUSER):$(MWUSER) $(SCRATCH_BASE)
 
 scratch-deps: scratch-mizfiles
