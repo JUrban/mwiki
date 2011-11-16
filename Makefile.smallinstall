@@ -142,6 +142,7 @@ gitolite-setup:
 	chown -R $(MWUSER):$(MWUSER) $(REPOS_BASE)
 	sudo -u $(MWUSER) git clone $(MWUSER)@localhost:gitolite-admin $(GITOLITE_ADMIN_DIR)
 	sudo -u $(MWUSER) touch $(GITOLITE_ADMIN_DIR)/conf/users.conf # initially empty list of users
+	chmod 755 $(MWUSER_HOME)/repositories
 	# testing and public repos
 	sed -e "s|@@MWUSER@@|$(MWUSER)|g" < gitolite-config > $(GITOLITE_ADMIN_DIR)/conf/gitolite.conf
 	cd $(GITOLITE_ADMIN_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin && git add  conf/users.conf && git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push'
