@@ -25,6 +25,7 @@ use constant GITWEB_ROOT   => "@@GITWEB_ROOT@@";
 
 # assumes the right directory
 sub set_git_var
+
 {
     my ($key, $value) = @_;
     system("git config  $key $value");
@@ -48,7 +49,8 @@ sub clone_full_dirs
     if (MW_BTRFS == 1)
     {
       # Need to delete first, otherwise new clone inside the old clone.
-        `subv_del $clone` if ( -d $clone);
+      #  `subv_del $clone` if ( -d $clone);
+      `btrfs subvolume delete $clone` if ( -d $clone);
 	$clone_output = `btrfs subvolume snapshot  $origin $clone 2>&1`;
     }
     else
