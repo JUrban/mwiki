@@ -198,7 +198,8 @@ scratch-mizfiles: scratch-directories
 	  $(INSTALL) --mode 644 $(XSL4MIZ)/$$sheet.xsl $(SCRATCH_BASE)/xsl; \
 	done
 	cp -a -t $(SCRATCH_BASE) mwbase/* mwbase/.perl
-	sed -i -e "s|@@REPO_NAME@@|$(REPO_NAME)|g;" $(SCRATCH_BASE)/Makefile
+	sed -i -e "s|@@MWUSER@@|$(MWUSER)|g; s|@@MW_BTRFS@@|$(MW_BTRFS)|g; s|@@REPO_NAME@@|$(REPO_NAME)|g; s|@@GITWEB_ROOT@@|$(GITWEB_ROOT)|g;" \
+	 $(SCRATCH_BASE)/.perl/mw_common.pm $(SCRATCH_BASE)/Makefile
 	chown -R $(MWUSER):$(MWUSER) $(SCRATCH_BASE)
 
 scratch-deps: scratch-mizfiles
