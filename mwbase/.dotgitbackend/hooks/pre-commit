@@ -142,7 +142,7 @@ sub clone_full_dirs_report
     unless ($clone_exit_code == 0) {
 	pc_print ("rsync did not exit cleanly when cleaning the dirty sandbox: $!");
 	pc_print ("It's output was:");
-	pc_print ("$rsync_output\n");
+	pc_print ("$clone_output\n");
 	pc_print ("We cannot continue.");
     exit 1;
   }
