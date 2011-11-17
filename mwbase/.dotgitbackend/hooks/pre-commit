@@ -11,7 +11,7 @@ use Cwd;
 use lib '.perl';
 
 use mizar;
-use mw_common;
+use mw_common qw(MWUSER REPO_NAME MW_BTRFS GITWEB_ROOT);
 
 # this is required to untaint backticks - 
 # not sure if we will go all the way to untainting
@@ -136,7 +136,7 @@ mizar::set_MIZFILES ($main_repo);
 sub clone_full_dirs_report
 {
     my ($origin,$clone) = @_;
-    my ($result,$clone_output)  = mw_common::clone_full_dirs($MW_BTRFS,$origin,$clone);
+    my ($result,$clone_output)  = mw_common::clone_full_dirs(MW_BTRFS,$origin,$clone);
 
     my $clone_exit_code = ($result >> 8);
     unless ($clone_exit_code == 0) {
