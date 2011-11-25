@@ -21,6 +21,7 @@
 *.sgl
 
 # extensions of files created/used by verifier
+*.epr
 *.err
 *.frx
 *.idx
