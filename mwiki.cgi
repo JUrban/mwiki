@@ -122,8 +122,11 @@ $ENV{'PATH'}='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/
 
 print $query->header();
 print $query->start_html(-title=>"$titleaction",
-    -dtd=>'-//W3C//DTD HTML 3.2//EN',
-    -style=>{-src=>["$STYLE_DIR/article.css", "$STYLE_DIR/index.css"]});
+			 -dtd=>'-//W3C//DTD HTML 3.2//EN',
+			 -style=>{-src=>["$STYLE_DIR/article.css", "$STYLE_DIR/index.css"]},
+			 -script => { -language => 'javascript',
+				      -src => "$STYLE_DIR/article.js"}
+);
 
 sub pr_pad {
   my $str = shift;
@@ -330,7 +333,13 @@ sub unlockwiki () {
 	return;
 }
 
-
+if($action eq 'view')
+{
+    printheader();
+    else { 
+  if [$body_only = "0"] { 
+			 '<html { @prefix="oo: http://omdoc.org/ontology#";'
+}
 
 ## the action for committing
 if($action eq "commit")
