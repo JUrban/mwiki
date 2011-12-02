@@ -55,6 +55,7 @@ my $BARE_PUBLIC_REPO = "$BARE_REPOS/public.git";
 my $STYLE_DIR	  = "$PUBLIC_REPO/styles";
 
 ## The allowed cgi actions, check by exists.
+## ##TODO: add clones and deletion.
 
 my %ALLOWED_ACTIONS = ();
 
@@ -194,7 +195,7 @@ if ((defined $input_file) && ($input_file =~ /^((mml|dict)\/([a-z0-9_]+)[.]($art
     ($aname, $this_ext) = ($3, $4);
 }
 elsif ($action =~ /^(gitweb)$/) { $aname=""; }
- elsif ($action =~ /^(register)$/) { } # do nothing, but for god's sake, don't go to the next clause!
+elsif ($action =~ /^(register)$/) { } # do nothing, but for god's sake, don't go to the next clause!
 else { pr_die("The file name \"$input_file\" is not allowed"); }
 
 
