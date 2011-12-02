@@ -17,6 +17,15 @@ body {
     padding: .2em .4em;
 }
 
+.wikiactions li.rightbutton { 
+    padding-left: 30mm; 
+    display: inline; 
+    text-align:right; 
+}
+
+li.rightbutton form {display: inline;}
+
+
 div.index {
     padding-left: 3mm;
 }
