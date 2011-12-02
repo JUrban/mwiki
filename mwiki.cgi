@@ -51,6 +51,7 @@ my $MWADMIN_DIR   = "$MWUSER_HOME/mwadmin";
 my $PUBLIC_REPO   = "$REPOS_BASE/public";
 my $BARE_PUBLIC_REPO = "$BARE_REPOS/public.git";
 
+## ##TODO: we could make this point to the user repo and allow them to edit it
 my $STYLE_DIR	  = "$PUBLIC_REPO/styles";
 
 
