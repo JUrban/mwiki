@@ -98,6 +98,7 @@ htmls: $(patsubst %, %.html, $(MMLLAR))
 	@$(ECHO) $(html-tag) $*
 	@xsltproc \
 	  --param mk_header 1 \
+	  --param body_only 1 \
 	  --param default_target \'_self\'  \
 	  --param linking \'l\' \
 	  --param mizhtml \'\' \
