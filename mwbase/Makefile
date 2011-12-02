@@ -93,8 +93,10 @@ absrefs: $(patsubst %, %-absrefs.xml, $(MMLLAR))
 	  --output mml/$*-absrefs.xml \
 	  xsl/addabsrefs.xsl mml/$*.xmlvrf
 
+# We no longer set the variables here, they are set in the mwiki.cgi
 htmls: $(patsubst %, %.html, $(MMLLAR))
-	.perl/mkmmlindex.pl -ghttp://$(WIKIHOST):1234/ -m$(MWIKICGI) -p$(GITPROJECT) mml/*.hdr > html/00INDEX.html
+	.perl/mkmmlindex.pl -d1 mml/*.hdr > html/00INDEX.html
+#	.perl/mkmmlindex.pl -ghttp://$(WIKIHOST):1234/ -m$(MWIKICGI) -p$(GITPROJECT) mml/*.hdr > html/00INDEX.html
 
 %.html: %-absrefs.xml %.hdr
 	@$(ECHO) $(html-tag) $*
