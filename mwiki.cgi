@@ -54,6 +54,16 @@ my $BARE_PUBLIC_REPO = "$BARE_REPOS/public.git";
 ## ##TODO: we could make this point to the user repo and allow them to edit it
 my $STYLE_DIR	  = "$PUBLIC_REPO/styles";
 
+## The allowed cgi actions, check by exists.
+
+my %ALLOWED_ACTIONS = ();
+
+@ALLOWED_ACTIONS{('view', 'edit', 'commit', 'history', 'users',
+		  'blob_plain', 'gitweb', 'dependencies', 'register')}
+  = ();
+
+
+
 
 my $query	  = new CGI;
 
@@ -80,7 +90,7 @@ my $pubkey        = $query->param('pubkey');
 
 my $titleaction="Unknown wiki action";
 
-if (defined $action) 
+if ((defined $action) && (exists $ALLOWED_ACTIONS{$action}))
 {
 if ($action =~ /^(view)$/)
 {
@@ -165,15 +175,7 @@ if(defined($git_project) && ($git_project =~ /^([a-zA-Z0-9_\-\.]+)$/))
 }
 else { pr_die("The repository name \"$git_project\" is not allowed"); }
 
-if ((defined $action) 
-    && (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/) 
-	|| ($action =~ /^(history)$/) || ($action =~ /^(users)$/)
-	|| ($action =~ /^(blob_plain)$/) || ($action =~ /^(gitweb)$/)
-	|| ($action =~ /^(dependencies)$/) || ($action =~ /^(register)$/)))
-{
-    $action = $1;
-}
-else { pr_die("Unknown action \"$action\"."); }
+pr_die("Unknown action \"$action\".") unless ((defined $action) && (exists $ALLOWED_ACTIONS{$action}));
 
 my $mizar_article_ext = 'miz';
 my $coq_article_ext = 'v';
