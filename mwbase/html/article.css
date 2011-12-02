@@ -126,3 +126,8 @@ span.p0:hover {
 	background-color: white;
 	color: black;
 }
+
+:target {
+	background: #5D9BF7; 
+	border: solid 1px #aaa;
+}
