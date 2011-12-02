@@ -63,13 +63,8 @@ function insertRequest(obj,http_request) {
 //		alert(http_request.status);
 //            }
 	    }}
-// End -->
-"; }
-if [$idv>0]
-{
-<script { @type="text/javascript";
-"
-<!--
+
+// Optional IDV stuff, used for MizAR, etc
 var tstp_dump;
 function openSoTSTP (dump) {
 var tstp_url = 'http://www.cs.miami.edu/~tptp/cgi-bin/SystemOnTSTP';
