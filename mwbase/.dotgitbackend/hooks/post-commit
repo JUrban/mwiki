@@ -61,7 +61,7 @@ $ENV{"PATH"} = $ENV{"PATH"} . ":" . $ENV{"MIZBIN"};
 
 $ENV{"MIZFILES"} = $sandbox;
 system ("make --jobs $makejobs absrefs 2> make-absrefs-err | tee make-absrefs-out");
-system ("make --jobs $makejobs htmls WIKIHOST=$wikihost GITPROJECT=$repo_name.git 2> make-htmls-err | tee make-htmls-out");
+system ("make --jobs $makejobs htmls WIKIHOST=$wikihost GITPROJECT=MWTMPL_GIT_PROJECT 2> make-htmls-err | tee make-htmls-out");
 
 #chdir ($sandbox_mml);
 #`../.perl/mkmmlindex.pl -ghttp://$wikihost:1234/ -p$repo_name.git *.hdr > ../html/index.html`;
