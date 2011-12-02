@@ -51,6 +51,8 @@ my $MWADMIN_DIR   = "$MWUSER_HOME/mwadmin";
 my $PUBLIC_REPO   = "$REPOS_BASE/public";
 my $BARE_PUBLIC_REPO = "$BARE_REPOS/public.git";
 
+my $STYLE_DIR	  = "$PUBLIC_REPO/styles";
+
 
 my $query	  = new CGI;
 
@@ -79,7 +81,11 @@ my $titleaction="Unknown wiki action";
 
 if (defined $action) 
 {
-if (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/)
+if ($action =~ /^(view)$/)
+{
+    $titleaction = "$input_file";
+}
+elsif (($action =~ /^(edit)$/) || ($action =~ /^(commit)$/)
           || ($action =~ /^(history)$/) || ($action =~ /^(dependencies)$/))
 {
     $titleaction = ucfirst ("$1 of $input_file");
@@ -104,14 +110,8 @@ $ENV{'PATH'}='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/
 
 print $query->header();
 print $query->start_html(-title=>"$titleaction",
-			 -dtd=>'-//W3C//DTD HTML 3.2//EN',
-			-head  => style(
-{-type => 'text/css'},
-'body {font-family: monospace; margin: 0px;}
-.wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
-.wikiactions li { display: inline; padding: .2em .4em; }'
-                         )
-);
+    -dtd=>'-//W3C//DTD HTML 3.2//EN',
+    -style=>{-src=>["$STYLE_DIR/article.css", "$STYLE_DIR/index.css"]});
 
 sub pr_pad {
   my $str = shift;
