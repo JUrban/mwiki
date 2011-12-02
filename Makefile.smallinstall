@@ -207,8 +207,10 @@ scratch-deps: scratch-mizfiles
 	touch $(SCRATCH_BASE)/mml/hidden-prel # everything depends on hidden-prel
 	@$(MAKE) -C $(SCRATCH_BASE)/mml -j $(MAKEJOBS) evls deps MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH)
 
+
+# GITPROJECT used to be public.git here, now MWTMPL_GIT_PROJECT
 scratch-html: scratch-deps
-	@$(MAKE) -C $(SCRATCH_BASE) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH) WIKIHOST=$(WIKIHOST) GITPROJECT=public.git MWIKICGI=http://$(WIKIHOST)/bin/$(REPO_NAME)/mwiki.cgi
+	@$(MAKE) -C $(SCRATCH_BASE) -j $(MAKEJOBS) xmlvrfs prels absrefs htmls MIZFILES=$(SCRATCH_BASE) PATH=$(SCRATCH_BASE)/bin:$(PATH) WIKIHOST=$(WIKIHOST) GITPROJECT=MWTMPL_GIT_PROJECT MWIKICGI=http://$(WIKIHOST)/bin/$(REPO_NAME)/mwiki.cgi
 
 scratch: scratch-html
 
