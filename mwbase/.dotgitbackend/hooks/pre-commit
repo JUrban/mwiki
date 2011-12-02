@@ -387,7 +387,7 @@ if ( defined ($ENV{MW_SECTION}) && defined ($ENV{MW_FILE})
     pc_print ("Your changes are admissible\n");
 
     system ("make --jobs $makejobs " . join(' ', @articles_to_html) 
-	    . " WIKIHOST=$wikihost GITPROJECT=$repo_name.git 2> make-htmls-err | tee make-htmls-out");
+	    . " WIKIHOST=$wikihost GITPROJECT=MWTMPL_GIT_PROJECT 2> make-htmls-err | tee make-htmls-out");
 
 # touch things now so they are clean for normal make
     system ("make touch-dependencies");
