@@ -69,6 +69,10 @@ system ("make --jobs $makejobs htmls WIKIHOST=$wikihost GITPROJECT=MWTMPL_GIT_PR
 
 # Copy the sandbox: force main_repo to be a copy of the known sandbox MML.
 # We are hoping that this is fairly fast.
+## #TODO: this seems wastful with brtfs.
+##        We should just delete the original repo and replace it with a clone of the sandbox.
+##        Let's do it later when we use mw_common here.
+
 `rsync -a --del --exclude '.git' $sandbox/ $main_repo`;
 # note the slash   ===> ^ <===  see the rsync man page to learn why
 
