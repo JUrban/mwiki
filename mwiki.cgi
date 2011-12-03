@@ -23,6 +23,10 @@ use mw_common qw(MWUSER REPO_NAME MW_BTRFS GITWEB_ROOT);
 # path to the git cgi
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
 
+# relative name of the mwiki cgi
+
+my $mwikicgi      = "mwiki.cgi";
+
 # the git binary - need absolute path - we run in taint mode
 my $git           = "/usr/bin/git";
 
@@ -59,7 +63,7 @@ my $STYLE_DIR	  = "$PUBLIC_REPO/styles";
 
 my %ALLOWED_ACTIONS = ();
 
-@ALLOWED_ACTIONS{('view', 'edit', 'commit', 'history', 'users',
+@ALLOWED_ACTIONS{('view', 'edit', 'commit', 'history', 'users', 'index',
 		  'blob_plain', 'gitweb', 'dependencies', 'register')}
   = ();
 
@@ -106,13 +110,13 @@ elsif ($action =~ /^(blob_plain)$/)
 {
     $titleaction = "Source of $input_file";
 }
-elsif  ($action =~ /^(gitweb)$/)
+elsif  ($action =~ /^(gitweb)$/
 {
     $titleaction = "Project history";
 }
-elsif  ($action =~ /^(users)$/)
+elsif  (($action =~ /^(index)$/) || ($action =~ /^(users)$/))
 {
-    $titleaction = "Project users";
+    $titleaction = "Project $1";
 }
 
 }
@@ -120,9 +124,13 @@ elsif  ($action =~ /^(users)$/)
 # for some reason this is empty when called via a wrapper
 $ENV{'PATH'}='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:' . "$MWUSER_HOME/bin";
 
+## ##TODO: somehow add  -prefix=>"oo: http://omdoc.org/ontology#"
+
+
 print $query->header();
 print $query->start_html(-title=>"$titleaction",
 			 -dtd=>'-//W3C//DTD HTML 3.2//EN',
+			 -target=>'_self',
 			 -style=>{-src=>["$STYLE_DIR/article.css", "$STYLE_DIR/index.css"]},
 			 -script => { -language => 'javascript',
 				      -src => "$STYLE_DIR/article.js"}
@@ -171,11 +179,17 @@ sub clone_full_dirs_report
 
 
 my $aname = "";
+my $project_name = "";
 
 # untaint the cgi params:
 if(defined($git_project) && ($git_project =~ /^([a-zA-Z0-9_\-\.]+)$/))
 {
     $git_project = $1;
+    if($git_project =~ /^([a-zA-Z0-9_\-\.]+)\.git$/)
+    {
+	$project_name = $1;
+    }
+    else { $project_name = $git_project; }
 }
 else { pr_die("The repository name \"$git_project\" is not allowed"); }
 
@@ -197,13 +211,13 @@ if ((defined $input_file) && ($input_file =~ /^((mml|dict)\/([a-z0-9_]+)[.]($art
 {
     ($aname, $this_ext) = ($3, $4);
 }
-elsif ($action =~ /^(gitweb)$/) { $aname=""; }
-elsif ($action =~ /^(register)$/) { } # do nothing, but for god's sake, don't go to the next clause!
+elsif (($action =~ /^(gitweb)$/) || ($action =~ /^(register)$/) || ($action =~ /^(index)$/)) { $aname=""; }
 else { pr_die("The file name \"$input_file\" is not allowed"); }
 
 
 my $gitweb_repo_path = $GITWEB_REPOS . $git_project;
-my $backend_repo_path = "";
+
+my $backend_repo_path = "$REPOS_BASE/$project_name/";
 
 # the directory with the htmlized wiki files (needed for index and other links)
 my $htmldir       = "";
@@ -216,8 +230,8 @@ my $wikihost= "";
 if (-d $gitweb_repo_path)
 {
     chdir $gitweb_repo_path;
-    $backend_repo_path = `$git config mwiki.backend`;
-    chomp($backend_repo_path);
+#    $backend_repo_path = `$git config mwiki.backend`;
+#    chomp($backend_repo_path);
     $htmldir = `$git config mwiki.htmldir`;
     chomp($htmldir);
     $wikihost=`$git config mwiki.wikihost`;
@@ -229,14 +243,14 @@ else
     pr_die "The repository \"$git_project\" does not exist: $gitweb_repo_path";
 }
 
-if(!(defined $backend_repo_path) || (length($backend_repo_path) == 0))
-{
-    pr_die "No backend repository for the project $git_project";
-}
+# if(!(defined $backend_repo_path) || (length($backend_repo_path) == 0))
+# {
+#     pr_die "No backend repository for the project $git_project";
+# }
 
 # untaint $backend_repo_path - we trust it, it is in our repo
 
-if($backend_repo_path =~ /^(.*)$/) { $backend_repo_path = $1; }
+# if($backend_repo_path =~ /^(.*)$/) { $backend_repo_path = $1; }
 
 
 if(!(defined $htmldir) || (length($htmldir) == 0))
@@ -259,7 +273,7 @@ sub printheader
 	{
 	$viewlinks=<<VEND
          <li> <a href="$htmldir/$aname.html">View</a> </li>
-         <li> <a href="?p=$git_project;a=edit;f=$input_file">Edit</a> </li>
+         <li> <a href="?p=$git_project;a=edit;f=$input_file" rel="nofollow">Edit</a> </li>
          <li> <a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
          <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
          <li> <a href="?p=$git_project;a=dependencies;f=$input_file$sectparam">Dependencies</a> </li>
@@ -269,7 +283,7 @@ VEND
 	{
 	    	$viewlinks=<<REND
          <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">View</a> </li>
-         <li> <a href="?p=$git_project;a=edit;f=$input_file">Edit</a> </li>
+         <li> <a href="?p=$git_project;a=edit;f=$input_file" rel="nofollow">Edit</a> </li>
          <li> <a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
          <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
 REND
@@ -282,8 +296,16 @@ REND
          $viewlinks
          <li> <a href="$htmldir/">Index</a> </li>
          <li> <a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
-         <li> <a href="?p=$git_project;a=register">Register</a> </li>
+         <li> <a href="?p=$git_project;a=register" rel="nofollow">Register</a> </li>
          <li> <a href="?p=$git_project;a=users">Users</a> </li>
+         <li class="rightbutton">
+             <form method="post" action="$mwikicgi" enctype="multipart/form-data">
+                <input type="text" name="f" value="mml/foo.miz" SIZE="10">
+                <input type="hidden" name="p" value="$git_project">
+                <input type="hidden" name="a" value="edit">
+                <input type="submit" value="Create/Edit">
+          </form>
+        </li>
     </ul>
 </div>
 END
@@ -312,6 +334,57 @@ if($action eq "gitweb")
     exit;
 }
 
+## we do not lock the wiki here just for the index reading
+if($action eq "index")
+{
+    printheader();
+    print<<IEND
+<div class=index>
+<h2>
+Mizar Mathematical Library Wiki
+</h2>
+</div>
+<hr/>
+<p>
+[<a href="#A">A</a>,
+<a href="#B">B</a>,
+<a href="#C">C</a>,
+<a href="#D">D</a>,
+<a href="#E">E</a>,
+<a href="#F">F</a>,
+<a href="#G">G</a>,
+<a href="#H">H</a>,
+<a href="#I">I</a>,
+<a href="#J">J</a>,
+<a href="#K">K</a>,
+<a href="#L">L</a>,
+<a href="#M">M</a>,
+<a href="#N">N</a>,
+<a href="#O">O</a>,
+<a href="#P">P</a>,
+<a href="#Q">Q</a>,
+<a href="#R">R</a>,
+<a href="#S">S</a>,
+<a href="#T">T</a>,
+<a href="#U">U</a>,
+<a href="#V">V</a>,
+<a href="#W">W</a>,
+<a href="#X">X</a>,
+<a href="#Y">Y</a>,
+<a href="#Z">Z</a>]</p>
+<hr/>
+IEND
+
+	open(INDEX,'<', "$backend_repo_path/html/00INDEX.html")
+	    or pr_die("Index file does not exist: $project_name");
+
+    while(<INDEX>) { print $_; };
+    close(INDEX);
+    print '</dd></dl></div><hr/>';
+    print $query->end_html;
+    exit;
+}
+
 my $backend_repo_file = $backend_repo_path . "/" . $input_file;
 
 my $wikilock;
@@ -333,12 +406,22 @@ sub unlockwiki () {
 	return;
 }
 
+## Expand templates, currently just MWTMPL_GIT_PROJECT .
+## Templates are needed for space efficiency combined with absolute links.
+## If there are more templates, make their hash and make them correspond
+## to defined variables/constants.
 if($action eq 'view')
 {
     printheader();
-    else { 
-  if [$body_only = "0"] { 
-			 '<html { @prefix="oo: http://omdoc.org/ontology#";'
+
+	open(ARTICLE,'<', "$backend_repo_path/html/$aname.html")
+	    or pr_die("Article does not exist: $aname");
+
+    while(<ARTICLE>) { s/MWTMPL_GIT_PROJECT/$git_project/g; print $_; };
+    close(ARTICLE);
+    print '</dd></dl></div><hr/>';
+    print $query->end_html;
+    exit;
 }
 
 ## the action for committing
@@ -588,22 +671,11 @@ if($action eq "edit")
 	$old_content = $voc_template;
     }
 
+    printheader();
     print<<END;
- <div class="wikiactions">
-  <ul>
-     <li><a href="javascript:javascript:history.go(-1)">Cancel</a></li>
-     <li><a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
-     <li><a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
-     <li><a href="?p=$git_project;a=dependencies;f=$input_file$sectparam">Dependencies</a> </li>
-     <li><a href="$htmldir/">Index</a> </li>
-     <li><a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
-     <li><a href="?p=$git_project;a=register">Register</a> </li>
-     <li><a href="?p=$git_project;a=users">Users</a> </li>
-  </ul>
-</div>
 <dl>
   <dd>
-    <form method="post" action="mwiki.cgi" enctype="multipart/form-data">
+    <form method="post" action="$mwikicgi" enctype="multipart/form-data">
     <br>
     <table>
       <tr>
@@ -651,7 +723,7 @@ END
 # "Register" with us by giving us your RSA public key.
 
 my $registration_form = <<REG_FORM;
-<form method="post" action="mwiki.cgi" enctype="multipart/form-data">
+<form method="post" action="$mwikicgi" enctype="multipart/form-data">
 Desired username: <input type="text" size="10" name="username" />
 Desired password: <input type="text" size="10" name="password" />
 <br />
@@ -724,6 +796,8 @@ SUCCESS
 
 if($action eq "register") 
 {
+    printheader();
+
   if (defined ($username) && defined ($passwd) && defined ($pubkey)) {
     if ($username =~ /[a-z0-9A-Z-_]{1,25}/) {
       lockwiki ();
@@ -887,6 +961,9 @@ USER_CONFIG
 ### TODO: This should be a session file
 
 if ($action eq 'users') {
+
+    printheader();
+
   my @users = ();
   lockwiki ();
   open (USERS, '<', $gitolite_user_list_file)
