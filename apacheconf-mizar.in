@@ -1,12 +1,32 @@
-AliasMatch ^/##REPO_NAME##/([^\/]*)([\/].*)? "##REPOS_BASE##/$1/html$2"
+AliasMatch ^/##REPO_NAME##/(.*) "##REPOS_BASE##/$1"
 
-<Directory /##REPO_NAME##/*>
+<Directory ##REPOS_BASE##/*>
   Options Indexes FollowSymLinks MultiViews
-  DirectoryIndex ##REPO_DIR_INDEX##
+RewriteEngine On
+  # when in doubt, use the public clone
+    RewriteRule  ^/home/tstmw/clones[\/]?$ /var/www/bin/##REPO_NAME##/mwiki.cgi?p=public.git;a=index [PT,L,QSA]
+  # wiki index
+    RewriteRule  ^/home/tstmw/clones/([^\/]*)[\/]?$ /var/www/bin/##REPO_NAME##/mwiki.cgi?p=$1.git;a=index [PT,L,QSA]
+    RewriteRule  ^/home/tstmw/clones/([^\/]*)[\/]00INDEX(.html)?$ /var/www/bin/##REPO_NAME##/mwiki.cgi?p=$1.git;a=index [PT,L,QSA]
+  # anything under /wiki is treated as an article title
+    RewriteRule  ^/home/tstmw/clones/([^\/]*)([\/].*).html$ /var/www/bin/##REPO_NAME##/mwiki.cgi?p=$1.git;a=view;f=mml$2.miz [PT,L,QSA]
+  DirectoryIndex 00INDEX.html
   AllowOverride None
   Order allow,deny
   allow from all
 </Directory>
+
+
+
+# AliasMatch ^/##REPO_NAME##/([^\/]*)([\/].*)? "##REPOS_BASE##/$1/html$2"
+# 
+# <Directory /##REPO_NAME##/*>
+#   Options Indexes FollowSymLinks MultiViews
+#   DirectoryIndex ##REPO_DIR_INDEX##
+#   AllowOverride None
+#   Order allow,deny
+#   allow from all
+# </Directory>
 
 <Directory ##CGILIB##/>
         AllowOverride None
