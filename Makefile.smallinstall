@@ -51,6 +51,7 @@
 # wrapper:
 # mv mwiki.cgi mwiki.old
 # gcc -o mwiki.cgi wrapper1.c
+# chown $(MWUSER):$(MWUSER) mwiki.cgi
 # chmod 6755 mwiki.cgi
 
 
