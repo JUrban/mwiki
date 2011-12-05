@@ -273,19 +273,19 @@ sub printheader
 	{
 	$viewlinks=<<VEND
          <li> <a href="$htmldir/$aname.html">View</a> </li>
-         <li> <a href="?p=$git_project;a=edit;f=$input_file" rel="nofollow">Edit</a> </li>
-         <li> <a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
-         <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
-         <li> <a href="?p=$git_project;a=dependencies;f=$input_file$sectparam">Dependencies</a> </li>
+         <li> <a href="$mwikicgi?p=$git_project;a=edit;f=$input_file" rel="nofollow">Edit</a> </li>
+         <li> <a href="$mwikicgi?p=$git_project;a=history;f=$input_file">History</a> </li>
+         <li> <a href="$mwikicgi?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
+         <li> <a href="$mwikicgi?p=$git_project;a=dependencies;f=$input_file$sectparam">Dependencies</a> </li>
 VEND
 	}
 	else  # no htmlization - present as raw
 	{
 	    	$viewlinks=<<REND
-         <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">View</a> </li>
-         <li> <a href="?p=$git_project;a=edit;f=$input_file" rel="nofollow">Edit</a> </li>
-         <li> <a href="?p=$git_project;a=history;f=$input_file">History</a> </li>
-         <li> <a href="?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
+         <li> <a href="$mwikicgi?p=$git_project;a=blob_plain;f=$input_file">View</a> </li>
+         <li> <a href="$mwikicgi?p=$git_project;a=edit;f=$input_file" rel="nofollow">Edit</a> </li>
+         <li> <a href="$mwikicgi?p=$git_project;a=history;f=$input_file">History</a> </li>
+         <li> <a href="$mwikicgi?p=$git_project;a=blob_plain;f=$input_file">Raw</a> </li>
 REND
 	}
     }
@@ -295,9 +295,9 @@ REND
     <ul>
          $viewlinks
          <li> <a href="$htmldir/">Index</a> </li>
-         <li> <a href="?p=$git_project;a=gitweb">Gitweb</a> </li>
-         <li> <a href="?p=$git_project;a=register" rel="nofollow">Register</a> </li>
-         <li> <a href="?p=$git_project;a=users">Users</a> </li>
+         <li> <a href="$mwikicgi?p=$git_project;a=gitweb">Gitweb</a> </li>
+         <li> <a href="$mwikicgi?p=$git_project;a=register" rel="nofollow">Register</a> </li>
+         <li> <a href="$mwikicgi?p=$git_project;a=users">Users</a> </li>
          <li class="rightbutton">
              <form method="post" action="$mwikicgi" enctype="multipart/form-data">
                 <input type="text" name="f" value="mml/foo.miz" SIZE="10">
