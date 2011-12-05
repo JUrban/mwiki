@@ -7,7 +7,7 @@ use warnings;
 use File::Basename;
 use Cwd;
 use Exporter qw(import);
-our @EXPORT_OK = qw(MWUSER REPO_NAME MW_BTRFS GITWEB_ROOT CGI_HTTP_PATH);
+our @EXPORT_OK = qw(MWUSER REPO_NAME MW_BTRFS GITWEB_ROOT CGI_HTTP_PATH WIKIHOST);
 
 
 # the MWUSER - everything is now in his gitolite, this should be in sync with Makefile.smallinstall
@@ -26,6 +26,10 @@ use constant GITWEB_ROOT   => "@@GITWEB_ROOT@@";
 # cgi public http location
 
 use constant CGI_HTTP_PATH   => "@@CGI_HTTP_PATH@@";
+
+# the wikihost, and the true cgi path
+use constant WIKIHOST	  => "@@WIKIHOST@@";
+
 
 # assumes the right directory
 sub set_git_var

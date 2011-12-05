@@ -9,7 +9,7 @@ use File::Copy;
 
 use lib '.';
 
-use mw_common qw(MWUSER REPO_NAME MW_BTRFS GITWEB_ROOT CGI_HTTP_PATH);
+use mw_common qw(MWUSER REPO_NAME MW_BTRFS GITWEB_ROOT CGI_HTTP_PATH WIKIHOST);
 
 ## TODO: we should think about how to allow customization
 ##       of the following variables.
@@ -44,6 +44,10 @@ my $MW_BTRFS	  = MW_BTRFS;
 
 my $GITWEB_ROOT   = GITWEB_ROOT;
 
+# the wikihost, and the true cgi path
+my $wikihost	  = WIKIHOST;
+
+
 
 # directory where frontends are stored
 my $GITWEB_REPOS  = "$GITWEB_ROOT/$REPO_NAME/";
@@ -56,7 +60,9 @@ my $PUBLIC_REPO   = "$REPOS_BASE/public";
 my $BARE_PUBLIC_REPO = "$BARE_REPOS/public.git";
 
 ## ##TODO: we could make this point to the user repo and allow them to edit it
-my $STYLE_DIR	  = "$PUBLIC_REPO/styles";
+my $STYLE_DIR	  = "http://$wikihost/$REPO_NAME/public/styles";
+
+
 
 ## The allowed cgi actions, check by exists.
 ## ##TODO: add clones and deletion.
@@ -222,8 +228,6 @@ my $backend_repo_path = "$REPOS_BASE/$project_name/";
 # the directory with the htmlized wiki files (needed for index and other links)
 my $htmldir       = "";
 
-# the wikihost, and the true cgi path
-my $wikihost= "";
 
 
 # ###TODO: reading these vars from the config is now probably unnecessary
@@ -234,8 +238,8 @@ if (-d $gitweb_repo_path)
 #    chomp($backend_repo_path);
     $htmldir = `$git config mwiki.htmldir`;
     chomp($htmldir);
-    $wikihost=`$git config mwiki.wikihost`;
-    chomp($wikihost);
+#    $wikihost=`$git config mwiki.wikihost`;
+#    chomp($wikihost);
     $lgitwebcgi="http://$wikihost:1234/";
 }
 else
@@ -385,8 +389,6 @@ IEND
     exit;
 }
 
-my $backend_repo_file = $backend_repo_path . "/" . $input_file;
-
 my $wikilock;
 
 # locking taken from ikiwiki
@@ -412,6 +414,8 @@ sub unlockwiki () {
 ## to defined variables/constants.
 if($action eq 'view')
 {
+    my $backend_repo_file = $backend_repo_path . "/" . $input_file;
+
     printheader();
 
 	open(ARTICLE,'<', "$backend_repo_path/html/$aname.html")
@@ -642,6 +646,8 @@ AEND
 ## the action for editing
 if($action eq "edit")
 {
+
+    my $backend_repo_file = $backend_repo_path . "/" . $input_file;
 
     my $old_content = "";
 

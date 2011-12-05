@@ -214,6 +214,7 @@ scratch-mizfiles: scratch-directories
 	cp -a -t $(SCRATCH_BASE) mwbase/* mwbase/.perl
 	sed -i -e "s|@@MWUSER@@|$(MWUSER)|g; s|@@MW_BTRFS@@|$(MW_BTRFS)|g; s|@@REPO_NAME@@|$(REPO_NAME)|g; s|@@GITWEB_ROOT@@|$(GITWEB_ROOT)|g;" \
 	 $(SCRATCH_BASE)/.perl/mw_common.pm $(SCRATCH_BASE)/Makefile
+	sed -i -e "s|@@MWUSER@@|$(MWUSER)|g; s|@@MW_BTRFS@@|$(MW_BTRFS)|g; s|@@REPO_NAME@@|$(REPO_NAME)|g; s|@@GITWEB_ROOT@@|$(GITWEB_ROOT)|g; s|@@CGI_HTTP_PATH@@|$(CGI_HTTP_PATH)|g; s|@@WIKIHOST@@|$(WIKIHOST)|g;" $(SCRATCH_BASE)/.perl/mw_common.pm $(SCRATCH_BASE)/Makefile
 	chown -R $(MWUSER):$(MWUSER) $(SCRATCH_BASE)
 
 scratch-deps: scratch-mizfiles
@@ -332,7 +333,7 @@ apacheconf:
 mwiki: public-repos apacheconf
 	mkdir -p $(CGILIB)
 	chown -R $(MWUSER):$(MWUSER) $(MWUSER_HOME)
-	sed -e "s|@@MWUSER@@|$(MWUSER)|g; s|@@MW_BTRFS@@|$(MW_BTRFS)|g; s|@@REPO_NAME@@|$(REPO_NAME)|g; s|@@GITWEB_ROOT@@|$(GITWEB_ROOT)|g; s|@@CGI_HTTP_PATH@@|$(CGI_HTTP_PATH)|g;" < mwbase/.perl/mw_common.pm > $(CGILIB)/mw_common.pm
+	sed -e "s|@@MWUSER@@|$(MWUSER)|g; s|@@MW_BTRFS@@|$(MW_BTRFS)|g; s|@@REPO_NAME@@|$(REPO_NAME)|g; s|@@GITWEB_ROOT@@|$(GITWEB_ROOT)|g; s|@@CGI_HTTP_PATH@@|$(CGI_HTTP_PATH)|g; s|@@WIKIHOST@@|$(WIKIHOST)|g;" < mwbase/.perl/mw_common.pm > $(CGILIB)/mw_common.pm
 	cp mwiki.cgi $(CGILIB)/mwiki.cgi
 	chown -R $(MWUSER):$(MWUSER) $(CGILIB)/mw_common.pm 
 	chmod 644 $(CGILIB)/mw_common.pm
