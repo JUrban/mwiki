@@ -9,7 +9,7 @@ use File::Copy;
 
 use lib '.';
 
-use mw_common qw(MWUSER REPO_NAME MW_BTRFS GITWEB_ROOT);
+use mw_common qw(MWUSER REPO_NAME MW_BTRFS GITWEB_ROOT CGI_HTTP_PATH);
 
 ## TODO: we should think about how to allow customization
 ##       of the following variables.
@@ -23,9 +23,9 @@ use mw_common qw(MWUSER REPO_NAME MW_BTRFS GITWEB_ROOT);
 # path to the git cgi
 my $lgitwebcgi    = "http://mws.cs.ru.nl:1234/";
 
-# relative name of the mwiki cgi
+# public http name of the mwiki cgi
 
-my $mwikicgi      = "mwiki.cgi";
+my $mwikicgi      = CGI_HTTP_PATH . '/mwiki.cgi';
 
 # the git binary - need absolute path - we run in taint mode
 my $git           = "/usr/bin/git";
