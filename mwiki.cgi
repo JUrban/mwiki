@@ -418,8 +418,8 @@ if($action eq 'view')
 
     printheader();
 
-	open(ARTICLE,'<', "$backend_repo_path/html/$aname.html")
-	    or pr_die("Article does not exist: $aname");
+    open(ARTICLE,'<', "$backend_repo_path/html/$aname.html")
+	or pr_die("Article does not exist: $aname");
 
     while(<ARTICLE>) { s/MWTMPL_GIT_PROJECT/$git_project/g; print $_; };
     close(ARTICLE);
@@ -431,6 +431,9 @@ if($action eq 'view')
 ## the action for committing
 if($action eq "commit")
 {
+
+    my $backend_repo_file = $backend_repo_path . "/" . $input_file;
+
     printheader();
 
     print "<pre>";
@@ -441,6 +444,21 @@ if($action eq "commit")
 	$message = $1;
     }
     else { pr_die("Bad commit message: \"$message\" "); }
+
+
+    if ($ProblemSource eq "UPLOAD")
+    {
+	my $UploadFileHandle = $query->param('UPLOADProblem');
+	if (!defined($UploadFileHandle) || $UploadFileHandle eq "")
+	{
+	    pr_die("ERROR: Empty uploaded problem file\n");
+	}
+	my @UploadLines = ();
+#DEBUG print("UPLOAD file: $UploadFileHandle \n");
+	while (<$UploadFileHandle>) { push(@UploadLines, $_);  };
+	close($UploadFileHandle);
+	$input_article = join('', @UploadLines);
+    }
 
     unless (length($input_article) < 1000000) 
     {
@@ -684,6 +702,16 @@ if($action eq "edit")
     <form method="post" action="$mwikicgi" enctype="multipart/form-data">
     <br>
     <table>
+      <td><input type="radio" name="ProblemSource" value="UPLOAD">Local article file to upload<br/>
+		<input type="file" name="UPLOADProblem"  size="20"/>
+      <tr valign=top>
+      </td>
+      <tr>
+        <td align=right>
+          <input type="submit" value="Submit">
+          <input type="reset" value="Reset">
+         </td>
+       </tr>
       <tr>
         <td>
           <input type="radio" name="ProblemSource" value="Formula" id="ProblemSourceRadioButton" checked>Edit article<br/>
@@ -709,7 +737,7 @@ if($action eq "edit")
       <tr>
               <td align=top>
 	      Commit message (mandatory):<br>
-                <textarea name="Message" tabindex="3"  rows="2" cols="40" id="MessageTextBox">Update $input_file</textarea>
+                <textarea name="Message" tabindex="3"  rows="2" cols="40" id="MessageTextBox">Update of $input_file</textarea>
               </td>
             </tr>
       <tr>
