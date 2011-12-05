@@ -110,7 +110,7 @@ elsif ($action =~ /^(blob_plain)$/)
 {
     $titleaction = "Source of $input_file";
 }
-elsif  ($action =~ /^(gitweb)$/
+elsif  ($action =~ /^(gitweb)$/)
 {
     $titleaction = "Project history";
 }
@@ -374,9 +374,9 @@ Mizar Mathematical Library Wiki
 <a href="#Z">Z</a>]</p>
 <hr/>
 IEND
-
-	open(INDEX,'<', "$backend_repo_path/html/00INDEX.html")
-	    or pr_die("Index file does not exist: $project_name");
+;
+    open(INDEX,'<', "$backend_repo_path/html/00INDEX.html")
+	or pr_die("Index file does not exist: $project_name");
 
     while(<INDEX>) { print $_; };
     close(INDEX);
