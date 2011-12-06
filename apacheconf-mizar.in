@@ -8,6 +8,8 @@ RewriteEngine On
   # wiki index
     RewriteRule  ^##REPOS_BASE##/([^\/]*)[\/]?$ /var/www/bin/##REPO_NAME##/mwiki.cgi?p=$1.git;a=index [PT,L,QSA]
     RewriteRule  ^##REPOS_BASE##/([^\/]*)[\/]00INDEX(.html)?$ /var/www/bin/##REPO_NAME##/mwiki.cgi?p=$1.git;a=index [PT,L,QSA]
+  # serve proofs normally - requires a symlink to one level up; doing a rewrite did not work here
+    RewriteRule  ^##REPOS_BASE##/([^\/]*)/proofs/.* - [L]
   # anything under /wiki is treated as an article title
     RewriteRule  ^##REPOS_BASE##/([^\/]*)([\/].*).html$ /var/www/bin/##REPO_NAME##/mwiki.cgi?p=$1.git;a=view;f=mml$2.miz [PT,L,QSA]
   DirectoryIndex 00INDEX.html
