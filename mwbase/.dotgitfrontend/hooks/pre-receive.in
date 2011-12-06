@@ -97,6 +97,8 @@ my $special_ext = $mizar_special_ext;
 my $special_regexp = '\.$special_ext\$';
 
 # Ensure that no non-mizar code is being pushed
+# ##TODO: this needs to use the (sha1-based) difference of git ls-tree -r $new_commit_tree and $old_commit_tree .
+#         The current code assumes one-commit pushes only, which is wrong.
 my @non_lib_files 
     = `git show --pretty=oneline --name-only $new_sha | tail -n +2 | grep --invert-match '\.$article_ext\$' | grep --invert-match '\.$special_ext\$'`;
 unless (scalar @non_lib_files == 0) {
@@ -110,6 +112,17 @@ unless (scalar @non_lib_files == 0) {
 # 2 they are actually files, i.e., blobs in git terminology
 # 3 their size is less than, say, one megabyte;
 # 4 they have mode 644 ("should never happen", given condition #2)
+
+# Using git show is wrong here: in only lists the files touched by the last commit.
+# We need all files touched by the commits that are being pushed.
+# Instead we need git ls-tree -r $new_commit_tree, compare with the old tree (by sha1),
+# and from that get the updated, new, and deleted articles.
+# Why don't we just copy the whole new tree to the backend repo?
+# Probably because we do not want to touch those files without a reason so that the re-verification is fast?
+# By looking at the sha1, we can avoid trivial re-verifications, and breaking of the btrfs sharing.
+# In some sense, this emulates the Scons use of MD5 instead of mtimes.
+
+
 my @lib_files = `git show --name-only --pretty=oneline $new_sha | tail -n +2 | grep "\.$article_ext\$"`;
 for my $lib_file (@lib_files) {
   chomp $lib_file;
