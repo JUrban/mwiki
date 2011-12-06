@@ -326,7 +326,7 @@ unless ($git_add_exit_code == 0) {
 
 # We've successful added new files to the repo -- let's commit!
 my $git_commit_output 
-  = system ("git commit -m 'Anonymous push' 2>&1");
+  = system ("git commit -m 'Wikifying a remote push' 2>&1");
 my $git_commit_exit_code = ($? >> 8);
 unless ($git_commit_exit_code == 0) {
   pr_print ("Error commiting to the backend repository:");
