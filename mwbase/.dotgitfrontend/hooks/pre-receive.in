@@ -25,16 +25,52 @@ sub pr_die {
   exit 1;
 }
 
+# Return a hashref with files as keys and their git -ls-tree -r description as values.
+# TODO: move to mw_common.pm
+sub git_tree_contents
+{
+    my $tree = shift;
+    my %res  = ();
+    my @lines = `git -ls-tree -r $tree`;
+    foreach my $_ (@lines)
+    {
+	m/^([^\t]+)[\t](.*)$/ or pr_die("Bad git ls-tree -r line for $tree: $_"); 
+	$res{$2} = $1;
+    }
+    return \%res;
+}
+
+# return a hash of touched (new, deleted, changed) files between old and new trees
+sub git_touched_files
+{
+    my ($old, $new) = @_;
+    my %res = ();
+    foreach my $k (keys %$new)
+    {
+	if(!(exists $old->{$k}))
+	{
+	    $res{$k} = 'N';
+	}
+	elsif($old->{$k} ne $new->{$k})
+	{
+	    $res{$k} = 'M';
+	}
+    }
+    foreach my $k (keys %$old)
+    {
+	$res{$k} = 'D' if(!(exists $new->{$k}));
+    }
+    return \%res;
+}
+
 # There should be exactly one line given to this script by git.
 my $first_line = <>;
 my $second_line = <>;
 unless (defined $first_line) {
-  pr_print ('Standard input was empty!  How is that possible?');
-  exit 1;
+  pr_die ('Standard input was empty!  How is that possible?');
 }
 if (defined $second_line) {
-  pr_print ('We currently handle pushes to only one refspec (namely, the master branch)');
-  exit 1;
+  pr_die ('We currently handle pushes to only one refspec (namely, the master branch)');
 }
 
 # Ensure that the line we've received has the right form, as specified
@@ -44,14 +80,12 @@ if (defined $second_line) {
 chomp $first_line;
 my ($old_sha, $new_sha, $refspec) = split (/\ /x, $first_line);
 unless (defined $old_sha && defined $new_sha && defined $refspec) {
-  pr_print ('The given line does not match the format specified in the githooks(5) man page');
-  exit 1;
+  pr_die ('The given line does not match the format specified in the githooks(5) man page');
 }
 
 # Check for sane SHA1 values
 unless ($old_sha =~ /[a-z0-9]{40}/x && $new_sha =~ /[a-z0-9]{40}/x) {
-  pr_print ('Suspicious SHA1 values given');
-  exit 1;
+  pr_die ('Suspicious SHA1 values given');
 }
 
 # Ensure that the new SHA1 and the old SHA1 are the names of commit
@@ -63,20 +97,17 @@ chomp $new_sha_type;
 unless ($old_sha_type eq 'commit') {
   pr_print ("The old object with the name,");
   pr_print ("  $old_sha");
-  pr_print ("is not a commit; unable to proceed.");
-  exit 1;
+  pr_die ("is not a commit; unable to proceed.");
 }
 unless ($new_sha_type eq 'commit') {
   pr_print ("The new object with the name,");
   pr_print ("  $new_sha");
-  pr_print ("is not a commit; unable to proceed.");
-  exit 1;
+  pr_die ("is not a commit; unable to proceed.");
 }
 
 # We permit pushes only to the refpsec "refs/heads/master".
 unless ($refspec eq 'refs/heads/master') {
-  pr_print ('We permit pushes only to the master branch');
-  exit 1;
+  pr_die ('We permit pushes only to the master branch');
 }
 
 # Now that we know that the SHA1 object names being pushed are
@@ -96,14 +127,19 @@ my $mizar_special_ext = 'voc';
 my $special_ext = $mizar_special_ext;
 my $special_regexp = '\.$special_ext\$';
 
+my $old_tree_files = git_tree_contents($old_commit_tree);
+my $new_tree_files = git_tree_contents($new_commit_tree);
+
+my $touched_files  = git_touched_files($old_commit_tree, $new_commit_tree);
 # Ensure that no non-mizar code is being pushed
 # ##TODO: this needs to use the (sha1-based) difference of git ls-tree -r $new_commit_tree and $old_commit_tree .
 #         The current code assumes one-commit pushes only, which is wrong.
-my @non_lib_files 
-    = `git show --pretty=oneline --name-only $new_sha | tail -n +2 | grep --invert-match '\.$article_ext\$' | grep --invert-match '\.$special_ext\$'`;
+my @non_lib_files = grep(!/\.($article_ext|$special_ext)\$/, keys %$touched_files);
+#    = `git show --pretty=oneline --name-only $new_sha | tail -n +2 | grep --invert-match '\.$article_ext\$' | grep --invert-match '\.$special_ext\$'`;
 unless (scalar @non_lib_files == 0) {
-    pr_print ("Only .$article_ext and .$special_ext files are permitted to be committed: \"$non_lib_files[0]\"  Sorry.");
-  exit 1;
+    pr_print ("Only .$article_ext and .$special_ext files are permitted to be changed, added, and deleted:");
+    pr_print(join(', ', @non_lib_files));
+    pr_die("  Sorry.");
 }
 
 # Ensure that all .miz files satisfy these conditions:
@@ -123,26 +159,27 @@ unless (scalar @non_lib_files == 0) {
 # In some sense, this emulates the Scons use of MD5 instead of mtimes.
 
 
-my @lib_files = `git show --name-only --pretty=oneline $new_sha | tail -n +2 | grep "\.$article_ext\$"`;
+my @lib_files = grep(/\.$article_ext\$/, keys %$touched_files);
+#`git show --name-only --pretty=oneline $new_sha | tail -n +2 | grep "\.$article_ext\$"`;
 for my $lib_file (@lib_files) {
   chomp $lib_file;
   if ($lib_file !~ /\A mml \/ ([a-z0-9_]+\.miz) \z/xm) { # strip "mml/" prefix
     pr_print ("Suspicious: .$article_ext file is not under the mml subdirectory");
-    pr_print ("The path is $lib_file");
-    exit 1;
+    pr_die ("The path is $lib_file");
   }
 }
 
-my @dict_files = `git show --name-only --pretty=oneline $new_sha | tail -n +2 | grep "\.$special_ext\$"`;
+my @dict_files = grep(/\.$special_ext\$/, keys %$touched_files);
+# `git show --name-only --pretty=oneline $new_sha | tail -n +2 | grep "\.$special_ext\$"`;
 for my $lib_file (@dict_files) {
   chomp $lib_file;
   if ($lib_file !~ /\A dict \/ ([a-z0-9_]+\.voc) \z/xm) { # strip "mml/" prefix
     pr_print ("Suspicious: .$special_ext file is not under the dict subdirectory");
-    pr_print ("The path is $lib_file");
-    exit 1;
+    pr_die ("The path is $lib_file");
   }
 }
 
+# these are all touched files (also deleted)
 @lib_files = (@lib_files, @dict_files);
 
 for my $lib_file (@lib_files) {
