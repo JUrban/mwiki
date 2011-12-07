@@ -59,7 +59,7 @@ sub print_one_html
 {
     my ($name) = @_;
     my $name_uc = uc($name);
-    print "<dt><a href=\"$htmlroot$name.html\">$name_uc</a>,</dt><dd>$all{$name}->[1]. <i>$all{$name}->[0]</i></dd>\n"
+    print "<div about=\"$name_uc\" typeof=\"oo:Theory\"><dt><a href=\"$htmlroot$name.html\">$name_uc</a>,</dt><dd>$all{$name}->[1]. <i>$all{$name}->[0]</i></dd></div>\n"
 }
 
 my $header=<<END;
