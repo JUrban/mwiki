@@ -25,42 +25,53 @@ sub pr_die {
   exit 1;
 }
 
+# named wrappers for the git ls-tree -l -r contents
+use constant MODE => 0;
+use constant TYPE => 1;
+use constant SHA1 => 2;
+use constant SIZE => 3;
+
+# admin mode for updating non-library files
+my $admin_mode = 0;
+
 # Return a hashref with files as keys and their git -ls-tree -r description as values.
 # TODO: move to mw_common.pm
 sub git_tree_contents
 {
     my $tree = shift;
     my %res  = ();
-    my @lines = `git -ls-tree -r $tree`;
+    my @lines = `git ls-tree -l -r $tree`;
     foreach my $_ (@lines)
     {
-	m/^([^\t]+)[\t](.*)$/ or pr_die("Bad git ls-tree -r line for $tree: $_"); 
-	$res{$2} = $1;
+	m/^([^\t ]+) +([^\t ]+) +([^\t ]+) +([^\t ]+)[\t](.*)$/ or pr_die("Bad git ls-tree -r line for $tree: $_"); 
+	$res{$5} = [$1,$2,$3,$4]; # mode, blob, sha1, size
     }
     return \%res;
 }
 
-# return a hash of touched (new, deleted, changed) files between old and new trees
+# Return a hash of all touched (new, deleted, changed) files between old and new trees,
+# and separate hashes for new, deleted, and changed files.
 sub git_touched_files
 {
     my ($old, $new) = @_;
-    my %res = ();
+    my %res = %new = %mod = %del = ();
     foreach my $k (keys %$new)
     {
 	if(!(exists $old->{$k}))
 	{
-	    $res{$k} = 'N';
+	    $res{$k} = 'N'; $new{$k} = ();
 	}
-	elsif($old->{$k} ne $new->{$k})
+	elsif(($old->{$k}->[SHA1] != $new->{$k}->[SHA1])
+	      || ($old->{$k}->[MODE] != $new->{$k}->[MODE]))
 	{
-	    $res{$k} = 'M';
+	    $res{$k} = 'M'; $mod{$k} = ();
 	}
     }
     foreach my $k (keys %$old)
     {
-	$res{$k} = 'D' if(!(exists $new->{$k}));
+	if(!(exists $new->{$k})) { $res{$k} = 'D'; $del{$k} = ();
     }
-    return \%res;
+    return (\%res, \%new, \%mod, \%del);
 }
 
 # There should be exactly one line given to this script by git.
@@ -130,13 +141,15 @@ my $special_regexp = '\.$special_ext\$';
 my $old_tree_files = git_tree_contents($old_commit_tree);
 my $new_tree_files = git_tree_contents($new_commit_tree);
 
-my $touched_files  = git_touched_files($old_commit_tree, $new_commit_tree);
-# Ensure that no non-mizar code is being pushed
-# ##TODO: this needs to use the (sha1-based) difference of git ls-tree -r $new_commit_tree and $old_commit_tree .
-#         The current code assumes one-commit pushes only, which is wrong.
+my ($touched_files, $new_files, $updated_files, $deleted_files)
+    = git_touched_files($old_commit_tree, $new_commit_tree);
+
+# Ensure that no non-mizar code is being pushed by non-admins
+
 my @non_lib_files = grep(!/\.($article_ext|$special_ext)\$/, keys %$touched_files);
-#    = `git show --pretty=oneline --name-only $new_sha | tail -n +2 | grep --invert-match '\.$article_ext\$' | grep --invert-match '\.$special_ext\$'`;
-unless (scalar @non_lib_files == 0) {
+
+if ((scalar @non_lib_files > 0) && ($admin_mode == 0)) {
+    pr_print ("You need to ask an administrator to change, add, and delete non-library files.");
     pr_print ("Only .$article_ext and .$special_ext files are permitted to be changed, added, and deleted:");
     pr_print(join(', ', @non_lib_files));
     pr_die("  Sorry.");
@@ -179,50 +192,37 @@ for my $lib_file (@dict_files) {
   }
 }
 
-# these are all touched files (also deleted)
+# these are all touched library files (also deleted)
 @lib_files = (@lib_files, @dict_files);
 
+
+# check the new and changed files
 for my $lib_file (@lib_files) {
-  chomp $lib_file;
-  my $lib_file_size = `git cat-file -s $new_sha:$lib_file`;
-  chomp $lib_file_size;
-  if ($lib_file_size > 1000000) {
-    pr_print ("Suspicious: the file $lib_file is bigger than one megabyte");
-    exit 1;
-  }
-  my $mode = `git ls-tree -r $new_commit_tree $lib_file | cut -f 1 -d ' '`;
-  chomp $mode;
-  unless ($mode eq '100644') {
-    pr_print ("Suspicious: a file $lib_file is being commited with mode $mode; we permit only mode 100644");
-    exit 1;
-  }
-  my $lib_file_type = `git ls-tree -r $new_commit_tree $lib_file | cut -f 2 -d ' '`;
-  chomp $lib_file_type;
-  unless ($lib_file_type eq 'blob') {
-    pr_print ("The file $lib_file is somehow not a git blob object");
-    exit 1;
+  if (!(exists $deleted_files->{$lib_file}))
+  {
+      my ($mode, $type, $sha1, $size) = @{$new_commit_tree->{$lib_file}};
+      pr_die ("Suspicious: the file $lib_file is bigger than one megabyte: $size")
+	  if($size > 1000000);
+
+      pr_die ("Suspicious: a file $lib_file is being commited with mode $mode; we permit only mode 100644")
+	  if ($mode ne '100644');
+
+      pr_die ("The file $lib_file is somehow not a git blob object: $type")
+	  if ($type eq 'blob');
   }
 }
 
 # Now let's try to commit these files to the backend repo.  First, we
 # need to store them somewhere.  They are already on the server as
 # objects.  I suppose we could just directly copy the files, using the
-# SHA1 object names.  But just for the sake of simplicity, let's first
-# use git show to do the job for us.
-#
-# How will we deal with the problem of possibly bad files?  We shall
-# first copy the files in the backend repo that are supposed to be
-# updated; these are known to be safe.  Then, we'll add the new .miz
-# files to the backend repo, and call git add there on them.  Then
-# we'll call git commit in the backend repo.  If this works, then we
-# don't have anything else to do; we can delete the copies of the
-# known safe .miz files that we made earlier.  IF something goes wrong
-# with the pre-commit hook, then we move the known safe mizar files
-# back into their original place.
+# SHA1 object names.
 
 my $backend_repo_path = '@@BACKEND@@';
 
 my $wikilock;
+
+# TODO: we should rather be locking the current clone here 
+#       - but maybe that's what we do by locking inside $backend_repo_path
 
 # locking taken from ikiwiki
 sub lockwiki () {
@@ -242,65 +242,27 @@ sub unlockwiki () {
 }
 
 
+my @new_files = sort keys %$new_files;
+my @updated_files = sort keys %$updated_files;
+my @deleted_files = sort keys %$deleted_files;
 
-# Separate the old miz files -- the ones that already exist in the
-# backend repo -- from the new miz files -- the genuinely new
-# contributions.  To determine whether something is old/already
-# exists, we'll use the old SHA1 that was given to this script as
-# input.  It should point to a commit object (and hence, indirectly,
-# to a tree object) that already exists on in the frontend repo.
 
-my @new_lib_files = ();
-my @updated_lib_files = ();
+# pr_print ("Here is the list of all received files: @lib_files");
 
-pr_print ("Here is the list of all received files: @lib_files");
+sub pr_print_list  { if (scalar @_ == 0) { pr_print ("(none)"); } else { pr_print ("@_"); }}
 
-foreach my $received_lib_file (@lib_files) {
-  chomp $received_lib_file; # looks like "mml/<something>"
-  `git cat-file -e $old_commit_tree:$received_lib_file 2> /dev/null`;
-  my $git_cat_file_exit_code = ($? >> 8);
-  if ($git_cat_file_exit_code == 0) {
-    push @updated_lib_files, $received_lib_file;
-  } else {
-    push @new_lib_files, $received_lib_file;
-  }
-}
-
-pr_print ("brand new files: ");
-if (scalar @new_lib_files == 0) {
-  pr_print ("(none)");
-} else {
-  pr_print ("@new_lib_files");
-}
-pr_print ("files to be updated: ");
-if (scalar @updated_lib_files == 0) {
-  pr_print ("(none)");
-} else {
-  pr_print ("@updated_lib_files");
-}
-
-# NOTE: this should be killed completely after testing the git reset HEAD and git checkout -- technique
-
-# Copy the files that already exist in the backend repo to a temporary
-# location.  If things work, these will simply be deleted.  Otherwise,
-# they will be resurrected and put back into the backend repo.
-# my $purgatory = tempdir ();
-# my $purgatory_mml = $purgatory . "/" . "mml";
-# mkdir $purgatory_mml;
-
-# Move the already existing mizar files to the backend repo
-# foreach my $updated_lib_file (@updated_lib_files) {
-#   chomp $updated_lib_file;
-#   my $article_filename = strip_initial_mml ($updated_lib_file);
-#   my $purgatory_path = $purgatory_mml . "/" . $article_filename;
-#   `git show $old_commit_tree:$updated_lib_file > $purgatory_path`;
-# }
+pr_print ("Brand new files: ");
+pr_print_list (@new_files);
+pr_print ("Files to be updated: ");
+pr_print_list (@updated_files);
+pr_print ("Files to be deleted: ");
+pr_print_list (@deleted_files);
 
 
 lockwiki();
 
 # Now that we've moved the files that are updated in this
-# proposed commit to a safe purgatory, copy the contents of the new
+# proposed commit to a safe purgatory, copy the contents of the 
 # new files to the backend repo.
 foreach my $received_file (@lib_files) {
   chomp $received_file;
@@ -315,77 +277,26 @@ foreach my $received_file (@lib_files) {
   }
 }
 
-sub ensure_directory {
-  my $maybe_dir = shift;
-  if (-d $maybe_dir) {
-    return $maybe_dir;
-  } else {
-    croak ("The given directory, $maybe_dir, is not actually a directory");
-  }
-}
 
-sub move_all_files_from_to {
-  my $source_dir = ensure_directory (shift);
-  my $target_dir = ensure_directory (shift);
-  `find $source_dir -type f -depth 0 -exec mv {} $target_dir ";"`;
-  my $find_exit_status = ($? >> 8);
-  if ($find_exit_status == 0) {
-    return;
-  } else {
-    croak ("Error copying the files from $source_dir to $target_dir!");
-  }
-}
-
-## TODO: The current way of doing this is bad when the commit/add fails:
-##    When we modify a file, and call git add, its current content is staged.
-##    When the commit fails, and we copy over it the old version, the
-##    modified version is still staged - this is bad. We need to undo
-##    the staging too. Perhaps there is a pre-staging hook? Or it is
-##    easy to undo the last staging?
-##
-##    Here is the answer: http://learn.github.com/p/undoing.html
-##    we can use:
-##    git reset HEAD
-##    and
-##    git checkout --
-##    to unstage and unmodify
-##
-## NOTE: if we do things this way, we should not need the copying of
-## the old files to tempdir.
-##
 ## NOTE: we should also think of this in pre-commit
 
 
-# All newly received mizar files are now in sitting in the backend
-# repo.  Now we add them.
+# All changes are now done in the backend
+# repo.  Now we commit them.
 local $ENV{GIT_DIR} 
   = $backend_repo_path . "/" . ".git"; # GIT_DIR is set to "." by git
 
 chdir $backend_repo_path;              # before executing this hook!
-system ("git add @lib_files 2>&1");
-my $git_add_exit_code = ($? >> 8);
-unless ($git_add_exit_code == 0) {
-  pr_print ("Error adding the new files to the backend repository:");
-  pr_print ("The exit code was $git_add_exit_code");
 
-  system ("git reset --hard 2>&1");
-#  move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
-
-  exit 1;
-}
-
-# We've successful added new files to the repo -- let's commit!
+# Let's commit, adding new files and deleting old ones.
 my $git_commit_output 
-  = system ("git commit -m 'Wikifying a remote push' 2>&1");
+  = system ("git commit -a -m 'Wikifying a remote push' 2>&1");
 my $git_commit_exit_code = ($? >> 8);
 unless ($git_commit_exit_code == 0) {
   pr_print ("Error commiting to the backend repository:");
   pr_print ("The exit code was $git_commit_exit_code");
 
   system ("git reset --hard 2>&1");
-
-  # The commit failed, so we need to resurrect the files in purgatory
-#  move_all_files_from_to ($purgatory_mml, $backend_repo_mml);
 
   exit 1;
 }
