@@ -121,7 +121,9 @@ init-mwiki-user:
 	adduser $(MWUSER)
 	ssh $(MWUSER)@localhost ssh-keygen -q 
 	sudo -i -u $(MWUSER) sh -c 'git config --global user.email "$(MWUSER)@none.none" && git config --global user.name "$(MWUSER)"'
-	mkdir $(BTRFS)/tstmw && chown tstmw:tstmw $(BTRFS)/tstmw && ln -s $(BTRFS)/tstmw clones
+	mkdir $(BTRFS)/$(MWUSER) && chown $(MWUSER):$(MWUSER) $(BTRFS)/$(MWUSER) && ln -s $(BTRFS)/$(MWUSER) $(MWUSER_HOME)/clones
+
+
 
 
 # gitolite
