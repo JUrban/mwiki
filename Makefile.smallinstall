@@ -115,6 +115,15 @@ MIZBINARIES=accom envget exporter makeenv transfer verifier
 
 MIZROOTFILES=mml.ini mml.vct mizar.dct mizar.msg
 
+# run this just once for a series of experiments like this:
+# sudo make -f Makefile.smallinstall init-mwiki-user MWUSER=tstmw
+init-mwiki-user:
+	adduser $(MWUSER)
+	ssh $(MWUSER)@localhost ssh-keygen -q 
+	sudo -i -u $(MWUSER) sh -c 'git config --global user.email "$(MWUSER)@none.none" && git config --global user.name "$(MWUSER)"'
+	mkdir $(BTRFS)/tstmw && chown tstmw:tstmw $(BTRFS)/tstmw && ln -s $(BTRFS)/tstmw clones
+
+
 # gitolite
 
 GITOLITE_REPO=/home/urban/ec/gitolite
