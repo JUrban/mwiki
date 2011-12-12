@@ -165,8 +165,7 @@ gitolite-setup:
 	cd $(GITOLITE_ADMIN_DIR) && sudo -u $(MWUSER) sh -c 'export HOME=$(MWUSER_HOME) && export PATH=$$PATH:$$HOME/bin && git add  conf/users.conf && git commit -a -m "Include users.conf in the config file and register the mwiki with gitolite." && git push && git config  user.name $(MWUSER) && git config user.email $(MWUSER)@none.none '
 	# suexec config - TODO: this is probably unnnecessary now - test
 	chown -R $(MWUSER):$(MWUSER) /home/$(MWUSER)
-	perl -e 'open(A,$$ARGV[0]); while(<A>) { s/##MWUSER##/$$ARGV[1]/g; print }' \
-          suexec-config $(MWUSER) > /etc/apache2/suexec/$(MWUSER)
+	# perl -e 'open(A,$$ARGV[0]); while(<A>) { s/##MWUSER##/$$ARGV[1]/g; print }'  suexec-config $(MWUSER) > /etc/apache2/suexec/$(MWUSER)
 	# the mwadmin directory
 	mkdir -p $(MWADMIN_DIR)
 	touch $(MWADMIN_DIR)/gitolite-users
