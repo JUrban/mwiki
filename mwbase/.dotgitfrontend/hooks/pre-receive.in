@@ -173,30 +173,26 @@ if ((scalar @non_lib_files > 0) && ($admin_mode == 0)) {
 
 
 my @lib_files = grep(/\.$article_ext\$/, keys %$touched_files);
-#`git show --name-only --pretty=oneline $new_sha | tail -n +2 | grep "\.$article_ext\$"`;
 for my $lib_file (@lib_files) {
-  chomp $lib_file;
-  if ($lib_file !~ /\A mml \/ ([a-z0-9_]+\.miz) \z/xm) { # strip "mml/" prefix
+  if ($lib_file !~ /^mml\/([a-z0-9_]+[.]$article_ext)$/ { # strip "mml/" prefix
     pr_print ("Suspicious: .$article_ext file is not under the mml subdirectory");
     pr_die ("The path is $lib_file");
   }
 }
 
 my @dict_files = grep(/\.$special_ext\$/, keys %$touched_files);
-# `git show --name-only --pretty=oneline $new_sha | tail -n +2 | grep "\.$special_ext\$"`;
 for my $lib_file (@dict_files) {
-  chomp $lib_file;
-  if ($lib_file !~ /\A dict \/ ([a-z0-9_]+\.voc) \z/xm) { # strip "mml/" prefix
+  if ($lib_file !~ /^dict\/([a-z0-9_]+[.]$special_ext)$/ { # strip "dict/" prefix
     pr_print ("Suspicious: .$special_ext file is not under the dict subdirectory");
     pr_die ("The path is $lib_file");
   }
 }
 
-# these are all touched library files (also deleted)
+# these are all touched library files (also deleted),
+# now checked for being at the proper place
 @lib_files = (@lib_files, @dict_files);
 
-
-# check the new and changed files
+# check the new and changed library files
 for my $lib_file (@lib_files) {
   if (!(exists $deleted_files->{$lib_file}))
   {
@@ -265,11 +261,6 @@ lockwiki();
 # proposed commit to a safe purgatory, copy the contents of the 
 # new files to the backend repo.
 foreach my $received_file (@lib_files) {
-  chomp $received_file;
-  ($received_file =~ /^(mml|dict)\/[a-z0-9_]+[.]($article_ext|$special_ext)$/) or
-    pr_die("Wrong file name: $received_file");
-  my $possibly_new_dir_path = $1;
-  `mkdir -p $backend_repo_path/$possibly_new_dir_path`;
   my $received_path = $backend_repo_path . "/" . $received_file;
   `git cat-file blob $new_commit_tree:$received_file > $received_path`;
   unless (-e $received_path) {

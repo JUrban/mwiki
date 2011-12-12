@@ -9,6 +9,8 @@ gitweb
 apache2
 runit
 git-daemon-run
+Mizar installation with envget
+gitolite
 
 users:
 
